@@ -340,12 +340,12 @@ class AsyncButtonBuilderState extends State<AsyncButtonBuilder>
               child: switcher,
             )
           : switcher,
-      press(),
+      pressCallback,
       _buttonState,
     );
   }
 
-  AsyncCallback? press() {
+  AsyncCallback? get pressCallback {
     if (widget.disabled || widget.onPressed == null) {
       return null;
     }

@@ -16,13 +16,24 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  final textButtonState = GlobalKey<AsyncButtonBuilderState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Async Buttons')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: textButtonState.currentState?.pressCallback,
+        label: const Text('You can trigger first button from here'),
+      ),
       body: SizedBox.expand(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -31,6 +42,7 @@ class MyHomePage extends StatelessWidget {
             const Divider(),
             const Text('Text Button:'),
             AsyncButtonBuilder(
+              key: textButtonState,
               child: const Text('Click Me'),
               onPressed: () async {
                 await Future.delayed(const Duration(seconds: 1));
