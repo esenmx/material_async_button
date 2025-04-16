@@ -123,7 +123,6 @@ To disable the notifications, you can pass `false` to `notifications`.
 
 `async_button_builder` even works for custom buttons. You can define your own widgets for loading, error, and completion as well as define the transitions between them. This example is a little verbose but shows some of what's possible.
 
-
 ```dart
 AsyncButtonBuilder(
   child: Padding(

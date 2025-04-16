@@ -48,10 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 await Future.delayed(const Duration(seconds: 1));
               },
               builder: (context, child, callback, _) {
-                return TextButton(
-                  onPressed: callback,
-                  child: child,
-                );
+                return TextButton(onPressed: callback, child: child);
               },
             ),
             const Divider(),
@@ -62,10 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 await Future.delayed(const Duration(seconds: 1));
               },
               builder: (context, child, callback, _) {
-                return ElevatedButton(
-                  onPressed: callback,
-                  child: child,
-                );
+                return ElevatedButton(onPressed: callback, child: child);
               },
             ),
             const Divider(),
@@ -74,32 +68,15 @@ class _MyHomePageState extends State<MyHomePage> {
               loadingWidget: const Text('Loading...'),
               onPressed: () async {
                 await Future.delayed(const Duration(seconds: 1));
-
                 throw 'yikes';
-
-                // If you want to add a timeout, use something similar to
-                //
-                // try {
-                //   await Future.delayed(Duration(seconds: 1))
-                //       .timeout(Duration(milliseconds: 500));
-                // } on TimeoutException catch (_) {
-                //   // Show a popup or something
-                //   rethrow;
-                // } on Exception catch (_) {
-                //   // Show a dialog or something
-                //   rethrow;
-                // }
-                //
-                // We rethrow so that async_button_builder can handle the error
-                // state
               },
               builder: (context, child, callback, buttonState) {
-                final buttonColor = buttonState.when(
-                  idle: () => Colors.yellow[200],
-                  loading: () => Colors.grey,
-                  success: () => Colors.orangeAccent,
-                  error: (_) => Colors.orange,
-                );
+                final buttonColor = switch (buttonState) {
+                  AsyncButtonStateIdle() => Colors.yellow[200],
+                  AsyncButtonStateLoading() => Colors.grey,
+                  AsyncButtonStateSuccess() => Colors.orangeAccent,
+                  AsyncButtonStateError() => Colors.orange,
+                };
 
                 return OutlinedButton(
                   onPressed: callback,
@@ -128,10 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               successWidget: const Padding(
                 padding: EdgeInsets.all(4.0),
-                child: Icon(
-                  Icons.check,
-                  color: Colors.purpleAccent,
-                ),
+                child: Icon(Icons.check, color: Colors.purpleAccent),
               ),
               onPressed: () async {
                 await Future.delayed(const Duration(seconds: 2));
@@ -148,29 +122,20 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               builder: (context, child, callback, state) {
                 return Material(
-                  color: state.maybeWhen(
-                    success: () => Colors.purple[100],
-                    orElse: () => Colors.blue,
-                  ),
+                  color: switch (state) {
+                    AsyncButtonStateSuccess() => Colors.purple[100],
+                    _ => Colors.blue,
+                  },
                   // This prevents the loading indicator showing below the
                   // button
                   clipBehavior: Clip.hardEdge,
                   shape: const StadiumBorder(),
-                  child: InkWell(
-                    onTap: callback,
-                    child: child,
-                  ),
+                  child: InkWell(onTap: callback, child: child),
                 );
               },
               child: const Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
-                ),
-                child: Text(
-                  'Click Me',
-                  style: TextStyle(color: Colors.white),
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Text('Click Me', style: TextStyle(color: Colors.white)),
               ),
             ),
             const Divider(),
