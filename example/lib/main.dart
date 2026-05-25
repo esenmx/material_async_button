@@ -1,147 +1,182 @@
-import 'package:async_button_builder/async_button_builder.dart';
 import 'package:flutter/material.dart';
+import 'package:material_async_button/material_async_button.dart';
 
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData.dark(),
-      home: const MyHomePage(),
-    );
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'material_async_button demo',
+        theme: ThemeData(
+          colorSchemeSeed: Colors.indigo,
+          useMaterial3: true,
+          extensions: [MaterialAsyncButtonTheme.material()],
+        ),
+        home: const HomePage(),
+      );
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final _formController = AsyncButtonController();
+  final _externalController = AsyncButtonController();
+  final _textController = TextEditingController();
+
+  @override
+  void dispose() {
+    _formController.dispose();
+    _externalController.dispose();
+    _textController.dispose();
+    super.dispose();
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  final textButtonState = GlobalKey<AsyncButtonBuilderState>();
+  Future<void> _simulateWork({bool fail = false}) async {
+    await Future<void>.delayed(const Duration(milliseconds: 800));
+    if (fail) throw StateError('simulated failure');
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Async Buttons')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: textButtonState.currentState?.pressCallback,
-        label: const Text('You can trigger first button from here'),
-      ),
-      body: SizedBox.expand(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            const Divider(),
-            const Text('Text Button:'),
-            AsyncButtonBuilder(
-              key: textButtonState,
-              child: const Text('Click Me'),
-              onPressed: () async {
-                await Future.delayed(const Duration(seconds: 1));
-              },
-              builder: (context, child, callback, _) {
-                return TextButton(onPressed: callback, child: child);
-              },
-            ),
-            const Divider(),
-            const Text('Elevated Button:'),
-            AsyncButtonBuilder(
-              child: const Text('Click Me'),
-              onPressed: () async {
-                await Future.delayed(const Duration(seconds: 1));
-              },
-              builder: (context, child, callback, _) {
-                return ElevatedButton(onPressed: callback, child: child);
-              },
-            ),
-            const Divider(),
-            const Text('Custom Outlined Button (Error):'),
-            AsyncButtonBuilder(
-              loadingWidget: const Text('Loading...'),
-              onPressed: () async {
-                await Future.delayed(const Duration(seconds: 1));
-                throw 'yikes';
-              },
-              builder: (context, child, callback, buttonState) {
-                final buttonColor = switch (buttonState) {
-                  AsyncButtonStateIdle() => Colors.yellow[200],
-                  AsyncButtonStateLoading() => Colors.grey,
-                  AsyncButtonStateSuccess() => Colors.orangeAccent,
-                  AsyncButtonStateError() => Colors.orange,
-                };
-
-                return OutlinedButton(
-                  onPressed: callback,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    backgroundColor: buttonColor,
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('material_async_button')),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const _SectionLabel('Material wrappers'),
+              ElevatedAsyncButton(
+                onPressed: _simulateWork,
+                child: const Text('ElevatedAsyncButton'),
+              ),
+              const SizedBox(height: 8),
+              ElevatedAsyncButton.icon(
+                onPressed: _simulateWork,
+                icon: const Icon(Icons.send),
+                label: const Text('ElevatedAsyncButton.icon'),
+              ),
+              const SizedBox(height: 8),
+              FilledAsyncButton(
+                onPressed: _simulateWork,
+                child: const Text('FilledAsyncButton'),
+              ),
+              const SizedBox(height: 8),
+              FilledAsyncButton.tonal(
+                onPressed: _simulateWork,
+                child: const Text('FilledAsyncButton.tonal'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedAsyncButton(
+                onPressed: () => _simulateWork(fail: true),
+                child: const Text('OutlinedAsyncButton (fails)'),
+              ),
+              const SizedBox(height: 8),
+              TextAsyncButton(
+                onPressed: _simulateWork,
+                child: const Text('TextAsyncButton'),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconAsyncButton(
+                      onPressed: _simulateWork,
+                      icon: const Icon(Icons.refresh)),
+                  IconAsyncButton.filled(
+                      onPressed: _simulateWork, icon: const Icon(Icons.add)),
+                  IconAsyncButton.filledTonal(
+                      onPressed: _simulateWork, icon: const Icon(Icons.edit)),
+                  IconAsyncButton.outlined(
+                      onPressed: _simulateWork,
+                      icon: const Icon(Icons.delete)),
+                ],
+              ),
+              const Divider(height: 32),
+              const _SectionLabel('Form "Done" → controller.trigger()'),
+              TextField(
+                controller: _textController,
+                textInputAction: TextInputAction.done,
+                decoration: const InputDecoration(labelText: 'Name'),
+                onSubmitted: (_) => _formController.trigger(),
+              ),
+              const SizedBox(height: 8),
+              ElevatedAsyncButton(
+                controller: _formController,
+                onPressed: () => _simulateWork(),
+                child: const Text('Submit'),
+              ),
+              const Divider(height: 32),
+              const _SectionLabel('External controller'),
+              ElevatedAsyncButton(
+                controller: _externalController,
+                onPressed: _simulateWork,
+                child: const Text('Submit (driven by controller)'),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  OutlinedButton(
+                    onPressed: () => _externalController.trigger(),
+                    child: const Text('trigger()'),
                   ),
-                  child: child,
-                );
-              },
-              child: const Text('Click Me'),
-            ),
-            const Divider(),
-            const Text('Custom Material Button:'),
-            const SizedBox(height: 6.0),
-            AsyncButtonBuilder(
-              loadingWidget: const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: SizedBox(
-                  height: 16.0,
-                  width: 16.0,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  OutlinedButton(
+                    onPressed: () =>
+                        _externalController.invalidate('server rejected'),
+                    child: const Text('invalidate()'),
                   ),
+                  OutlinedButton(
+                    onPressed: _externalController.markSuccess,
+                    child: const Text('markSuccess()'),
+                  ),
+                  OutlinedButton(
+                    onPressed: _externalController.reset,
+                    child: const Text('reset()'),
+                  ),
+                ],
+              ),
+              const Divider(height: 32),
+              const _SectionLabel('Custom button via AsyncButtonBuilder'),
+              AsyncButtonBuilder(
+                onPressed: _simulateWork,
+                animateSize: true,
+                child: const Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child:
+                      Text('Custom', style: TextStyle(color: Colors.white)),
                 ),
-              ),
-              successWidget: const Padding(
-                padding: EdgeInsets.all(4.0),
-                child: Icon(Icons.check, color: Colors.purpleAccent),
-              ),
-              onPressed: () async {
-                await Future.delayed(const Duration(seconds: 2));
-              },
-              loadingSwitchInCurve: Curves.bounceInOut,
-              loadingTransitionBuilder: (child, animation) {
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 1.0),
-                    end: const Offset(0, 0),
-                  ).animate(animation),
-                  child: child,
-                );
-              },
-              builder: (context, child, callback, state) {
-                return Material(
+                builder: (ctx, child, callback, state) => Material(
                   color: switch (state) {
-                    AsyncButtonStateSuccess() => Colors.purple[100],
-                    _ => Colors.blue,
+                    AsyncButtonStateSuccess() => Colors.green,
+                    AsyncButtonStateError() => Colors.red,
+                    _ => Colors.indigo,
                   },
-                  // This prevents the loading indicator showing below the
-                  // button
                   clipBehavior: Clip.hardEdge,
                   shape: const StadiumBorder(),
                   child: InkWell(onTap: callback, child: child),
-                );
-              },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Text('Click Me', style: TextStyle(color: Colors.white)),
+                ),
               ),
-            ),
-            const Divider(),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(text, style: Theme.of(context).textTheme.titleMedium),
+      );
 }
