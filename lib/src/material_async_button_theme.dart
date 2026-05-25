@@ -54,19 +54,18 @@ class MaterialAsyncButtonTheme extends ThemeExtension<MaterialAsyncButtonTheme> 
     Color? loadingColor,
     Color? successColor,
     Color? errorColor,
-  }) =>
-      MaterialAsyncButtonTheme(
-        loadingChild: _DefaultLoadingChild(color: loadingColor),
-        successChild: _DefaultSuccessIcon(color: successColor),
-        errorChild: _DefaultErrorIcon(color: errorColor),
-        switchDuration: const Duration(milliseconds: 200),
-        switchReverseDuration: const Duration(milliseconds: 200),
-        successDisplayDuration: const Duration(milliseconds: 800),
-        errorDisplayDuration: const Duration(milliseconds: 800),
-        animateSize: true,
-        hapticOn: HapticOn.both,
-        announceSemantics: true,
-      );
+  }) => MaterialAsyncButtonTheme(
+    loadingChild: _DefaultLoadingChild(color: loadingColor),
+    successChild: _DefaultSuccessIcon(color: successColor),
+    errorChild: _DefaultErrorIcon(color: errorColor),
+    switchDuration: const Duration(milliseconds: 200),
+    switchReverseDuration: const Duration(milliseconds: 200),
+    successDisplayDuration: const Duration(milliseconds: 800),
+    errorDisplayDuration: const Duration(milliseconds: 800),
+    animateSize: true,
+    hapticOn: HapticOn.both,
+    announceSemantics: true,
+  );
 
   /// Shown in place of [child] while the future is in flight.
   /// Falls back to a 16x16 [CircularProgressIndicator] when null.
@@ -150,31 +149,27 @@ class MaterialAsyncButtonTheme extends ThemeExtension<MaterialAsyncButtonTheme> 
     HapticOn? hapticOn,
     bool? announceSemantics,
     bool? rethrowErrors,
-  }) =>
-      MaterialAsyncButtonTheme(
-        loadingChild: loadingChild ?? this.loadingChild,
-        successChild: successChild ?? this.successChild,
-        errorChild: errorChild ?? this.errorChild,
-        switchDuration: switchDuration ?? this.switchDuration,
-        switchReverseDuration:
-            switchReverseDuration ?? this.switchReverseDuration,
-        switchCurve: switchCurve ?? this.switchCurve,
-        switchInCurve: switchInCurve ?? this.switchInCurve,
-        switchOutCurve: switchOutCurve ?? this.switchOutCurve,
-        transitionBuilder: transitionBuilder ?? this.transitionBuilder,
-        successDisplayDuration:
-            successDisplayDuration ?? this.successDisplayDuration,
-        errorDisplayDuration:
-            errorDisplayDuration ?? this.errorDisplayDuration,
-        cooldownDuration: cooldownDuration ?? this.cooldownDuration,
-        animateSize: animateSize ?? this.animateSize,
-        sizeCurve: sizeCurve ?? this.sizeCurve,
-        sizeAlignment: sizeAlignment ?? this.sizeAlignment,
-        sizeClipBehavior: sizeClipBehavior ?? this.sizeClipBehavior,
-        hapticOn: hapticOn ?? this.hapticOn,
-        announceSemantics: announceSemantics ?? this.announceSemantics,
-        rethrowErrors: rethrowErrors ?? this.rethrowErrors,
-      );
+  }) => MaterialAsyncButtonTheme(
+    loadingChild: loadingChild ?? this.loadingChild,
+    successChild: successChild ?? this.successChild,
+    errorChild: errorChild ?? this.errorChild,
+    switchDuration: switchDuration ?? this.switchDuration,
+    switchReverseDuration: switchReverseDuration ?? this.switchReverseDuration,
+    switchCurve: switchCurve ?? this.switchCurve,
+    switchInCurve: switchInCurve ?? this.switchInCurve,
+    switchOutCurve: switchOutCurve ?? this.switchOutCurve,
+    transitionBuilder: transitionBuilder ?? this.transitionBuilder,
+    successDisplayDuration: successDisplayDuration ?? this.successDisplayDuration,
+    errorDisplayDuration: errorDisplayDuration ?? this.errorDisplayDuration,
+    cooldownDuration: cooldownDuration ?? this.cooldownDuration,
+    animateSize: animateSize ?? this.animateSize,
+    sizeCurve: sizeCurve ?? this.sizeCurve,
+    sizeAlignment: sizeAlignment ?? this.sizeAlignment,
+    sizeClipBehavior: sizeClipBehavior ?? this.sizeClipBehavior,
+    hapticOn: hapticOn ?? this.hapticOn,
+    announceSemantics: announceSemantics ?? this.announceSemantics,
+    rethrowErrors: rethrowErrors ?? this.rethrowErrors,
+  );
 
   @override
   MaterialAsyncButtonTheme lerp(
@@ -189,18 +184,18 @@ class MaterialAsyncButtonTheme extends ThemeExtension<MaterialAsyncButtonTheme> 
       successChild: snap ? successChild : other.successChild,
       errorChild: snap ? errorChild : other.errorChild,
       switchDuration: _lerpDuration(switchDuration, other.switchDuration, t),
-      switchReverseDuration:
-          _lerpDuration(switchReverseDuration, other.switchReverseDuration, t),
+      switchReverseDuration: _lerpDuration(switchReverseDuration, other.switchReverseDuration, t),
       switchCurve: snap ? switchCurve : other.switchCurve,
       switchInCurve: snap ? switchInCurve : other.switchInCurve,
       switchOutCurve: snap ? switchOutCurve : other.switchOutCurve,
       transitionBuilder: snap ? transitionBuilder : other.transitionBuilder,
-      successDisplayDuration:
-          _lerpDuration(successDisplayDuration, other.successDisplayDuration, t),
-      errorDisplayDuration:
-          _lerpDuration(errorDisplayDuration, other.errorDisplayDuration, t),
-      cooldownDuration:
-          _lerpDuration(cooldownDuration, other.cooldownDuration, t),
+      successDisplayDuration: _lerpDuration(
+        successDisplayDuration,
+        other.successDisplayDuration,
+        t,
+      ),
+      errorDisplayDuration: _lerpDuration(errorDisplayDuration, other.errorDisplayDuration, t),
+      cooldownDuration: _lerpDuration(cooldownDuration, other.cooldownDuration, t),
       animateSize: snap ? animateSize : other.animateSize,
       sizeCurve: snap ? sizeCurve : other.sizeCurve,
       sizeAlignment: AlignmentGeometry.lerp(sizeAlignment, other.sizeAlignment, t),
@@ -244,26 +239,26 @@ class MaterialAsyncButtonTheme extends ThemeExtension<MaterialAsyncButtonTheme> 
 
   @override
   int get hashCode => Object.hashAll([
-        loadingChild,
-        successChild,
-        errorChild,
-        switchDuration,
-        switchReverseDuration,
-        switchCurve,
-        switchInCurve,
-        switchOutCurve,
-        transitionBuilder,
-        successDisplayDuration,
-        errorDisplayDuration,
-        cooldownDuration,
-        animateSize,
-        sizeCurve,
-        sizeAlignment,
-        sizeClipBehavior,
-        hapticOn,
-        announceSemantics,
-        rethrowErrors,
-      ]);
+    loadingChild,
+    successChild,
+    errorChild,
+    switchDuration,
+    switchReverseDuration,
+    switchCurve,
+    switchInCurve,
+    switchOutCurve,
+    transitionBuilder,
+    successDisplayDuration,
+    errorDisplayDuration,
+    cooldownDuration,
+    animateSize,
+    sizeCurve,
+    sizeAlignment,
+    sizeClipBehavior,
+    hapticOn,
+    announceSemantics,
+    rethrowErrors,
+  ]);
 }
 
 class _DefaultLoadingChild extends StatelessWidget {

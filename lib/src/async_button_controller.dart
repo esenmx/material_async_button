@@ -17,10 +17,9 @@ import 'async_button_state.dart';
 ///   - mark the button as succeeded from outside.
 ///
 /// Dispose like any [ChangeNotifier].
-class AsyncButtonController extends ChangeNotifier
-    implements ValueListenable<AsyncButtonState> {
+class AsyncButtonController extends ChangeNotifier implements ValueListenable<AsyncButtonState> {
   AsyncButtonController({AsyncButtonState initial = const AsyncButtonState.idle()})
-      : _value = initial;
+    : _value = initial;
 
   AsyncButtonState _value;
   @override
@@ -32,14 +31,14 @@ class AsyncButtonController extends ChangeNotifier
   bool get isError => _value is AsyncButtonStateError;
 
   Object? get error => switch (_value) {
-        AsyncButtonStateError(:final error) => error,
-        _ => null,
-      };
+    AsyncButtonStateError(:final error) => error,
+    _ => null,
+  };
 
   StackTrace? get stackTrace => switch (_value) {
-        AsyncButtonStateError(:final stackTrace) => stackTrace,
-        _ => null,
-      };
+    AsyncButtonStateError(:final stackTrace) => stackTrace,
+    _ => null,
+  };
 
   bool get isInCooldown => _cooldownActive;
 

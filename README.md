@@ -22,7 +22,7 @@ dependencies:
   material_async_button: ^1.0.0
 ```
 
-Requires Dart `^3.10.0` and Flutter `>=3.40.0`.
+Requires Dart `^3.10.0` (any Flutter SDK shipping Dart 3.10+).
 
 ## Why
 

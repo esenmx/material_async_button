@@ -28,7 +28,7 @@ with a redesigned, theme-aware API.
 - Defaults are unopinionated: zero `successDisplayDuration`,
   zero `errorDisplayDuration`, no success/error widget swap unless asked.
   Use `MaterialAsyncButtonTheme.material()` for the v3-style baseline.
-- Minimum Dart SDK is `^3.10.0`; minimum Flutter is `>=3.40.0`.
+- Minimum Dart SDK is `^3.10.0` (any Flutter SDK shipping Dart 3.10+).
 
 ### Fixed
 
