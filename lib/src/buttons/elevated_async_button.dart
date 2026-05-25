@@ -41,8 +41,8 @@ class ElevatedAsyncButton extends StatelessWidget {
     this.hapticOn,
     this.announceSemantics,
     this.rethrowErrors,
-  })  : _icon = null,
-        _iconAlignment = null;
+  }) : _icon = null,
+       _iconAlignment = null;
 
   /// Mirrors [ElevatedButton.icon]. The loading/success/error children
   /// replace the `label` while [icon] stays put.
@@ -79,9 +79,9 @@ class ElevatedAsyncButton extends StatelessWidget {
     this.hapticOn,
     this.announceSemantics,
     this.rethrowErrors,
-  })  : _icon = icon,
-        _iconAlignment = iconAlignment,
-        child = label;
+  }) : _icon = icon,
+       _iconAlignment = iconAlignment,
+       child = label;
 
   final Future<void> Function()? onPressed;
   final Widget child;
@@ -98,11 +98,10 @@ class ElevatedAsyncButton extends StatelessWidget {
 
   final AsyncButtonController? controller;
   final VoidCallback? onSuccess;
-  final void Function(Object error, StackTrace stackTrace)? onError;
+  final AsyncButtonErrorCallback? onError;
   final ValueChanged<AsyncButtonState>? onStateChanged;
   final Future<bool> Function(BuildContext context)? confirmBeforePress;
-  final Widget Function(BuildContext context, Object error, StackTrace? stackTrace)?
-      errorBuilder;
+  final AsyncButtonErrorBuilder? errorBuilder;
   final Widget? loadingChild;
   final Widget? successChild;
   final Widget? errorChild;
@@ -119,56 +118,56 @@ class ElevatedAsyncButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AsyncButtonBuilder(
-        onPressed: onPressed,
-        controller: controller,
-        onSuccess: onSuccess,
-        onError: onError,
-        onStateChanged: onStateChanged,
-        confirmBeforePress: confirmBeforePress,
-        errorBuilder: errorBuilder,
-        loadingChild: loadingChild,
-        successChild: successChild,
-        errorChild: errorChild,
-        disabled: disabled,
-        switchDuration: switchDuration,
-        transitionBuilder: transitionBuilder,
-        successDisplayDuration: successDisplayDuration,
-        errorDisplayDuration: errorDisplayDuration,
-        cooldownDuration: cooldownDuration,
-        animateSize: animateSize,
-        hapticOn: hapticOn,
-        announceSemantics: announceSemantics,
-        rethrowErrors: rethrowErrors,
-        child: child,
-        builder: (context, animatedChild, callback, _) {
-          if (_icon != null) {
-            return ElevatedButton.icon(
-              onPressed: callback,
-              onLongPress: callback == null ? null : onLongPress,
-              onHover: onHover,
-              onFocusChange: onFocusChange,
-              style: style,
-              focusNode: focusNode,
-              autofocus: autofocus,
-              clipBehavior: clipBehavior ?? Clip.none,
-              statesController: statesController,
-              iconAlignment: _iconAlignment,
-              icon: _icon,
-              label: animatedChild,
-            );
-          }
-          return ElevatedButton(
-            onPressed: callback,
-            onLongPress: callback == null ? null : onLongPress,
-            onHover: onHover,
-            onFocusChange: onFocusChange,
-            style: style,
-            focusNode: focusNode,
-            autofocus: autofocus,
-            clipBehavior: clipBehavior ?? Clip.none,
-            statesController: statesController,
-            child: animatedChild,
-          );
-        },
+    onPressed: onPressed,
+    controller: controller,
+    onSuccess: onSuccess,
+    onError: onError,
+    onStateChanged: onStateChanged,
+    confirmBeforePress: confirmBeforePress,
+    errorBuilder: errorBuilder,
+    loadingChild: loadingChild,
+    successChild: successChild,
+    errorChild: errorChild,
+    disabled: disabled,
+    switchDuration: switchDuration,
+    transitionBuilder: transitionBuilder,
+    successDisplayDuration: successDisplayDuration,
+    errorDisplayDuration: errorDisplayDuration,
+    cooldownDuration: cooldownDuration,
+    animateSize: animateSize,
+    hapticOn: hapticOn,
+    announceSemantics: announceSemantics,
+    rethrowErrors: rethrowErrors,
+    child: child,
+    builder: (context, animatedChild, callback, _) {
+      if (_icon != null) {
+        return ElevatedButton.icon(
+          onPressed: callback,
+          onLongPress: callback == null ? null : onLongPress,
+          onHover: onHover,
+          onFocusChange: onFocusChange,
+          style: style,
+          focusNode: focusNode,
+          autofocus: autofocus,
+          clipBehavior: clipBehavior ?? Clip.none,
+          statesController: statesController,
+          iconAlignment: _iconAlignment,
+          icon: _icon,
+          label: animatedChild,
+        );
+      }
+      return ElevatedButton(
+        onPressed: callback,
+        onLongPress: callback == null ? null : onLongPress,
+        onHover: onHover,
+        onFocusChange: onFocusChange,
+        style: style,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        clipBehavior: clipBehavior ?? Clip.none,
+        statesController: statesController,
+        child: animatedChild,
       );
+    },
+  );
 }

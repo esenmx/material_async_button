@@ -28,8 +28,7 @@ void main() {
 
     test('copyWith overrides only specified fields', () {
       final base = MaterialAsyncButtonTheme.material();
-      final overridden =
-          base.copyWith(switchDuration: const Duration(milliseconds: 500));
+      final overridden = base.copyWith(switchDuration: const Duration(milliseconds: 500));
       expect(overridden.switchDuration, const Duration(milliseconds: 500));
       expect(overridden.successDisplayDuration, base.successDisplayDuration);
       expect(overridden.hapticOn, base.hapticOn);
@@ -54,47 +53,52 @@ void main() {
     });
 
     test('lerp with non-MaterialAsyncButtonTheme returns self', () {
-      const a = MaterialAsyncButtonTheme(
-          switchDuration: Duration(milliseconds: 100));
+      const a = MaterialAsyncButtonTheme(switchDuration: Duration(milliseconds: 100));
       final result = a.lerp(null, 0.5);
       expect(result.switchDuration, a.switchDuration);
     });
 
     testWidgets('of(context) returns the registered extension', (tester) async {
-      const ext = MaterialAsyncButtonTheme(
-          switchDuration: Duration(milliseconds: 123));
+      const ext = MaterialAsyncButtonTheme(switchDuration: Duration(milliseconds: 123));
       MaterialAsyncButtonTheme? captured;
-      await tester.pumpWidget(MaterialApp(
-        theme: ThemeData(extensions: const [ext]),
-        home: Builder(
-          builder: (ctx) {
-            captured = MaterialAsyncButtonTheme.of(ctx);
-            return const SizedBox.shrink();
-          },
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(extensions: const [ext]),
+          home: Builder(
+            builder: (ctx) {
+              captured = MaterialAsyncButtonTheme.of(ctx);
+              return const SizedBox.shrink();
+            },
+          ),
         ),
-      ));
+      );
       expect(captured?.switchDuration, const Duration(milliseconds: 123));
     });
 
-    testWidgets('of(context) returns empty when extension absent',
-        (tester) async {
+    testWidgets('of(context) returns empty when extension absent', (tester) async {
       MaterialAsyncButtonTheme? captured;
-      await tester.pumpWidget(MaterialApp(
-        home: Builder(
-          builder: (ctx) {
-            captured = MaterialAsyncButtonTheme.of(ctx);
-            return const SizedBox.shrink();
-          },
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (ctx) {
+              captured = MaterialAsyncButtonTheme.of(ctx);
+              return const SizedBox.shrink();
+            },
+          ),
         ),
-      ));
+      );
       expect(captured?.switchDuration, isNull);
     });
 
     test('equality is value-based', () {
       const a = MaterialAsyncButtonTheme(
-          switchDuration: Duration(milliseconds: 100), hapticOn: HapticOn.both);
+        switchDuration: Duration(milliseconds: 100),
+        hapticOn: HapticOn.both,
+      );
       const b = MaterialAsyncButtonTheme(
-          switchDuration: Duration(milliseconds: 100), hapticOn: HapticOn.both);
+        switchDuration: Duration(milliseconds: 100),
+        hapticOn: HapticOn.both,
+      );
       expect(a, b);
       expect(a.hashCode, b.hashCode);
     });

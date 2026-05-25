@@ -66,8 +66,7 @@ final class AsyncButtonStateError extends AsyncButtonState {
   final StackTrace? stackTrace;
 
   @override
-  bool operator ==(Object other) =>
-      other is AsyncButtonStateError && other.error == error;
+  bool operator ==(Object other) => other is AsyncButtonStateError && other.error == error;
 
   @override
   int get hashCode => Object.hash(AsyncButtonStateError, error);

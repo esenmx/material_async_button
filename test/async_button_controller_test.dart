@@ -11,8 +11,7 @@ void main() {
       expect(c.value, const AsyncButtonState.idle());
       expect(c.isIdle, isTrue);
       expect(c.isLoading, isFalse);
-      expect(c.canTrigger, isFalse,
-          reason: 'No onPressed attached yet, cannot trigger.');
+      expect(c.canTrigger, isFalse, reason: 'No onPressed attached yet, cannot trigger.');
       c.dispose();
     });
 
@@ -46,8 +45,7 @@ void main() {
       c.dispose();
     });
 
-    test('invalidate forces error and reaches idle when duration zero',
-        () async {
+    test('invalidate forces error and reaches idle when duration zero', () async {
       final c = AsyncButtonController()
         ..attach(
           onPressed: null,
@@ -57,13 +55,15 @@ void main() {
           rethrowErrors: false,
         );
       c.invalidate('bad');
-      expect(c.value, const AsyncButtonState.idle(),
-          reason: 'Zero error duration returns straight to idle.');
+      expect(
+        c.value,
+        const AsyncButtonState.idle(),
+        reason: 'Zero error duration returns straight to idle.',
+      );
       c.dispose();
     });
 
-    test('invalidate forces error and stays there for errorDuration',
-        () async {
+    test('invalidate forces error and stays there for errorDuration', () async {
       final c = AsyncButtonController()
         ..attach(
           onPressed: null,
@@ -94,13 +94,11 @@ void main() {
       c.dispose();
     });
 
-    test('successful trigger transitions idle -> loading -> success -> idle',
-        () async {
+    test('successful trigger transitions idle -> loading -> success -> idle', () async {
       final transitions = <AsyncButtonState>[];
       final c = AsyncButtonController()
         ..attach(
-          onPressed: () async => Future<void>.delayed(
-              const Duration(milliseconds: 20)),
+          onPressed: () async => Future<void>.delayed(const Duration(milliseconds: 20)),
           successDuration: const Duration(milliseconds: 20),
           errorDuration: Duration.zero,
           cooldownDuration: Duration.zero,
@@ -111,17 +109,17 @@ void main() {
       // trigger awaited onPressed. Success has fired; idle is scheduled in 20ms.
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(
-          transitions.map((s) => s.runtimeType).toList(),
-          containsAllInOrder(<Type>[
-            AsyncButtonStateLoading,
-            AsyncButtonStateSuccess,
-            AsyncButtonStateIdle,
-          ]));
+        transitions.map((s) => s.runtimeType).toList(),
+        containsAllInOrder(<Type>[
+          AsyncButtonStateLoading,
+          AsyncButtonStateSuccess,
+          AsyncButtonStateIdle,
+        ]),
+      );
       c.dispose();
     });
 
-    test('failing trigger transitions idle -> loading -> error -> idle',
-        () async {
+    test('failing trigger transitions idle -> loading -> error -> idle', () async {
       final transitions = <AsyncButtonState>[];
       final c = AsyncButtonController()
         ..attach(
@@ -135,12 +133,13 @@ void main() {
       await c.trigger();
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(
-          transitions.map((s) => s.runtimeType).toList(),
-          containsAllInOrder(<Type>[
-            AsyncButtonStateLoading,
-            AsyncButtonStateError,
-            AsyncButtonStateIdle,
-          ]));
+        transitions.map((s) => s.runtimeType).toList(),
+        containsAllInOrder(<Type>[
+          AsyncButtonStateLoading,
+          AsyncButtonStateError,
+          AsyncButtonStateIdle,
+        ]),
+      );
       c.dispose();
     });
 
@@ -250,37 +249,44 @@ void main() {
 
     test('error/stackTrace getters expose the error variant payload', () {
       final st = StackTrace.current;
-      final c = AsyncButtonController(
-          initial: AsyncButtonState.error('boom', st));
+      final c = AsyncButtonController(initial: AsyncButtonState.error('boom', st));
       expect(c.error, 'boom');
       expect(c.stackTrace, st);
       c.dispose();
     });
   });
 
-  testWidgets('value listenable interop with ValueListenableBuilder',
-      (tester) async {
-    final c = AsyncButtonController();
+  testWidgets('value listenable interop with ValueListenableBuilder', (tester) async {
+    final c = AsyncButtonController()
+      ..attach(
+        onPressed: null,
+        successDuration: const Duration(seconds: 5),
+        errorDuration: Duration.zero,
+        cooldownDuration: Duration.zero,
+        rethrowErrors: false,
+      );
     addTearDown(c.dispose);
 
     String label(AsyncButtonState s) => switch (s) {
-          AsyncButtonStateIdle() => 'idle',
-          AsyncButtonStateLoading() => 'loading',
-          AsyncButtonStateSuccess() => 'success',
-          AsyncButtonStateError() => 'error',
-        };
+      AsyncButtonStateIdle() => 'idle',
+      AsyncButtonStateLoading() => 'loading',
+      AsyncButtonStateSuccess() => 'success',
+      AsyncButtonStateError() => 'error',
+    };
 
-    await tester.pumpWidget(MaterialApp(
-      home: ValueListenableBuilder<AsyncButtonState>(
-        valueListenable: c,
-        builder: (_, state, __) => Text(label(state),
-            textDirection: TextDirection.ltr),
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueListenableBuilder<AsyncButtonState>(
+          valueListenable: c,
+          builder: (_, state, __) => Text(label(state), textDirection: TextDirection.ltr),
+        ),
       ),
-    ));
+    );
     expect(find.text('idle'), findsOneWidget);
 
     c.markSuccess();
     await tester.pump();
     expect(find.text('success'), findsOneWidget);
+    c.reset();
   });
 }
