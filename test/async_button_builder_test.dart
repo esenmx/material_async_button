@@ -47,9 +47,9 @@ void main() {
         _wrap(
           AsyncButtonBuilder(
             onPressed: () => completer.future,
-            child: const Text('go'),
             loadingChild: const Text('spinning'),
             builder: (c, child, cb, _) => TextButton(onPressed: cb, child: child),
+            child: const Text('go'),
           ),
         ),
       );
@@ -93,9 +93,9 @@ void main() {
           home: Scaffold(
             body: AsyncButtonBuilder(
               onPressed: () => completer.future,
-              child: const Text('go'),
               loadingChild: const Text('widget'),
               builder: (c, child, cb, _) => TextButton(onPressed: cb, child: child),
+              child: const Text('go'),
             ),
           ),
         ),
@@ -130,10 +130,10 @@ void main() {
         _wrap(
           AsyncButtonBuilder(
             onPressed: () async {},
-            child: const Text('label'),
             successChild: const Text('done!'),
             successDisplayDuration: const Duration(milliseconds: 200),
             builder: (c, child, cb, _) => TextButton(onPressed: cb, child: child),
+            child: const Text('label'),
           ),
         ),
       );
@@ -153,13 +153,13 @@ void main() {
         _wrap(
           AsyncButtonBuilder(
             onPressed: () async => throw StateError('boom'),
-            child: const Text('label'),
             errorDisplayDuration: const Duration(milliseconds: 100),
             errorBuilder: (c, err, st) {
               observed = err;
               return Text('err: ${err.toString().split(":").last.trim()}');
             },
             builder: (c, child, cb, _) => TextButton(onPressed: cb, child: child),
+            child: const Text('label'),
           ),
         ),
       );
@@ -292,10 +292,10 @@ void main() {
           AsyncButtonBuilder(
             controller: controller,
             onPressed: () async {},
-            child: const Text('label'),
             errorChild: const Text('errored'),
             errorDisplayDuration: const Duration(milliseconds: 100),
             builder: (c, child, cb, _) => TextButton(onPressed: cb, child: child),
+            child: const Text('label'),
           ),
         ),
       );
@@ -314,10 +314,10 @@ void main() {
           AsyncButtonBuilder(
             controller: controller,
             onPressed: () async {},
-            child: const Text('label'),
             successChild: const Text('yay'),
             successDisplayDuration: const Duration(seconds: 5),
             builder: (c, child, cb, _) => TextButton(onPressed: cb, child: child),
+            child: const Text('label'),
           ),
         ),
       );
@@ -370,10 +370,10 @@ void main() {
           AsyncButtonBuilder(
             controller: controller,
             onPressed: () async {},
-            child: const Text('child'),
             errorChild: const Text('e'),
             errorDisplayDuration: const Duration(milliseconds: 200),
             builder: (c, child, cb, _) => TextButton(onPressed: cb, child: child),
+            child: const Text('child'),
           ),
         ),
       );
