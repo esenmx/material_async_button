@@ -219,7 +219,10 @@ class AsyncButtonBuilderState extends State<AsyncButtonBuilder> {
       AsyncButtonStateError() => 'Error',
     };
     if (message != null) {
-      SemanticsService.announce(message, direction);
+      final view = View.maybeOf(context);
+      if (view != null) {
+        SemanticsService.sendAnnouncement(view, message, direction);
+      }
     }
   }
 

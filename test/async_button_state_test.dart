@@ -38,7 +38,7 @@ void main() {
       expect(const AsyncButtonState.idle().toString(), 'AsyncButtonState.idle()');
       expect(const AsyncButtonState.loading().toString(), 'AsyncButtonState.loading()');
       expect(const AsyncButtonState.success().toString(), 'AsyncButtonState.success()');
-      expect(AsyncButtonState.error('boom').toString(), 'AsyncButtonState.error(boom)');
+      expect(const AsyncButtonState.error('boom').toString(), 'AsyncButtonState.error(boom)');
     });
   });
 
@@ -53,12 +53,12 @@ void main() {
       expect(describe(const AsyncButtonState.idle()), 'idle');
       expect(describe(const AsyncButtonState.loading()), 'loading');
       expect(describe(const AsyncButtonState.success()), 'success');
-      expect(describe(AsyncButtonState.error('x')), 'error');
+      expect(describe(const AsyncButtonState.error('x')), 'error');
     });
 
     test('error variant exposes error and stack trace', () {
       final st = StackTrace.current;
-      final s = AsyncButtonState.error('boom', st);
+      final s = AsyncButtonStateError('boom', st);
       expect(s.error, 'boom');
       expect(s.stackTrace, st);
     });
