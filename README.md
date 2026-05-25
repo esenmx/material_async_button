@@ -1,191 +1,207 @@
-# async_button_builder
+# material_async_button
 
-AsyncButtonBuilder offers a simple way to extend any type of button with an asynchronous aspect. It allows adding loading, disabled, errored and completed states (with fluid animation between each) on top of buttons that perform asynchronous tasks.
+Drop-in async wrappers for Flutter Material buttons. Adds **loading**,
+**success**, and **error** states to `ElevatedButton`, `FilledButton`,
+`OutlinedButton`, `TextButton`, and `IconButton` — without forcing you to
+build a project-wide wrapper widget.
 
-## Getting Started
+```dart
+ElevatedAsyncButton(
+  onPressed: () async => await api.save(),
+  child: const Text('Save'),
+)
+```
 
-Include the package:
+That's it. The button shows a spinner while `save()` runs and re-enables when
+it returns or throws.
+
+## Install
 
 ```yaml
-  async_button_builder: <latest_version>
+dependencies:
+  material_async_button: ^1.0.0
 ```
 
-Wrap the builder around a button, passing the onPressed and child element to builder instead of the button directly. These two are the only required fields.
+Requires Dart `^3.10.0` and Flutter `>=3.40.0`.
 
-```dart
-AsyncButtonBuilder(
-  child: Text('Click Me'),
-  onPressed: () async {
-    await Future.delayed(Duration(seconds: 1));
-  },
-  builder: (context, child, callback, _) {
-    return TextButton(
-      child: child,
-      onPressed: callback,
-    );
-  },
-),
-```
+## Why
 
-<p>  
- <img src="https://github.com/Nolence/async_button_builder/blob/main/screenshots/ezgif-7-61c436edaec2.gif?raw=true"/>
-</p>
-
-The fourth value in the builder allows you listen to the loading state. This can be used to conditionally style the button. This package depends `freezed` in order to create a sealed union to better handle the possible states.
-
-> NOTE (Breaking change): As of v3.0.0, error now takes the error and stack trace as arguments.
-
-```dart
-AsyncButtonBuilder(
-  child: Text('Click Me'),
-  loadingWidget: Text('Loading...'),
-  onPressed: () async {
-    await Future.delayed(Duration(seconds: 1));
-
-    // See the examples file for a way to handle timeouts
-    throw 'yikes';
-  },
-  builder: (context, child, callback, buttonState) {
-    final buttonColor = buttonState.when(
-      idle: () => Colors.yellow[200],
-      loading: () => Colors.grey,
-      success: () => Colors.orangeAccent,
-      error: (err, stack) => Colors.orange,
-    );
-
-    return OutlinedButton(
-      child: child,
-      onPressed: callback,
-      style: OutlinedButton.styleFrom(
-        primary: Colors.black,
-        backgroundColor: buttonColor,
-      ),
-    );
-  },
-),
-```
-
-<p>  
- <img src="https://github.com/Nolence/async_button_builder/blob/main/screenshots/ezgif-7-a971c6afaabf.gif?raw=true"/>
-</p>
-
-You can also drive the state of the button yourself using the  `buttonState` field:
-
-```dart
-AsyncButtonBuilder(
-  buttonState: ButtonState.completing(),
-  // ...
-),
-```
-
-## Notifications
-
-As of v3.0.0, you can now wrap a higher level parent to handle notifications that come from buttons. Why not use something like `runZonedGuarded`? Notification bubbling handles not only the error but the state of the button. If you'd like, for example, to trigger a circular spinner in the center of the app notifiying the user that something is happening, you can do so by listening to the `AsyncButtonNotification` and then using the `buttonState` to determine what to do.
-
-It might also be a good idea to separate the errors that come from button presses and those that are not. An error wants to see why a button press silently failed but might not need to know why a background fetch failed.
+Most apps end up writing their own `DefaultAsyncButton` wrapper to share
+loading-spinner widgets, durations, and transition curves across screens.
+This package gives you that wrapper as a [`ThemeExtension`][th]:
 
 ```dart
 MaterialApp(
-  home: NotificationListener<AsyncButtonNotification>(
-    onNotification: (notification) {
-      notification.buttonState.when(
-        idle: () => // nothing -> you could use a maybeWhen as well
-        loading: () => // show circular loading widget?
-        success: () => // show success snackbar?
-        error: (_, __) => // show error snackbar?
-      );
-
-      // Tells the notification to stop bubbling
-      return true;
-    },
-    // This async button can be nested arbitrarily deep*
-    child: AsyncButtonBuilder(
-      duration: duration,
-      errorDuration: const Duration(milliseconds: 100),
-      errorWidget: const Text('error'),
-      onPressed: () async {
-        throw ArgumentError();
-      },
-      builder: (context, child, callback, state) {
-        return TextButton(onPressed: callback, child: child);
-      },
-      child: const Text('click me'),
-    ),
+  theme: ThemeData(
+    extensions: [MaterialAsyncButtonTheme.material()],
   ),
 )
-
-// See NotificationListener for more information
 ```
 
-To disable the notifications, you can pass `false` to `notifications`.
+Configure once, every `*AsyncButton` in the app picks it up. Override per
+button when you need to.
 
-## Customization
+[th]: https://api.flutter.dev/flutter/material/ThemeExtension-class.html
 
-`async_button_builder` even works for custom buttons. You can define your own widgets for loading, error, and completion as well as define the transitions between them. This example is a little verbose but shows some of what's possible.
+## Material wrappers
+
+| Material         | Async counterpart      | Variants                                            |
+| ---------------- | ---------------------- | --------------------------------------------------- |
+| `ElevatedButton` | `ElevatedAsyncButton`  | `.icon`                                             |
+| `FilledButton`   | `FilledAsyncButton`    | `.tonal`, `.icon`, `.tonalIcon`                     |
+| `OutlinedButton` | `OutlinedAsyncButton`  | `.icon`                                             |
+| `TextButton`     | `TextAsyncButton`      | `.icon`                                             |
+| `IconButton`     | `IconAsyncButton`      | `.filled`, `.filledTonal`, `.outlined`              |
+
+Every Material constructor is mirrored. All Material parameters (`style`,
+`focusNode`, `autofocus`, `clipBehavior`, `statesController`, etc.) are
+forwarded verbatim.
+
+## Theming
+
+`MaterialAsyncButtonTheme` is a `ThemeExtension`. Resolution order for any
+field is **per-widget value → theme value → built-in fallback**.
+
+```dart
+ThemeData(
+  extensions: [
+    MaterialAsyncButtonTheme(
+      switchDuration: const Duration(milliseconds: 200),
+      successDisplayDuration: const Duration(milliseconds: 800),
+      errorDisplayDuration: const Duration(milliseconds: 800),
+      successChild: const Icon(Icons.check),
+      errorChild: const Icon(Icons.error_outline),
+      animateSize: true,
+      hapticOn: HapticOn.both,
+      announceSemantics: true,
+    ),
+  ],
+)
+```
+
+Or grab the opinionated baseline:
+
+```dart
+ThemeData(extensions: [MaterialAsyncButtonTheme.material()])
+```
+
+## Unopinionated defaults
+
+Without any theme set:
+
+| State      | Default UI                                  |
+| ---------- | ------------------------------------------- |
+| idle       | your `child`                                |
+| loading    | 16×16 `CircularProgressIndicator`           |
+| success    | your `child` (no swap), display duration 0  |
+| error      | your `child` (no swap), display duration 0  |
+
+Most apps want a flash of green check / red error. Either set the theme
+extension once, or pass `successChild` / `errorChild` per button.
+
+## External control
+
+### `AsyncButtonController` — recommended
+
+The Material wrappers expose state through an `AsyncButtonController`. This is
+the pattern to use for **form keyboard "Done"**, parent-owned state,
+cross-widget reactions, and tests.
+
+```dart
+final controller = AsyncButtonController();   // dispose like any ChangeNotifier
+
+TextField(
+  textInputAction: TextInputAction.done,
+  onSubmitted: (_) => controller.trigger(),
+)
+ElevatedAsyncButton(
+  controller: controller,
+  onPressed: submit,
+  child: const Text('Submit'),
+)
+
+// any time:
+controller.trigger();                          // run onPressed from outside
+controller.invalidate('server rejected');      // force error
+controller.markSuccess();                      // force success
+controller.reset();                            // back to idle
+```
+
+### `GlobalKey<AsyncButtonBuilderState>` — for the low-level builder only
+
+If you're using `AsyncButtonBuilder` directly (custom non-Material button),
+the same operations are exposed on its `State`:
+
+```dart
+final key = GlobalKey<AsyncButtonBuilderState>();
+
+AsyncButtonBuilder(
+  key: key,
+  onPressed: submit,
+  child: const Text('Submit'),
+  builder: (c, child, cb, _) => MyButton(onTap: cb, child: child),
+)
+
+key.currentState?.trigger();
+```
+
+The controller is a `ValueListenable<AsyncButtonState>`. Pipe it to a
+`ValueListenableBuilder` for cross-widget UI reactions. Dispose like any
+`ChangeNotifier`.
+
+## State pattern matching
 
 ```dart
 AsyncButtonBuilder(
-  child: Padding(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 16.0,
-      vertical: 8.0,
-    ),
-    child: Text(
-      'Click Me',
-      style: TextStyle(color: Colors.white),
-    ),
+  onPressed: doWork,
+  child: const Text('Go'),
+  builder: (context, child, callback, state) => MyButton(
+    onTap: callback,
+    color: switch (state) {
+      AsyncButtonStateIdle()    => Colors.blue,
+      AsyncButtonStateLoading() => Colors.grey,
+      AsyncButtonStateSuccess() => Colors.green,
+      AsyncButtonStateError()   => Colors.red,
+    },
+    child: child,
   ),
-  loadingWidget: Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: SizedBox(
-      height: 16.0,
-      width: 16.0,
-      child: CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-      ),
-    ),
-  ),
-  successWidget: Padding(
-    padding: const EdgeInsets.all(4.0),
-    child: Icon(
-      Icons.check,
-      color: Colors.purpleAccent,
-    ),
-  ),
-  onPressed: () async {
-    await Future.delayed(Duration(seconds: 2));
-  },
-  loadingSwitchInCurve: Curves.bounceInOut,
-  loadingTransitionBuilder: (child, animation) {
-    return SlideTransition(
-      position: Tween<Offset>(
-        begin: Offset(0, 1.0),
-        end: Offset(0, 0),
-      ).animate(animation),
-      child: child,
-    );
-  },
-  builder: (context, child, callback, state) {
-    return Material(
-      color: state.maybeWhen(
-        success: () => Colors.purple[100],
-        orElse: () => Colors.blue,
-      ),
-      // This prevents the loading indicator showing below the
-      // button
-      clipBehavior: Clip.hardEdge,
-      shape: StadiumBorder(),
-      child: InkWell(
-        child: child,
-        onTap: callback,
-      ),
-    );
-  },
-),
+)
 ```
 
-<p>  
- <img src="https://github.com/Nolence/async_button_builder/blob/main/screenshots/ezgif-7-4088c909ba83.gif?raw=true"/>
-</p>
+`AsyncButtonBuilder` is the low-level escape hatch. Use it when none of the
+Material wrappers fit.
 
-Issues and PR's welcome
+## Features
+
+- `confirmBeforePress` — gate `onPressed` behind a confirmation `Future<bool>`
+- `errorBuilder` — render the thrown error with full context
+- `onSuccess` / `onError` / `onStateChanged` — fire-and-forget callbacks
+- `cooldownDuration` — disable the button briefly after success to prevent
+  double-submit
+- `hapticOn` — light haptic on success/error
+- `announceSemantics` — `SemanticsService.announce` for screen readers
+- `rethrowErrors` — rethrow from `controller.trigger()` so callers can
+  `try/catch` while the UI also shows the error
+
+## Migrating from `async_button_builder`
+
+This package is a renamed continuation of `async_button_builder`. The
+low-level `AsyncButtonBuilder` and `AsyncButtonState` types are preserved
+(`error` now carries a `StackTrace`). Most v3 code keeps working after:
+
+1. `dependencies: async_button_builder: ^3.0.0` → `material_async_button: ^1.0.0`
+2. `import 'package:async_button_builder/async_button_builder.dart'`
+   → `import 'package:material_async_button/material_async_button.dart'`
+
+The opinionated `notifications` flag and `AsyncButtonNotification` are gone;
+use `AsyncButtonController` or `onStateChanged` instead.
+
+## Claude Code skill
+
+A skill that teaches Claude Code to use this package idiomatically ships at
+`claude_code_skill/flutter-material-async-button/SKILL.md`. Copy it into
+`.claude/skills/` in your project.
+
+## License
+
+MIT
