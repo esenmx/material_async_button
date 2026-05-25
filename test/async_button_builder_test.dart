@@ -338,13 +338,13 @@ void main() {
         a.dispose();
         b.dispose();
       });
-      final builder = (AsyncButtonController c) => AsyncButtonBuilder(
+      AsyncButtonBuilder builder(AsyncButtonController c) => AsyncButtonBuilder(
         controller: c,
         onPressed: () async {},
         successChild: const Text('done'),
         successDisplayDuration: const Duration(milliseconds: 100),
-        child: const Text('child'),
         builder: (ctx, child, cb, _) => TextButton(onPressed: cb, child: child),
+        child: const Text('child'),
       );
       await tester.pumpWidget(_wrap(builder(a)));
       await tester.pumpWidget(_wrap(builder(b)));

@@ -36,9 +36,12 @@ void main() {
         ),
       );
       await tester.tap(find.byType(FilledButton));
+      // Wait for the AnimatedSwitcher cross-fade to settle.
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
       expect(find.byIcon(Icons.save), findsOneWidget);
       expect(find.text('save'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
       completer.complete();
       await tester.pumpAndSettle();
     });
