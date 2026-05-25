@@ -13,12 +13,21 @@ import 'material_async_button_theme.dart';
 ///
 /// `callback` is `null` when the button should appear disabled (already
 /// loading, in cooldown, or `onPressed`/`disabled` make it ineligible).
-typedef AsyncButtonWidgetBuilder = Widget Function(
-  BuildContext context,
-  Widget child,
-  AsyncCallback? callback,
-  AsyncButtonState state,
-);
+typedef AsyncButtonWidgetBuilder =
+    Widget Function(
+      BuildContext context,
+      Widget child,
+      AsyncCallback? callback,
+      AsyncButtonState state,
+    );
+
+/// Signature for [AsyncButtonBuilder.errorBuilder].
+typedef AsyncButtonErrorBuilder =
+    Widget Function(BuildContext context, Object error, StackTrace? stackTrace);
+
+/// Signature for the `onError` callback. Receives the thrown error plus the
+/// captured stack trace.
+typedef AsyncButtonErrorCallback = void Function(Object error, StackTrace stackTrace);
 
 /// Builder for an arbitrary button with async loading/success/error states.
 ///
@@ -85,7 +94,7 @@ class AsyncButtonBuilder extends StatefulWidget {
 
   /// Called after error display completes (or immediately if the display
   /// duration is zero). Receives the thrown error and stack trace.
-  final void Function(Object error, StackTrace stackTrace)? onError;
+  final AsyncButtonErrorCallback? onError;
 
   /// Fired on every state change.
   final ValueChanged<AsyncButtonState>? onStateChanged;
@@ -96,8 +105,7 @@ class AsyncButtonBuilder extends StatefulWidget {
 
   /// Renders the error state. When non-null, takes precedence over
   /// [errorChild] and the theme's `errorChild`.
-  final Widget Function(BuildContext context, Object error, StackTrace? stackTrace)?
-      errorBuilder;
+  final AsyncButtonErrorBuilder? errorBuilder;
 
   final Widget? loadingChild;
   final Widget? successChild;
@@ -130,8 +138,7 @@ class AsyncButtonBuilder extends StatefulWidget {
 
 class AsyncButtonBuilderState extends State<AsyncButtonBuilder> {
   AsyncButtonController? _internalController;
-  AsyncButtonController get _controller =>
-      widget.controller ?? _internalController!;
+  AsyncButtonController get _controller => widget.controller ?? _internalController!;
 
   AsyncButtonState _lastNotifiedState = const AsyncButtonState.idle();
 
@@ -175,9 +182,11 @@ class AsyncButtonBuilderState extends State<AsyncButtonBuilder> {
       widget.onStateChanged?.call(newState);
       _fireHaptic(_lastNotifiedState, newState);
       _announceSemantics(newState);
-      if (newState is AsyncButtonStateSuccess && _lastNotifiedState is! AsyncButtonStateSuccess) {
+      final wasSuccess = _lastNotifiedState is AsyncButtonStateSuccess;
+      final wasError = _lastNotifiedState is AsyncButtonStateError;
+      if (newState is AsyncButtonStateSuccess && !wasSuccess) {
         widget.onSuccess?.call();
-      } else if (newState is AsyncButtonStateError && _lastNotifiedState is! AsyncButtonStateError) {
+      } else if (newState is AsyncButtonStateError && !wasError) {
         widget.onError?.call(newState.error, newState.stackTrace ?? StackTrace.empty);
       }
       _lastNotifiedState = newState;
@@ -189,9 +198,11 @@ class AsyncButtonBuilderState extends State<AsyncButtonBuilder> {
     final theme = MaterialAsyncButtonTheme.of(context);
     final mode = widget.hapticOn ?? theme.hapticOn ?? HapticOn.none;
     if (mode == HapticOn.none) return;
-    if (to is AsyncButtonStateSuccess && (mode == HapticOn.success || mode == HapticOn.both)) {
+    final wantSuccess = mode == HapticOn.success || mode == HapticOn.both;
+    final wantError = mode == HapticOn.error || mode == HapticOn.both;
+    if (to is AsyncButtonStateSuccess && wantSuccess) {
       HapticFeedback.lightImpact();
-    } else if (to is AsyncButtonStateError && (mode == HapticOn.error || mode == HapticOn.both)) {
+    } else if (to is AsyncButtonStateError && wantError) {
       HapticFeedback.mediumImpact();
     }
   }
@@ -238,8 +249,7 @@ class AsyncButtonBuilderState extends State<AsyncButtonBuilder> {
         widget.successDisplayDuration ?? theme.successDisplayDuration ?? Duration.zero;
     final errorDuration =
         widget.errorDisplayDuration ?? theme.errorDisplayDuration ?? Duration.zero;
-    final cooldown =
-        widget.cooldownDuration ?? theme.cooldownDuration ?? Duration.zero;
+    final cooldown = widget.cooldownDuration ?? theme.cooldownDuration ?? Duration.zero;
     final rethrowErrors = widget.rethrowErrors ?? theme.rethrowErrors ?? false;
 
     _controller.attach(
@@ -252,31 +262,27 @@ class AsyncButtonBuilderState extends State<AsyncButtonBuilder> {
 
     final state = _controller.value;
 
-    final loadingChild = widget.loadingChild ??
-        theme.loadingChild ??
-        const _BuiltinLoadingChild();
+    final loadingChild = widget.loadingChild ?? theme.loadingChild ?? const _BuiltinLoadingChild();
     final successChild = widget.successChild ?? theme.successChild;
     final errorChild = widget.errorChild ?? theme.errorChild;
     final switchDuration =
         widget.switchDuration ?? theme.switchDuration ?? const Duration(milliseconds: 200);
     final switchReverseDuration = widget.switchReverseDuration ?? theme.switchReverseDuration;
-    final switchInCurve =
-        widget.switchInCurve ?? theme.switchInCurve ?? widget.switchCurve ?? theme.switchCurve ?? Curves.linear;
-    final switchOutCurve =
-        widget.switchOutCurve ?? theme.switchOutCurve ?? widget.switchCurve ?? theme.switchCurve ?? Curves.linear;
-    final transitionBuilder = widget.transitionBuilder ??
+    final fallbackCurve = widget.switchCurve ?? theme.switchCurve ?? Curves.linear;
+    final switchInCurve = widget.switchInCurve ?? theme.switchInCurve ?? fallbackCurve;
+    final switchOutCurve = widget.switchOutCurve ?? theme.switchOutCurve ?? fallbackCurve;
+    final transitionBuilder =
+        widget.transitionBuilder ??
         theme.transitionBuilder ??
         AnimatedSwitcher.defaultTransitionBuilder;
     final animateSize = widget.animateSize ?? theme.animateSize ?? false;
 
-    Widget visible = switch (state) {
+    final Widget visible = switch (state) {
       AsyncButtonStateIdle() => widget.child,
       AsyncButtonStateLoading() => loadingChild,
       AsyncButtonStateSuccess() => successChild ?? widget.child,
       AsyncButtonStateError(:final error, :final stackTrace) =>
-        widget.errorBuilder?.call(context, error, stackTrace) ??
-            errorChild ??
-            widget.child,
+        widget.errorBuilder?.call(context, error, stackTrace) ?? errorChild ?? widget.child,
     };
 
     Widget content = AnimatedSwitcher(
@@ -285,10 +291,7 @@ class AsyncButtonBuilderState extends State<AsyncButtonBuilder> {
       switchInCurve: switchInCurve,
       switchOutCurve: switchOutCurve,
       transitionBuilder: transitionBuilder,
-      child: KeyedSubtree(
-        key: ValueKey<Type>(state.runtimeType),
-        child: visible,
-      ),
+      child: KeyedSubtree(key: ValueKey<Type>(state.runtimeType), child: visible),
     );
 
     if (animateSize) {
@@ -333,8 +336,6 @@ class _BuiltinLoadingChild extends StatelessWidget {
   const _BuiltinLoadingChild();
 
   @override
-  Widget build(BuildContext context) => const SizedBox.square(
-        dimension: 16,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
+  Widget build(BuildContext context) =>
+      const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2));
 }
