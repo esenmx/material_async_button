@@ -1,23 +1,27 @@
+import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
 
-Widget _wrap(Widget child) => MaterialApp(
-  home: Scaffold(body: Center(child: child)),
-);
+import '_helpers.dart';
 
 void main() {
   group('TextAsyncButton', () {
     testWidgets('renders TextButton', (tester) async {
       await tester.pumpWidget(
-        _wrap(TextAsyncButton(onPressed: () async {}, child: const Text('go'))),
+        pumpHost(
+          TextAsyncButton(
+            onPressed: () async {},
+            child: const Text('go'),
+          ),
+        ),
       );
-      expect(find.byType(TextButton), findsOneWidget);
+      check(find.byType(TextButton)).findsOne();
     });
 
-    testWidgets('.icon variant renders with icon + label', (tester) async {
+    testWidgets('.icon renders with icon + label', (tester) async {
       await tester.pumpWidget(
-        _wrap(
+        pumpHost(
           TextAsyncButton.icon(
             onPressed: () async {},
             icon: const Icon(Icons.copy),
@@ -25,19 +29,28 @@ void main() {
           ),
         ),
       );
-      expect(find.byType(TextButton), findsOneWidget);
-      expect(find.byIcon(Icons.copy), findsOneWidget);
+      check(find.byType(TextButton)).findsOne();
+      check(find.byIcon(Icons.copy)).findsOne();
     });
 
-    testWidgets('state.trigger() works for "Done" keyboard pattern', (tester) async {
+    testWidgets('controller.trigger() works for "Done" keyboard pattern', (
+      tester,
+    ) async {
+      final controller = AsyncButtonController();
+      addTearDown(controller.dispose);
       var ran = 0;
       await tester.pumpWidget(
-        _wrap(TextAsyncButton(onPressed: () async => ran++, child: const Text('go'))),
+        pumpHost(
+          TextAsyncButton(
+            controller: controller,
+            onPressed: () async => ran++,
+            child: const Text('go'),
+          ),
+        ),
       );
-      final state = tester.state<AsyncButtonBuilderState>(find.byType(AsyncButtonBuilder));
-      await state.trigger();
+      await controller.trigger();
       await tester.pumpAndSettle();
-      expect(ran, 1);
+      check(ran).equals(1);
     });
   });
 }

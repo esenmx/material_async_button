@@ -2,4 +2,4 @@
 .vscode/
 build/
 coverage/
-claude_code_skill/
+tool/

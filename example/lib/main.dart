@@ -7,15 +7,17 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'material_async_button demo',
-    theme: ThemeData(
-      colorSchemeSeed: Colors.indigo,
-      useMaterial3: true,
-      extensions: [MaterialAsyncButtonTheme.material()],
-    ),
-    home: const HomePage(),
-  );
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'material_async_button demo',
+      theme: ThemeData(
+        colorSchemeSeed: Colors.indigo,
+        useMaterial3: true,
+        extensions: [AsyncButtonTheme.material()],
+      ),
+      home: const HomePage(),
+    );
+  }
 }
 
 class HomePage extends StatefulWidget {
@@ -49,10 +51,13 @@ class _HomePageState extends State<HomePage> {
     body: SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: .stretch,
         children: [
           const _SectionLabel('Material wrappers'),
-          ElevatedAsyncButton(onPressed: _simulateWork, child: const Text('ElevatedAsyncButton')),
+          ElevatedAsyncButton(
+            onPressed: _simulateWork,
+            child: const Text('ElevatedAsyncButton'),
+          ),
           const SizedBox(height: 8),
           ElevatedAsyncButton.icon(
             onPressed: _simulateWork,
@@ -60,11 +65,26 @@ class _HomePageState extends State<HomePage> {
             label: const Text('ElevatedAsyncButton.icon'),
           ),
           const SizedBox(height: 8),
-          FilledAsyncButton(onPressed: _simulateWork, child: const Text('FilledAsyncButton')),
+          FilledAsyncButton(
+            onPressed: _simulateWork,
+            child: const Text('FilledAsyncButton'),
+          ),
           const SizedBox(height: 8),
           FilledAsyncButton.tonal(
             onPressed: _simulateWork,
             child: const Text('FilledAsyncButton.tonal'),
+          ),
+          const SizedBox(height: 8),
+          FilledAsyncButton.icon(
+            onPressed: _simulateWork,
+            icon: const Icon(Icons.save),
+            label: const Text('FilledAsyncButton.icon'),
+          ),
+          const SizedBox(height: 8),
+          FilledAsyncButton.tonalIcon(
+            onPressed: _simulateWork,
+            icon: const Icon(Icons.cloud_upload),
+            label: const Text('FilledAsyncButton.tonalIcon'),
           ),
           const SizedBox(height: 8),
           OutlinedAsyncButton(
@@ -72,16 +92,48 @@ class _HomePageState extends State<HomePage> {
             child: const Text('OutlinedAsyncButton (fails)'),
           ),
           const SizedBox(height: 8),
-          TextAsyncButton(onPressed: _simulateWork, child: const Text('TextAsyncButton')),
+          TextAsyncButton(
+            onPressed: _simulateWork,
+            child: const Text('TextAsyncButton'),
+          ),
           const SizedBox(height: 8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: .spaceEvenly,
             children: [
-              IconAsyncButton(onPressed: _simulateWork, icon: const Icon(Icons.refresh)),
-              IconAsyncButton.filled(onPressed: _simulateWork, icon: const Icon(Icons.add)),
-              IconAsyncButton.filledTonal(onPressed: _simulateWork, icon: const Icon(Icons.edit)),
-              IconAsyncButton.outlined(onPressed: _simulateWork, icon: const Icon(Icons.delete)),
+              IconAsyncButton(
+                onPressed: _simulateWork,
+                icon: const Icon(Icons.refresh),
+              ),
+              IconAsyncButton.filled(
+                onPressed: _simulateWork,
+                icon: const Icon(Icons.add),
+              ),
+              IconAsyncButton.filledTonal(
+                onPressed: _simulateWork,
+                icon: const Icon(Icons.edit),
+              ),
+              IconAsyncButton.outlined(
+                onPressed: _simulateWork,
+                icon: const Icon(Icons.delete),
+              ),
             ],
+          ),
+          const Divider(height: 32),
+          const _SectionLabel('Per-button overrides'),
+          ElevatedAsyncButton(
+            onPressed: _simulateWork,
+            successChild: const Text('Saved!'),
+            successDisplayDuration: const Duration(milliseconds: 1200),
+            cooldownDuration: const Duration(seconds: 1),
+            child: const Text('Custom successChild + 1s cooldown'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedAsyncButton(
+            onPressed: () => _simulateWork(fail: true),
+            errorChild: const Text('Failed — try again'),
+            errorDisplayDuration: const Duration(milliseconds: 1200),
+            onError: (error, _) => debugPrint('error: $error'),
+            child: const Text('Custom errorChild + onError'),
           ),
           const Divider(height: 32),
           const _SectionLabel('Form "Done" → controller.trigger()'),
@@ -94,7 +146,7 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 8),
           ElevatedAsyncButton(
             controller: _formController,
-            onPressed: () => _simulateWork(),
+            onPressed: _simulateWork,
             child: const Text('Submit'),
           ),
           const Divider(height: 32),
@@ -109,38 +161,43 @@ class _HomePageState extends State<HomePage> {
             spacing: 8,
             children: [
               OutlinedButton(
-                onPressed: () => _externalController.trigger(),
+                onPressed: _externalController.trigger,
                 child: const Text('trigger()'),
               ),
               OutlinedButton(
-                onPressed: () => _externalController.invalidate('server rejected'),
+                onPressed: () =>
+                    _externalController.invalidate('server rejected'),
                 child: const Text('invalidate()'),
               ),
               OutlinedButton(
                 onPressed: _externalController.markSuccess,
                 child: const Text('markSuccess()'),
               ),
-              OutlinedButton(onPressed: _externalController.reset, child: const Text('reset()')),
+              OutlinedButton(
+                onPressed: _externalController.reset,
+                child: const Text('reset()'),
+              ),
             ],
           ),
           const Divider(height: 32),
-          const _SectionLabel('Custom button via AsyncButtonBuilder'),
-          AsyncButtonBuilder(
+          const _SectionLabel('Custom button via AsyncButton'),
+          AsyncButton(
             onPressed: _simulateWork,
             animateSize: true,
+            builder: (ctx, child, callback, status) => Material(
+              color: switch (status) {
+                AsyncButtonStatusIdle() ||
+                AsyncButtonStatusLoading() => Colors.indigo,
+                AsyncButtonStatusSuccess() => Colors.green,
+                AsyncButtonStatusError() => Colors.red,
+              },
+              clipBehavior: .hardEdge,
+              shape: const StadiumBorder(),
+              child: InkWell(onTap: callback, child: child),
+            ),
             child: const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Text('Custom', style: TextStyle(color: Colors.white)),
-            ),
-            builder: (ctx, child, callback, state) => Material(
-              color: switch (state) {
-                AsyncButtonStateSuccess() => Colors.green,
-                AsyncButtonStateError() => Colors.red,
-                _ => Colors.indigo,
-              },
-              clipBehavior: Clip.hardEdge,
-              shape: const StadiumBorder(),
-              child: InkWell(onTap: callback, child: child),
             ),
           ),
         ],
@@ -151,6 +208,7 @@ class _HomePageState extends State<HomePage> {
 
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel(this.text);
+
   final String text;
 
   @override
