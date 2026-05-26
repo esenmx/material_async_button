@@ -2,6 +2,7 @@ part of '../../material_async_button.dart';
 
 /// Async-aware [OutlinedButton].
 class OutlinedAsyncButton extends AsyncStandardMaterialButton {
+  /// Mirrors [OutlinedButton.new].
   const OutlinedAsyncButton({
     super.key,
     required super.onPressed,
@@ -34,6 +35,7 @@ class OutlinedAsyncButton extends AsyncStandardMaterialButton {
     super.rethrowErrors,
   });
 
+  /// Mirrors [OutlinedButton.icon].
   const OutlinedAsyncButton.icon({
     super.key,
     required super.onPressed,
