@@ -7,7 +7,7 @@ build a project-wide wrapper widget.
 
 ```dart
 ElevatedAsyncButton(
-  onPressed: () async => api.save(),
+  onPressed: api.save,
   child: const Text('Save'),
 )
 ```
@@ -116,7 +116,7 @@ The error variant owns its thrown payload. Render it inline in the builder:
 
 ```dart
 AsyncButton(
-  onPressed: () async => repo.submit(),
+  onPressed: repo.submit,
   builder: (context, child, callback, status) => switch (status) {
     AsyncButtonStatusError(:final error) =>
       Text('failed: $error'),
@@ -142,7 +142,7 @@ For one-shot notifications (snackbar, log), `onError`:
 
 ```dart
 ElevatedAsyncButton(
-  onPressed: () async => repo.submit(),
+  onPressed: repo.submit,
   onError: (error, stackTrace) => log.warn('$error'),
   errorChild: const Icon(Icons.error_outline),
   child: const Text('Submit'),
