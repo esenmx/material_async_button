@@ -1,64 +1,55 @@
-import 'dart:async';
+part of '../material_async_button.dart';
 
-import 'package:flutter/foundation.dart';
-
-import 'async_button_state.dart';
-
-/// Imperative controller for an [AsyncButtonBuilder] or any of the Material
-/// wrappers. Listens like a [ValueListenable] of [AsyncButtonState].
+/// [ValueNotifier] of [AsyncButtonStatus] for an [AsyncButton] or any of
+/// the Material wrappers. Pipe it directly into a
+/// `ValueListenableBuilder<AsyncButtonStatus>` for reactive UI outside the
+/// button — pattern-match the [value] for the error payload on error.
 ///
 /// Use it to:
 ///   - trigger the attached `onPressed` from outside the button
 ///     (e.g. a form keyboard "Done" action),
 ///   - reset to idle,
-///   - mark the button as errored from an out-of-band source
-///     (e.g. a WebSocket message),
-///   - mark the button as succeeded from outside.
+///   - mark the button as failed from an out-of-band source
+///     (e.g. a WebSocket message) via [invalidate],
+///   - mark the button as succeeded from outside via [markSuccess].
+///
+/// Prefer [reset], [invalidate], [markSuccess], or [trigger] over assigning
+/// to [value] directly — the imperative methods keep the display-duration
+/// timers and cooldown machinery coherent.
 ///
 /// Dispose like any [ChangeNotifier].
-class AsyncButtonController extends ChangeNotifier implements ValueListenable<AsyncButtonState> {
-  AsyncButtonController({AsyncButtonState initial = const AsyncButtonState.idle()})
-    : _value = initial;
+class AsyncButtonController extends ValueNotifier<AsyncButtonStatus> {
+  AsyncButtonController([super.initial = const .idle()]);
 
-  AsyncButtonState _value;
-  @override
-  AsyncButtonState get value => _value;
+  bool get isIdle => value is AsyncButtonStatusIdle;
+  bool get isLoading => value is AsyncButtonStatusLoading;
+  bool get isSuccess => value is AsyncButtonStatusSuccess;
+  bool get isError => value is AsyncButtonStatusError;
 
-  bool get isIdle => _value is AsyncButtonStateIdle;
-  bool get isLoading => _value is AsyncButtonStateLoading;
-  bool get isSuccess => _value is AsyncButtonStateSuccess;
-  bool get isError => _value is AsyncButtonStateError;
-
-  Object? get error => switch (_value) {
-    AsyncButtonStateError(:final error) => error,
-    _ => null,
-  };
-
-  StackTrace? get stackTrace => switch (_value) {
-    AsyncButtonStateError(:final stackTrace) => stackTrace,
-    _ => null,
-  };
-
+  @visibleForTesting
   bool get isInCooldown => _cooldownActive;
 
   /// True when [trigger] would actually run the attached callback.
   bool get canTrigger => isIdle && !_cooldownActive && _onPressed != null;
 
   // Widget-owned configuration. Refreshed on every build.
-  Future<void> Function()? _onPressed;
-  Duration _successDuration = Duration.zero;
-  Duration _errorDuration = Duration.zero;
-  Duration _cooldownDuration = Duration.zero;
+  AsyncCallback? _onPressed;
+  Duration _successDuration = .zero;
+  Duration _errorDuration = .zero;
+  Duration _cooldownDuration = .zero;
   bool _rethrowErrors = false;
 
   Timer? _timer;
   bool _cooldownActive = false;
   bool _disposed = false;
 
-  /// Internal: called by the widget on each build to keep config fresh.
-  @internal
+  /// Internal hook used by [AsyncButton] to push the host widget's current
+  /// configuration into the controller on every build. Calling this from
+  /// outside the package is supported (tests drive a detached controller
+  /// this way), but the values you set will be overwritten on the next
+  /// build if the controller is also bound to an [AsyncButton].
   void attach({
-    required Future<void> Function()? onPressed,
+    required AsyncCallback? onPressed,
     required Duration successDuration,
     required Duration errorDuration,
     required Duration cooldownDuration,
@@ -74,24 +65,28 @@ class AsyncButtonController extends ChangeNotifier implements ValueListenable<As
   /// Run the attached `onPressed`. No-op if already loading, in cooldown,
   /// or if no callback is attached.
   Future<void> trigger() async {
-    if (!canTrigger) return;
+    if (!canTrigger) {
+      return;
+    }
     _cancelTimer();
-    _setValue(const AsyncButtonState.loading());
+    value = const .loading();
     try {
       await _onPressed!();
       // External resets (e.g. controller.reset()) may have moved us off
       // loading mid-await. Only continue the success cycle if we're still
       // the one driving.
-      if (!_disposed && _value is AsyncButtonStateLoading) {
-        _setValue(const AsyncButtonState.success());
+      if (!_disposed && value is AsyncButtonStatusLoading) {
+        value = const .success();
         _scheduleReturnToIdle(_successDuration);
       }
     } catch (error, stack) {
-      if (!_disposed && _value is AsyncButtonStateLoading) {
-        _setValue(AsyncButtonState.error(error, stack));
+      if (!_disposed && value is AsyncButtonStatusLoading) {
+        value = .error(error, stack);
         _scheduleReturnToIdle(_errorDuration);
       }
-      if (_rethrowErrors) rethrow;
+      if (_rethrowErrors) {
+        rethrow;
+      }
     }
   }
 
@@ -99,29 +94,23 @@ class AsyncButtonController extends ChangeNotifier implements ValueListenable<As
   void reset() {
     _cancelTimer();
     _cooldownActive = false;
-    _setValue(const AsyncButtonState.idle());
+    value = const .idle();
   }
 
-  /// Force the error state from outside. Runs the same display/callback
-  /// cycle as if `onPressed` had thrown.
+  /// Force the error status from outside. Runs the same display cycle as
+  /// if `onPressed` had thrown.
   void invalidate(Object error, [StackTrace? stackTrace]) {
     _cancelTimer();
-    _setValue(AsyncButtonState.error(error, stackTrace ?? StackTrace.current));
+    value = .error(error, stackTrace);
     _scheduleReturnToIdle(_errorDuration);
   }
 
-  /// Force the success state from outside. Runs the same display cycle as
+  /// Force the success status from outside. Runs the same display cycle as
   /// a completed `onPressed`.
   void markSuccess() {
     _cancelTimer();
-    _setValue(const AsyncButtonState.success());
+    value = const .success();
     _scheduleReturnToIdle(_successDuration);
-  }
-
-  void _setValue(AsyncButtonState v) {
-    if (_value == v) return;
-    _value = v;
-    notifyListeners();
   }
 
   void _cancelTimer() {
@@ -130,7 +119,7 @@ class AsyncButtonController extends ChangeNotifier implements ValueListenable<As
   }
 
   void _scheduleReturnToIdle(Duration displayDuration) {
-    if (displayDuration <= Duration.zero) {
+    if (displayDuration <= .zero) {
       _enterIdleThenCooldown();
       return;
     }
@@ -138,14 +127,18 @@ class AsyncButtonController extends ChangeNotifier implements ValueListenable<As
   }
 
   void _enterIdleThenCooldown() {
-    if (_disposed) return;
+    if (_disposed) {
+      return;
+    }
     _timer = null;
-    _setValue(const AsyncButtonState.idle());
-    if (_cooldownDuration > Duration.zero) {
+    value = const .idle();
+    if (_cooldownDuration > .zero) {
       _cooldownActive = true;
       notifyListeners();
       _timer = Timer(_cooldownDuration, () {
-        if (_disposed) return;
+        if (_disposed) {
+          return;
+        }
         _timer = null;
         _cooldownActive = false;
         notifyListeners();

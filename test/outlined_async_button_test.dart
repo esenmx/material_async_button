@@ -1,25 +1,27 @@
-import 'dart:async';
-
+import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
 
-Widget _wrap(Widget child) => MaterialApp(
-  home: Scaffold(body: Center(child: child)),
-);
+import '_helpers.dart';
 
 void main() {
   group('OutlinedAsyncButton', () {
     testWidgets('renders OutlinedButton', (tester) async {
       await tester.pumpWidget(
-        _wrap(OutlinedAsyncButton(onPressed: () async {}, child: const Text('go'))),
+        pumpHost(
+          OutlinedAsyncButton(
+            onPressed: () async {},
+            child: const Text('go'),
+          ),
+        ),
       );
-      expect(find.byType(OutlinedButton), findsOneWidget);
+      check(find.byType(OutlinedButton)).findsOne();
     });
 
-    testWidgets('.icon variant renders with icon + label', (tester) async {
+    testWidgets('.icon renders with icon + label', (tester) async {
       await tester.pumpWidget(
-        _wrap(
+        pumpHost(
           OutlinedAsyncButton.icon(
             onPressed: () async {},
             icon: const Icon(Icons.share),
@@ -27,19 +29,24 @@ void main() {
           ),
         ),
       );
-      expect(find.byType(OutlinedButton), findsOneWidget);
-      expect(find.byIcon(Icons.share), findsOneWidget);
-      expect(find.text('share'), findsOneWidget);
+      check(find.byType(OutlinedButton)).findsOne();
+      check(find.byIcon(Icons.share)).findsOne();
+      check(find.text('share')).findsOne();
     });
 
     testWidgets('cycles through loading', (tester) async {
-      final completer = Completer<void>();
+      final (:onPressed, :completer) = pendingPress();
       await tester.pumpWidget(
-        _wrap(OutlinedAsyncButton(onPressed: () => completer.future, child: const Text('go'))),
+        pumpHost(
+          OutlinedAsyncButton(
+            onPressed: onPressed,
+            child: const Text('go'),
+          ),
+        ),
       );
       await tester.tap(find.byType(OutlinedButton));
       await tester.pump();
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      check(find.byType(CircularProgressIndicator)).findsOne();
       completer.complete();
       await tester.pumpAndSettle();
     });

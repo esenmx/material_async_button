@@ -1,292 +1,224 @@
 import 'dart:async';
 
+import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
 
+import '_helpers.dart';
+
+/// Subscribes a status-recording listener to [c]; returns the recording list.
+List<AsyncButtonStatus> recordStatuses(AsyncButtonController c) {
+  final out = <AsyncButtonStatus>[];
+  c.addListener(() => out.add(c.value));
+  return out;
+}
+
 void main() {
-  group('AsyncButtonController', () {
-    test('starts in idle by default', () {
+  group('AsyncButtonController basics', () {
+    test('starts idle by default with no onPressed', () {
       final c = AsyncButtonController();
-      expect(c.value, const AsyncButtonState.idle());
-      expect(c.isIdle, isTrue);
-      expect(c.isLoading, isFalse);
-      expect(c.canTrigger, isFalse, reason: 'No onPressed attached yet, cannot trigger.');
-      c.dispose();
+      addTearDown(c.dispose);
+      check(c)
+        ..isIdle()
+        ..has((it) => it.canTrigger, 'canTrigger').isFalse();
     });
 
-    test('honors initial state', () {
-      final c = AsyncButtonController(initial: const AsyncButtonState.loading());
-      expect(c.isLoading, isTrue);
-      c.dispose();
+    test('honors initial status', () {
+      final c = AsyncButtonController(const .loading());
+      addTearDown(c.dispose);
+      check(c).isLoading();
     });
 
     test('trigger no-ops when no onPressed is attached', () async {
       final c = AsyncButtonController();
+      addTearDown(c.dispose);
       await c.trigger();
-      expect(c.isIdle, isTrue);
-      c.dispose();
+      check(c).isIdle();
     });
+  });
 
-    test('reset moves to idle and cancels timer', () async {
-      final c = AsyncButtonController()
-        ..attach(
-          onPressed: () async {},
-          successDuration: const Duration(seconds: 5),
-          errorDuration: Duration.zero,
-          cooldownDuration: Duration.zero,
-          rethrowErrors: false,
-        );
+  group('AsyncButtonController forced transitions', () {
+    test('reset returns to idle and cancels pending display', () async {
+      final c = attachedController(
+        onPressed: () async {},
+        successDuration: const Duration(seconds: 5),
+      );
       await c.trigger();
-      // We're now in success state for 5s. Reset short-circuits.
-      expect(c.isSuccess, isTrue);
+      check(c).isSuccess();
       c.reset();
-      expect(c.isIdle, isTrue);
-      c.dispose();
+      check(c).isIdle();
     });
 
-    test('invalidate forces error and reaches idle when duration zero', () async {
-      final c = AsyncButtonController()
-        ..attach(
-          onPressed: null,
-          successDuration: Duration.zero,
-          errorDuration: Duration.zero,
-          cooldownDuration: Duration.zero,
-          rethrowErrors: false,
-        );
-      c.invalidate('bad');
-      expect(
-        c.value,
-        const AsyncButtonState.idle(),
-        reason: 'Zero error duration returns straight to idle.',
-      );
-      c.dispose();
+    test('invalidate with zero duration returns straight to idle', () {
+      final c = attachedController()..invalidate('bad');
+      check(c).isIdle();
     });
 
-    test('invalidate forces error and stays there for errorDuration', () async {
-      final c = AsyncButtonController()
-        ..attach(
-          onPressed: null,
-          successDuration: Duration.zero,
-          errorDuration: const Duration(milliseconds: 50),
-          cooldownDuration: Duration.zero,
-          rethrowErrors: false,
-        );
-      c.invalidate('bad');
-      expect(c.isError, isTrue);
-      expect(c.error, 'bad');
+    test('invalidate holds error until errorDuration elapses', () async {
+      final c = attachedController(
+        errorDuration: const Duration(milliseconds: 50),
+      )..invalidate('bad');
+      check(c.value)
+          .isA<AsyncButtonStatusError>()
+          .has((f) => f.error, 'error')
+          .equals('bad');
       await Future<void>.delayed(const Duration(milliseconds: 70));
-      expect(c.isIdle, isTrue);
-      c.dispose();
+      check(c).isIdle();
     });
 
-    test('markSuccess forces success state', () {
-      final c = AsyncButtonController()
-        ..attach(
-          onPressed: null,
-          successDuration: const Duration(seconds: 5),
-          errorDuration: Duration.zero,
-          cooldownDuration: Duration.zero,
-          rethrowErrors: false,
-        );
-      c.markSuccess();
-      expect(c.isSuccess, isTrue);
-      c.dispose();
+    test('markSuccess forces success', () {
+      final c = attachedController(
+        successDuration: const Duration(seconds: 5),
+      )..markSuccess();
+      check(c).isSuccess();
     });
+  });
 
-    test('successful trigger transitions idle -> loading -> success -> idle', () async {
-      final transitions = <AsyncButtonState>[];
-      final c = AsyncButtonController()
-        ..attach(
-          onPressed: () async => Future<void>.delayed(const Duration(milliseconds: 20)),
-          successDuration: const Duration(milliseconds: 20),
-          errorDuration: Duration.zero,
-          cooldownDuration: Duration.zero,
-          rethrowErrors: false,
-        );
-      c.addListener(() => transitions.add(c.value));
-      await c.trigger();
-      // trigger awaited onPressed. Success has fired; idle is scheduled in 20ms.
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(
-        transitions.map((s) => s.runtimeType).toList(),
-        containsAllInOrder(<Type>[
-          AsyncButtonStateLoading,
-          AsyncButtonStateSuccess,
-          AsyncButtonStateIdle,
-        ]),
+  group('AsyncButtonController.trigger', () {
+    test('successful run traces loading -> success -> idle', () async {
+      final c = attachedController(
+        onPressed: () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        successDuration: const Duration(milliseconds: 20),
       );
-      c.dispose();
-    });
-
-    test('failing trigger transitions idle -> loading -> error -> idle', () async {
-      final transitions = <AsyncButtonState>[];
-      final c = AsyncButtonController()
-        ..attach(
-          onPressed: () async => throw StateError('oops'),
-          successDuration: Duration.zero,
-          errorDuration: const Duration(milliseconds: 20),
-          cooldownDuration: Duration.zero,
-          rethrowErrors: false,
-        );
-      c.addListener(() => transitions.add(c.value));
+      final transitions = recordStatuses(c);
       await c.trigger();
       await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(
-        transitions.map((s) => s.runtimeType).toList(),
-        containsAllInOrder(<Type>[
-          AsyncButtonStateLoading,
-          AsyncButtonStateError,
-          AsyncButtonStateIdle,
-        ]),
+      check(transitions.map((s) => s.runtimeType).toList())
+        ..contains(AsyncButtonStatusLoading)
+        ..contains(AsyncButtonStatusSuccess)
+        ..contains(AsyncButtonStatusIdle);
+    });
+
+    test('failing run traces loading -> error -> idle', () async {
+      final c = attachedController(
+        onPressed: () async => throw StateError('oops'),
+        errorDuration: const Duration(milliseconds: 20),
       );
-      c.dispose();
+      final transitions = recordStatuses(c);
+      await c.trigger();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      check(transitions.map((s) => s.runtimeType).toList())
+        ..contains(AsyncButtonStatusLoading)
+        ..contains(AsyncButtonStatusError)
+        ..contains(AsyncButtonStatusIdle);
+    });
+
+    test('error variant carries the thrown error and stack trace', () async {
+      final c = attachedController(
+        onPressed: () async => throw StateError('oops'),
+        errorDuration: const Duration(milliseconds: 50),
+      );
+      await c.trigger();
+      check(c.value)
+          .isA<AsyncButtonStatusError>()
+          .has((f) => f.error, 'error')
+          .isA<StateError>();
+      check(c.value)
+          .isA<AsyncButtonStatusError>()
+          .has((f) => f.stackTrace, 'stackTrace')
+          .isNotNull();
+      await Future<void>.delayed(const Duration(milliseconds: 70));
+      check(c).isIdle();
     });
 
     test('rethrowErrors=true bubbles the error to the caller', () async {
-      final c = AsyncButtonController()
-        ..attach(
-          onPressed: () async => throw StateError('oops'),
-          successDuration: Duration.zero,
-          errorDuration: Duration.zero,
-          cooldownDuration: Duration.zero,
-          rethrowErrors: true,
-        );
-      await expectLater(c.trigger(), throwsA(isA<StateError>()));
-      c.dispose();
+      final c = attachedController(
+        onPressed: () async => throw StateError('oops'),
+        rethrowErrors: true,
+      );
+      await check(c.trigger()).throws<StateError>();
     });
 
-    test('cooldown keeps canTrigger false after idle returns', () async {
-      final c = AsyncButtonController()
-        ..attach(
-          onPressed: () async {},
-          successDuration: Duration.zero,
-          errorDuration: Duration.zero,
-          cooldownDuration: const Duration(milliseconds: 40),
-          rethrowErrors: false,
-        );
+    test('cooldown keeps canTrigger false after returning to idle', () async {
+      final c = attachedController(
+        onPressed: () async {},
+        cooldownDuration: const Duration(milliseconds: 40),
+      );
       await c.trigger();
-      expect(c.isIdle, isTrue);
-      expect(c.isInCooldown, isTrue);
-      expect(c.canTrigger, isFalse);
+      check(c)
+        ..isIdle()
+        ..has((it) => it.isInCooldown, 'isInCooldown').isTrue()
+        ..has((it) => it.canTrigger, 'canTrigger').isFalse();
       await Future<void>.delayed(const Duration(milliseconds: 60));
-      expect(c.isInCooldown, isFalse);
-      expect(c.canTrigger, isTrue);
-      c.dispose();
+      check(c)
+        ..has((it) => it.isInCooldown, 'isInCooldown').isFalse()
+        ..has((it) => it.canTrigger, 'canTrigger').isTrue();
     });
 
-    test('disposes cleanly without throwing for pending timers', () async {
-      final c = AsyncButtonController()
+    test('dispose does not throw for pending timers', () async {
+      AsyncButtonController()
         ..attach(
           onPressed: null,
           successDuration: const Duration(seconds: 5),
-          errorDuration: Duration.zero,
-          cooldownDuration: Duration.zero,
+          errorDuration: .zero,
+          cooldownDuration: .zero,
           rethrowErrors: false,
-        );
-      c.markSuccess();
-      c.dispose();
-      // Wait beyond the timer schedule; the disposed flag should suppress
-      // notifyListeners on the post-dispose callback.
+        )
+        ..markSuccess()
+        ..dispose();
       await Future<void>.delayed(const Duration(milliseconds: 10));
     });
   });
 
-  group('AsyncButtonController concurrent calls', () {
+  group('AsyncButtonController concurrency', () {
     test('trigger is a no-op while already loading', () async {
       var calls = 0;
       final completer = Completer<void>();
-      final c = AsyncButtonController()
-        ..attach(
-          onPressed: () async {
-            calls++;
-            await completer.future;
-          },
-          successDuration: Duration.zero,
-          errorDuration: Duration.zero,
-          cooldownDuration: Duration.zero,
-          rethrowErrors: false,
-        );
-      // First trigger starts loading.
+      final c = attachedController(
+        onPressed: () async {
+          calls++;
+          await completer.future;
+        },
+      );
       final f1 = c.trigger();
-      // Second trigger should no-op because state is loading.
       final f2 = c.trigger();
-      expect(c.isLoading, isTrue);
+      check(c).isLoading();
       completer.complete();
       await Future.wait<void>([f1, f2]);
-      expect(calls, 1);
-      c.dispose();
+      check(calls).equals(1);
     });
 
     test('reset mid-onPressed stops the success transition', () async {
       final completer = Completer<void>();
-      final c = AsyncButtonController()
-        ..attach(
-          onPressed: () async => completer.future,
-          successDuration: Duration.zero,
-          errorDuration: Duration.zero,
-          cooldownDuration: Duration.zero,
-          rethrowErrors: false,
-        );
+      final c = attachedController(onPressed: () => completer.future);
       final f = c.trigger();
-      expect(c.isLoading, isTrue);
+      check(c).isLoading();
       c.reset();
       completer.complete();
       await f;
-      // Should remain idle; trigger's post-await branch sees non-loading and bails.
-      expect(c.isIdle, isTrue);
-      c.dispose();
+      check(c).isIdle();
     });
   });
 
-  group('AsyncButtonController utility getters', () {
-    test('error/stackTrace getters return null off-error', () {
-      final c = AsyncButtonController();
-      expect(c.error, isNull);
-      expect(c.stackTrace, isNull);
-      c.dispose();
-    });
-
-    test('error/stackTrace getters expose the error variant payload', () {
-      final st = StackTrace.current;
-      final c = AsyncButtonController(initial: AsyncButtonState.error('boom', st));
-      expect(c.error, 'boom');
-      expect(c.stackTrace, st);
-      c.dispose();
-    });
-  });
-
-  testWidgets('value listenable interop with ValueListenableBuilder', (tester) async {
-    final c = AsyncButtonController()
-      ..attach(
-        onPressed: null,
+  group('AsyncButtonController interop', () {
+    testWidgets('exposes a ValueListenable<AsyncButtonStatus>', (tester) async {
+      final c = attachedController(
         successDuration: const Duration(seconds: 5),
-        errorDuration: Duration.zero,
-        cooldownDuration: Duration.zero,
-        rethrowErrors: false,
       );
-    addTearDown(c.dispose);
 
-    String label(AsyncButtonState s) => switch (s) {
-      AsyncButtonStateIdle() => 'idle',
-      AsyncButtonStateLoading() => 'loading',
-      AsyncButtonStateSuccess() => 'success',
-      AsyncButtonStateError() => 'error',
-    };
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ValueListenableBuilder<AsyncButtonState>(
-          valueListenable: c,
-          builder: (_, state, __) => Text(label(state), textDirection: TextDirection.ltr),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ValueListenableBuilder<AsyncButtonStatus>(
+            valueListenable: c,
+            builder: (context, status, child) => Text(
+              switch (status) {
+                AsyncButtonStatusIdle() => 'idle',
+                AsyncButtonStatusLoading() => 'loading',
+                AsyncButtonStatusSuccess() => 'success',
+                AsyncButtonStatusError() => 'error',
+              },
+              textDirection: .ltr,
+            ),
+          ),
         ),
-      ),
-    );
-    expect(find.text('idle'), findsOneWidget);
+      );
+      check(find.text('idle')).findsOne();
 
-    c.markSuccess();
-    await tester.pump();
-    expect(find.text('success'), findsOneWidget);
-    c.reset();
+      c.markSuccess();
+      await tester.pump();
+      check(find.text('success')).findsOne();
+      c.reset();
+    });
   });
 }

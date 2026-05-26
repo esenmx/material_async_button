@@ -16,19 +16,19 @@ Replace the Material button with its async counterpart whenever `onPressed`
 is async. The wrapper handles loading state, the post-press display, and
 disables the button while running.
 
-| Material         | Use                    | Variants                                          |
-| ---------------- | ---------------------- | ------------------------------------------------- |
-| `ElevatedButton` | `ElevatedAsyncButton`  | `.icon`                                           |
-| `FilledButton`   | `FilledAsyncButton`    | `.tonal` `.icon` `.tonalIcon`                     |
-| `OutlinedButton` | `OutlinedAsyncButton`  | `.icon`                                           |
-| `TextButton`     | `TextAsyncButton`      | `.icon`                                           |
-| `IconButton`     | `IconAsyncButton`      | `.filled` `.filledTonal` `.outlined`              |
+|Material|Use|Variants|
+|--|--|--|
+|`ElevatedButton`|`ElevatedAsyncButton`|`.icon`|
+|`FilledButton`|`FilledAsyncButton`|`.tonal` `.icon` `.tonalIcon`|
+|`OutlinedButton`|`OutlinedAsyncButton`|`.icon`|
+|`TextButton`|`TextAsyncButton`|`.icon`|
+|`IconButton`|`IconAsyncButton`|`.filled` `.filledTonal` `.outlined`|
 
 ## Minimal use
 
 ```dart
 ElevatedAsyncButton(
-  onPressed: () async => api.save(),
+  onPressed: notifier.save,
   child: const Text('Save'),
 )
 ```
@@ -36,22 +36,24 @@ ElevatedAsyncButton(
 ## Theming — do this once
 
 ```dart
-ThemeData(extensions: [MaterialAsyncButtonTheme.material()])
+ThemeData(extensions: [AsyncButtonTheme.material()])
 ```
 
 Or, with overrides:
 
 ```dart
-ThemeData(extensions: [
-  MaterialAsyncButtonTheme(
-    successChild: const Icon(Icons.check),
-    errorChild:   const Icon(Icons.error_outline),
-    switchDuration:        const Duration(milliseconds: 200),
-    successDisplayDuration:const Duration(milliseconds: 800),
-    errorDisplayDuration:  const Duration(milliseconds: 800),
-    animateSize: true,
-    hapticOn: HapticOn.both,
-  ),
+ThemeData(
+  extensions: [
+    AsyncButtonTheme(
+      successChild: const Icon(Icons.check),
+      errorChild:   const Icon(Icons.error_outline),
+      switchDuration:        const Duration(milliseconds: 200),
+      successDisplayDuration:const Duration(milliseconds: 800),
+      errorDisplayDuration:  const Duration(milliseconds: 800),
+      animateSize: true,
+      hapticOn: HapticOn.both,
+    ),
+  ],
 ])
 ```
 
@@ -81,26 +83,22 @@ controller.markSuccess();                      // force success from outside
 controller.reset();                            // back to idle
 ```
 
-It's a `ValueListenable<AsyncButtonState>` — pipe into
+It's a `ValueListenable<AsyncButtonStatus>` — pipe into
 `ValueListenableBuilder` for cross-widget reactions.
 
-`GlobalKey<AsyncButtonBuilderState>` exposes the same methods, but is only
-useful with the low-level `AsyncButtonBuilder` (the Material wrappers are
-`StatelessWidget`).
-
-## Custom buttons — `AsyncButtonBuilder`
+## Custom buttons — `AsyncButton`
 
 Only when no Material wrapper fits:
 
 ```dart
-AsyncButtonBuilder(
+AsyncButton(
   onPressed: doWork,
   child: const Text('Go'),
-  builder: (context, child, callback, state) => MyButton(
+  builder: (context, child, callback, status) => MyButton(
     onTap: callback,
-    color: switch (state) {
-      AsyncButtonStateLoading() => Colors.grey,
-      AsyncButtonStateError()   => Colors.red,
+    color: switch (status) {
+      AsyncButtonStatusLoading() => Colors.grey,
+      AsyncButtonStatusError()   => Colors.red,
       _ => Colors.indigo,
     },
     child: child,
@@ -115,4 +113,4 @@ AsyncButtonBuilder(
 - Don't call `setState` in `onSuccess` / `onError` for state the button
   already reflects.
 - Don't create a project-wide wrapper widget for default loading/success
-  spinners — that's exactly what `MaterialAsyncButtonTheme` is for.
+  spinners — that's exactly what `AsyncButtonTheme` is for.
