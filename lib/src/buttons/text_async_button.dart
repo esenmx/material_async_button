@@ -2,6 +2,7 @@ part of '../../material_async_button.dart';
 
 /// Async-aware [TextButton].
 class TextAsyncButton extends AsyncStandardMaterialButton {
+  /// Mirrors [TextButton.new].
   const TextAsyncButton({
     super.key,
     required super.onPressed,
@@ -34,6 +35,7 @@ class TextAsyncButton extends AsyncStandardMaterialButton {
     super.rethrowErrors,
   });
 
+  /// Mirrors [TextButton.icon].
   const TextAsyncButton.icon({
     super.key,
     required super.onPressed,
