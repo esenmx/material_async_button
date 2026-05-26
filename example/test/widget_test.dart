@@ -1,30 +1,38 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:checks/checks.dart';
+import 'package:example/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_async_button/material_async_button.dart';
 
-import 'package:example/main.dart';
+extension on Subject<Finder> {
+  void findsOne() => has((f) => f.evaluate().length, 'matches').equals(1);
+  void findsNone() => has((f) => f.evaluate(), 'matches').isEmpty();
+  void findsMany([int min = 1]) =>
+      has((f) => f.evaluate().length, 'matches').isGreaterOrEqual(min);
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('builds and shows the Material wrappers section', (tester) async {
     await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    check(find.text('Material wrappers')).findsOne();
+    check(find.byType(ElevatedAsyncButton)).findsMany();
+    check(find.byType(FilledAsyncButton)).findsMany();
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('tapping an ElevatedAsyncButton shows the loading spinner', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('ElevatedAsyncButton'));
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    check(find.byType(CircularProgressIndicator)).findsOne();
+
+    await tester.pumpAndSettle();
+    check(find.byType(CircularProgressIndicator)).findsNone();
   });
 }
