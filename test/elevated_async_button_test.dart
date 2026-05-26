@@ -1,74 +1,89 @@
-import 'dart:async';
-
+import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
 
-Widget _wrap(Widget child) => MaterialApp(
-  home: Scaffold(body: Center(child: child)),
-);
+import '_helpers.dart';
 
 void main() {
   group('ElevatedAsyncButton', () {
     testWidgets('renders an ElevatedButton with the child', (tester) async {
       await tester.pumpWidget(
-        _wrap(ElevatedAsyncButton(onPressed: () async {}, child: const Text('go'))),
+        pumpHost(
+          ElevatedAsyncButton(
+            onPressed: () async {},
+            child: const Text('go'),
+          ),
+        ),
       );
-      expect(find.byType(ElevatedButton), findsOneWidget);
-      expect(find.text('go'), findsOneWidget);
+      check(find.byType(ElevatedButton)).findsOne();
+      check(find.text('go')).findsOne();
     });
 
     testWidgets('shows loading then returns to idle', (tester) async {
-      final completer = Completer<void>();
+      final (:onPressed, :completer) = pendingPress();
       await tester.pumpWidget(
-        _wrap(ElevatedAsyncButton(onPressed: () => completer.future, child: const Text('go'))),
+        pumpHost(
+          ElevatedAsyncButton(
+            onPressed: onPressed,
+            child: const Text('go'),
+          ),
+        ),
       );
       await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      check(find.byType(CircularProgressIndicator)).findsOne();
       completer.complete();
       await tester.pumpAndSettle();
-      expect(find.text('go'), findsOneWidget);
+      check(find.text('go')).findsOne();
     });
 
     testWidgets('is disabled when onPressed is null', (tester) async {
-      await tester.pumpWidget(_wrap(const ElevatedAsyncButton(onPressed: null, child: Text('go'))));
+      await tester.pumpWidget(
+        pumpHost(
+          const ElevatedAsyncButton(onPressed: null, child: Text('go')),
+        ),
+      );
       final btn = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
-      expect(btn.onPressed, isNull);
+      check(btn.onPressed).isNull();
     });
 
     testWidgets('is disabled when disabled=true', (tester) async {
       await tester.pumpWidget(
-        _wrap(ElevatedAsyncButton(onPressed: () async {}, disabled: true, child: const Text('go'))),
+        pumpHost(
+          ElevatedAsyncButton(
+            onPressed: () async {},
+            disabled: true,
+            child: const Text('go'),
+          ),
+        ),
       );
       final btn = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
-      expect(btn.onPressed, isNull);
+      check(btn.onPressed).isNull();
     });
   });
 
   group('ElevatedAsyncButton.icon', () {
     testWidgets('icon stays put while the label animates', (tester) async {
-      final completer = Completer<void>();
+      final (:onPressed, :completer) = pendingPress();
       await tester.pumpWidget(
-        _wrap(
+        pumpHost(
           ElevatedAsyncButton.icon(
-            onPressed: () => completer.future,
+            onPressed: onPressed,
             icon: const Icon(Icons.send),
             label: const Text('send'),
           ),
         ),
       );
-      // Idle: icon + label.
-      expect(find.byIcon(Icons.send), findsOneWidget);
-      expect(find.text('send'), findsOneWidget);
+      check(find.byIcon(Icons.send)).findsOne();
+      check(find.text('send')).findsOne();
       await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
-      // Loading: icon stays, label gone, spinner present.
-      expect(find.byIcon(Icons.send), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      check(find.byIcon(Icons.send)).findsOne();
+      check(find.byType(CircularProgressIndicator)).findsOne();
       completer.complete();
       await tester.pumpAndSettle();
-      expect(find.text('send'), findsOneWidget);
+      check(find.text('send')).findsOne();
     });
   });
 }
