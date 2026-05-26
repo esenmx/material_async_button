@@ -210,26 +210,6 @@ theme, then set only the fields you care about. Per-widget overrides
 - `rethrowErrors` — rethrow from `controller.trigger()` so callers can
   `try/catch` while the UI also shows the error
 
-## Migrating from `async_button_builder`
-
-After:
-
-1. `dependencies: async_button_builder: ^3.0.0` → `material_async_button: ^1.0.0`
-2. `import 'package:async_button_builder/async_button_builder.dart'`
-   → `import 'package:material_async_button/material_async_button.dart'`
-
-Then:
-
-- `AsyncButtonBuilder` → `AsyncButton`
-- `AsyncButtonState` (sealed) → `AsyncButtonStatus` (still sealed; renamed
-  for clarity and re-prefixed variants `AsyncButtonStatusIdle`,
-  `AsyncButtonStatusLoading`, `AsyncButtonStatusSuccess`,
-  `AsyncButtonStatusError(error, stackTrace)`).
-- `state.error` → destructure the error variant:
-  `AsyncButtonStatusError(:final error)`.
-- The previous `errorBuilder` is gone — pattern-match the status in your
-  `builder` callback, or render `errorChild`.
-
 ## Claude Code skill
 
 A Claude Code skill that teaches Claude to use this package idiomatically
