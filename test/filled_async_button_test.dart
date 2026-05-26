@@ -1,54 +1,60 @@
-import 'dart:async';
-
+import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
 
-Widget _wrap(Widget child) => MaterialApp(
-  home: Scaffold(body: Center(child: child)),
-);
+import '_helpers.dart';
 
 void main() {
   group('FilledAsyncButton', () {
     testWidgets('renders FilledButton', (tester) async {
       await tester.pumpWidget(
-        _wrap(FilledAsyncButton(onPressed: () async {}, child: const Text('go'))),
+        pumpHost(
+          FilledAsyncButton(
+            onPressed: () async {},
+            child: const Text('go'),
+          ),
+        ),
       );
-      expect(find.byType(FilledButton), findsOneWidget);
+      check(find.byType(FilledButton)).findsOne();
     });
 
-    testWidgets('FilledAsyncButton.tonal renders FilledButton in tonal style', (tester) async {
+    testWidgets('.tonal renders FilledButton in tonal style', (tester) async {
       await tester.pumpWidget(
-        _wrap(FilledAsyncButton.tonal(onPressed: () async {}, child: const Text('go'))),
+        pumpHost(
+          FilledAsyncButton.tonal(
+            onPressed: () async {},
+            child: const Text('go'),
+          ),
+        ),
       );
-      expect(find.byType(FilledButton), findsOneWidget);
+      check(find.byType(FilledButton)).findsOne();
     });
 
-    testWidgets('FilledAsyncButton.icon swaps label during loading', (tester) async {
-      final completer = Completer<void>();
+    testWidgets('.icon swaps label during loading', (tester) async {
+      final (:onPressed, :completer) = pendingPress();
       await tester.pumpWidget(
-        _wrap(
+        pumpHost(
           FilledAsyncButton.icon(
-            onPressed: () => completer.future,
+            onPressed: onPressed,
             icon: const Icon(Icons.save),
             label: const Text('save'),
           ),
         ),
       );
       await tester.tap(find.byType(FilledButton));
-      // Wait for the AnimatedSwitcher cross-fade to settle.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
-      expect(find.byIcon(Icons.save), findsOneWidget);
-      expect(find.text('save'), findsNothing);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      check(find.byIcon(Icons.save)).findsOne();
+      check(find.text('save')).findsNone();
+      check(find.byType(CircularProgressIndicator)).findsOne();
       completer.complete();
       await tester.pumpAndSettle();
     });
 
-    testWidgets('FilledAsyncButton.tonalIcon renders', (tester) async {
+    testWidgets('.tonalIcon renders', (tester) async {
       await tester.pumpWidget(
-        _wrap(
+        pumpHost(
           FilledAsyncButton.tonalIcon(
             onPressed: () async {},
             icon: const Icon(Icons.save),
@@ -56,7 +62,7 @@ void main() {
           ),
         ),
       );
-      expect(find.byType(FilledButton), findsOneWidget);
+      check(find.byType(FilledButton)).findsOne();
     });
   });
 }
