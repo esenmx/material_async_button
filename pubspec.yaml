@@ -1,18 +1,29 @@
-name: async_button_builder
-description: A builder to wrap around buttons that handles loading, disabled,
-  error and success states
-version: 3.0.0+1
-homepage: https://github.com/Nolence/async_button/tree/main/packages/async_button_builder
+name: material_async_button
+description: >-
+  Drop-in async wrappers for Flutter Material buttons. Adds loading, success,
+  and error states with theming via ThemeExtension and external control via a
+  controller.
+version: 1.0.0
+repository: https://github.com/esenmx/material_async_button
+issue_tracker: https://github.com/esenmx/material_async_button/issues
+
+topics:
+  - button
+  - async
+  - material
+  - loading
+  - form
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=2.0.0"
+  sdk: ^3.10.0
+  flutter: ">=3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
 dev_dependencies:
+  checks: ^0.3.1
   flutter_test:
     sdk: flutter
-  lint: ^2.8.0
+  very_good_analysis: ^10.2.0

@@ -81,3 +81,6 @@ build/
 pubspec.lock
 **/pubspec.lock
 example/pubspec.lock
+
+# Coverage output
+coverage/
