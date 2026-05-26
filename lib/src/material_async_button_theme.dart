@@ -1,7 +1,19 @@
 part of '../material_async_button.dart';
 
 /// Which haptic event, if any, to fire on state transitions.
-enum HapticOn { none, success, error, both }
+enum HapticOn {
+  /// Fire no haptic on state transitions.
+  none,
+
+  /// Fire a light haptic on success only.
+  success,
+
+  /// Fire a light haptic on error only.
+  error,
+
+  /// Fire a light haptic on both success and error.
+  both,
+}
 
 /// App-wide defaults for `material_async_button` widgets, attached as a
 /// [ThemeExtension] on [ThemeData].
@@ -20,6 +32,8 @@ enum HapticOn { none, success, error, both }
 /// ```
 @immutable
 class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
+  /// Builds an [AsyncButtonTheme]. Every field is nullable so callers only
+  /// set the ones they want.
   const AsyncButtonTheme({
     this.loadingChild,
     this.successChild,
@@ -84,14 +98,22 @@ class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
   /// Cross-fade duration between state widgets.
   /// Falls back to 200ms when null.
   final Duration? switchDuration;
+
+  /// Reverse cross-fade duration. Falls back to [switchDuration] when null.
   final Duration? switchReverseDuration;
 
   /// Convenience: applied to both [switchInCurve] and [switchOutCurve]
   /// unless one of those is set explicitly.
   final Curve? switchCurve;
+
+  /// Curve for the incoming widget during the cross-fade.
   final Curve? switchInCurve;
+
+  /// Curve for the outgoing widget during the cross-fade.
   final Curve? switchOutCurve;
 
+  /// Custom transition for the underlying [AnimatedSwitcher]. Defaults to a
+  /// fade transition.
   final AnimatedSwitcherTransitionBuilder? transitionBuilder;
 
   /// How long [successChild] is shown before returning to idle. Defaults to
@@ -109,8 +131,14 @@ class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
   /// Whether to animate the implicit size between state widgets of differing
   /// dimensions. Falls back to `false`.
   final bool? animateSize;
+
+  /// Curve used by the [AnimatedSize] when [animateSize] is true.
   final Curve? sizeCurve;
+
+  /// Alignment used by the [AnimatedSize] when [animateSize] is true.
   final AlignmentGeometry? sizeAlignment;
+
+  /// Clip behavior used by the [AnimatedSize] when [animateSize] is true.
   final Clip? sizeClipBehavior;
 
   /// Whether to fire a [HapticFeedback] on success / error transitions.

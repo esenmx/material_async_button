@@ -49,6 +49,7 @@ typedef AsyncButtonErrorCallback =
 /// )
 /// ```
 class AsyncButton extends StatefulWidget {
+  /// Creates an [AsyncButton]. See the class doc for usage.
   const AsyncButton({
     super.key,
     required this.child,
@@ -81,8 +82,14 @@ class AsyncButton extends StatefulWidget {
     this.rethrowErrors,
   });
 
+  /// Idle widget. Replaced by [loadingChild] / [successChild] / [errorChild]
+  /// during the matching [AsyncButtonStatus].
   final Widget child;
+
+  /// Async callback. `null` makes the button appear disabled.
   final AsyncCallback? onPressed;
+
+  /// Renders the button chrome. See [AsyncButtonWidgetBuilder].
   final AsyncButtonWidgetBuilder builder;
 
   /// External controller. When null, the widget creates and owns its own.
@@ -102,29 +109,66 @@ class AsyncButton extends StatefulWidget {
   /// and no status change happens.
   final Future<bool> Function(BuildContext context)? confirmBeforePress;
 
+  /// Widget shown while loading. Falls back to [AsyncButtonTheme.loadingChild].
   final Widget? loadingChild;
+
+  /// Widget shown briefly after success. Falls back to
+  /// [AsyncButtonTheme.successChild].
   final Widget? successChild;
+
+  /// Widget shown briefly after error. Falls back to
+  /// [AsyncButtonTheme.errorChild].
   final Widget? errorChild;
 
   /// Forces the button to appear disabled regardless of status.
   final bool disabled;
 
-  // Per-widget overrides of the theme. Null means "use theme, then default".
+  /// Per-widget override of [AsyncButtonTheme.switchDuration].
   final Duration? switchDuration;
+
+  /// Per-widget override of [AsyncButtonTheme.switchReverseDuration].
   final Duration? switchReverseDuration;
+
+  /// Per-widget override of [AsyncButtonTheme.switchCurve].
   final Curve? switchCurve;
+
+  /// Per-widget override of [AsyncButtonTheme.switchInCurve].
   final Curve? switchInCurve;
+
+  /// Per-widget override of [AsyncButtonTheme.switchOutCurve].
   final Curve? switchOutCurve;
+
+  /// Per-widget override of [AsyncButtonTheme.transitionBuilder].
   final AnimatedSwitcherTransitionBuilder? transitionBuilder;
+
+  /// Per-widget override of [AsyncButtonTheme.successDisplayDuration].
   final Duration? successDisplayDuration;
+
+  /// Per-widget override of [AsyncButtonTheme.errorDisplayDuration].
   final Duration? errorDisplayDuration;
+
+  /// Per-widget override of [AsyncButtonTheme.cooldownDuration].
   final Duration? cooldownDuration;
+
+  /// Per-widget override of [AsyncButtonTheme.animateSize].
   final bool? animateSize;
+
+  /// Per-widget override of [AsyncButtonTheme.sizeCurve].
   final Curve? sizeCurve;
+
+  /// Per-widget override of [AsyncButtonTheme.sizeAlignment].
   final AlignmentGeometry? sizeAlignment;
+
+  /// Per-widget override of [AsyncButtonTheme.sizeClipBehavior].
   final Clip? sizeClipBehavior;
+
+  /// Per-widget override of [AsyncButtonTheme.hapticOn].
   final HapticOn? hapticOn;
+
+  /// Per-widget override of [AsyncButtonTheme.announceSemantics].
   final bool? announceSemantics;
+
+  /// Per-widget override of [AsyncButtonTheme.rethrowErrors].
   final bool? rethrowErrors;
 
   @override

@@ -19,13 +19,22 @@ part of '../material_async_button.dart';
 ///
 /// Dispose like any [ChangeNotifier].
 class AsyncButtonController extends ValueNotifier<AsyncButtonStatus> {
+  /// Creates a controller with an optional initial status (defaults to idle).
   AsyncButtonController([super.initial = const .idle()]);
 
+  /// True when [value] is [AsyncButtonStatusIdle].
   bool get isIdle => value is AsyncButtonStatusIdle;
+
+  /// True when [value] is [AsyncButtonStatusLoading].
   bool get isLoading => value is AsyncButtonStatusLoading;
+
+  /// True when [value] is [AsyncButtonStatusSuccess].
   bool get isSuccess => value is AsyncButtonStatusSuccess;
+
+  /// True when [value] is [AsyncButtonStatusError].
   bool get isError => value is AsyncButtonStatusError;
 
+  /// True while the post-success/error cooldown is blocking [trigger].
   @visibleForTesting
   bool get isInCooldown => _cooldownActive;
 
