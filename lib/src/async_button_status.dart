@@ -28,7 +28,9 @@ sealed class AsyncButtonStatus {
   ]) = AsyncButtonStatusError;
 }
 
+/// Idle variant of [AsyncButtonStatus] — no async work in flight.
 final class AsyncButtonStatusIdle extends AsyncButtonStatus {
+  /// Const constructor; prefer the [AsyncButtonStatus.idle] factory.
   const AsyncButtonStatusIdle();
 
   @override
@@ -37,7 +39,9 @@ final class AsyncButtonStatusIdle extends AsyncButtonStatus {
   }
 }
 
+/// Loading variant of [AsyncButtonStatus] — `onPressed` is in flight.
 final class AsyncButtonStatusLoading extends AsyncButtonStatus {
+  /// Const constructor; prefer the [AsyncButtonStatus.loading] factory.
   const AsyncButtonStatusLoading();
 
   @override
@@ -46,7 +50,9 @@ final class AsyncButtonStatusLoading extends AsyncButtonStatus {
   }
 }
 
+/// Success variant of [AsyncButtonStatus] — `onPressed` completed.
 final class AsyncButtonStatusSuccess extends AsyncButtonStatus {
+  /// Const constructor; prefer the [AsyncButtonStatus.success] factory.
   const AsyncButtonStatusSuccess();
 
   @override
@@ -55,10 +61,16 @@ final class AsyncButtonStatusSuccess extends AsyncButtonStatus {
   }
 }
 
+/// Error variant of [AsyncButtonStatus]. Produced when `onPressed` throws or
+/// [AsyncButtonController.invalidate] is called.
 final class AsyncButtonStatusError extends AsyncButtonStatus {
+  /// Const constructor; prefer the [AsyncButtonStatus.error] factory.
   const AsyncButtonStatusError(this.error, [this.stackTrace]);
 
+  /// The thrown error.
   final Object error;
+
+  /// Captured stack trace, when available.
   final StackTrace? stackTrace;
 
   /// Equality compares [error] by runtime type and `toString()` payload —

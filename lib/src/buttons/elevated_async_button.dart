@@ -4,6 +4,7 @@ part of '../../material_async_button.dart';
 /// swapped for a loading widget; success/error are shown afterwards if
 /// configured via prop or theme.
 class ElevatedAsyncButton extends AsyncStandardMaterialButton {
+  /// Mirrors [ElevatedButton.new].
   const ElevatedAsyncButton({
     super.key,
     required super.onPressed,

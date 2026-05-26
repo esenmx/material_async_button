@@ -6,6 +6,7 @@ enum _FilledVariant { primary, tonal }
 /// [FilledAsyncButton.new], [FilledAsyncButton.tonal],
 /// [FilledAsyncButton.icon], [FilledAsyncButton.tonalIcon].
 class FilledAsyncButton extends AsyncStandardMaterialButton {
+  /// Mirrors [FilledButton.new].
   const FilledAsyncButton({
     super.key,
     required super.onPressed,
@@ -38,6 +39,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
     super.rethrowErrors,
   }) : _variant = .primary;
 
+  /// Mirrors [FilledButton.tonal].
   const FilledAsyncButton.tonal({
     super.key,
     required super.onPressed,
@@ -70,6 +72,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
     super.rethrowErrors,
   }) : _variant = .tonal;
 
+  /// Mirrors [FilledButton.icon].
   const FilledAsyncButton.icon({
     super.key,
     required super.onPressed,
@@ -105,6 +108,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
   }) : _variant = .primary,
        super(icon: icon, child: label);
 
+  /// Mirrors [FilledButton.tonalIcon].
   const FilledAsyncButton.tonalIcon({
     super.key,
     required super.onPressed,

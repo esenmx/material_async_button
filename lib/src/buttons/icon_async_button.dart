@@ -9,6 +9,7 @@ enum _IconVariant { standard, filled, filledTonal, outlined }
 /// The [icon] is swapped with `loadingChild`/`successChild`/`errorChild`
 /// during the corresponding state.
 class IconAsyncButton extends AsyncMaterialButton {
+  /// Mirrors [IconButton.new].
   const IconAsyncButton({
     super.key,
     required super.onPressed,
@@ -54,6 +55,7 @@ class IconAsyncButton extends AsyncMaterialButton {
   }) : _variant = .standard,
        super(child: icon);
 
+  /// Mirrors [IconButton.filled].
   const IconAsyncButton.filled({
     super.key,
     required super.onPressed,
@@ -99,6 +101,7 @@ class IconAsyncButton extends AsyncMaterialButton {
   }) : _variant = .filled,
        super(child: icon);
 
+  /// Mirrors [IconButton.filledTonal].
   const IconAsyncButton.filledTonal({
     super.key,
     required super.onPressed,
@@ -144,6 +147,7 @@ class IconAsyncButton extends AsyncMaterialButton {
   }) : _variant = .filledTonal,
        super(child: icon);
 
+  /// Mirrors [IconButton.outlined].
   const IconAsyncButton.outlined({
     super.key,
     required super.onPressed,
@@ -189,27 +193,69 @@ class IconAsyncButton extends AsyncMaterialButton {
   }) : _variant = .outlined,
        super(child: icon);
 
+  /// Idle icon. Swapped with `loadingChild`/`successChild`/`errorChild`.
   final Widget icon;
+
+  /// Forwarded to the underlying [IconButton].
   final double? iconSize;
+
+  /// Forwarded to the underlying [IconButton].
   final VisualDensity? visualDensity;
+
+  /// Forwarded to the underlying [IconButton].
   final EdgeInsetsGeometry? padding;
+
+  /// Forwarded to the underlying [IconButton].
   final AlignmentGeometry? alignment;
+
+  /// Forwarded to the underlying [IconButton].
   final double? splashRadius;
+
+  /// Forwarded to the underlying [IconButton].
   final Color? color;
+
+  /// Forwarded to the underlying [IconButton].
   final Color? focusColor;
+
+  /// Forwarded to the underlying [IconButton].
   final Color? hoverColor;
+
+  /// Forwarded to the underlying [IconButton].
   final Color? highlightColor;
+
+  /// Forwarded to the underlying [IconButton].
   final Color? splashColor;
+
+  /// Forwarded to the underlying [IconButton].
   final Color? disabledColor;
+
+  /// Forwarded to the underlying [IconButton].
   final MouseCursor? mouseCursor;
+
+  /// Forwarded to the underlying [IconButton].
   final FocusNode? focusNode;
+
+  /// Forwarded to the underlying [IconButton].
   final bool autofocus;
+
+  /// Forwarded to the underlying [IconButton].
   final String? tooltip;
+
+  /// Forwarded to the underlying [IconButton].
   final bool? enableFeedback;
+
+  /// Forwarded to the underlying [IconButton].
   final BoxConstraints? constraints;
+
+  /// Forwarded to the underlying [IconButton].
   final ButtonStyle? style;
+
+  /// Forwarded to the underlying [IconButton].
   final bool? isSelected;
+
+  /// Forwarded to the underlying [IconButton].
   final Widget? selectedIcon;
+
   final _IconVariant _variant;
 
   @override
