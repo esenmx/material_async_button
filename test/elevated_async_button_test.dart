@@ -21,16 +21,14 @@ void main() {
       tester,
     ) async {
       final (:onPressed, :completer) = pendingPress();
-      final theme = ThemeData(extensions: const [AsyncButtonTheme.empty]);
+      final theme = emptyAsyncButtonTheme;
       await tester.pumpWidget(
         pumpHost(
           ElevatedAsyncButton(onPressed: onPressed, child: const Text('go')),
           theme: theme,
         ),
       );
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
+      await tapIntoLoading(tester, find.byType(ElevatedButton));
       check(spinnerColor(tester)).equals(theme.colorScheme.primary);
       completer.complete();
       await tester.pumpAndSettle();
@@ -80,9 +78,7 @@ void main() {
       );
       check(find.byIcon(Icons.send)).findsOne();
       check(find.text('send')).findsOne();
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
+      await tapIntoLoading(tester, find.byType(ElevatedButton));
       // Loading drops the icon and shows the spinner alone.
       check(find.byType(CircularProgressIndicator)).findsOne();
       check(find.byIcon(Icons.send)).findsNone();

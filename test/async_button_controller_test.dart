@@ -7,7 +7,7 @@ import 'package:material_async_button/material_async_button.dart';
 
 import '_helpers.dart';
 
-/// Subscribes a loading-recording listener to [c]; returns the recording list.
+/// Subscribes a loading-recording listener to [c]; returns the recorded list.
 List<bool> recordStates(AsyncButtonController c) {
   final out = <bool>[];
   c.addListener(() => out.add(c.value));
@@ -17,16 +17,14 @@ List<bool> recordStates(AsyncButtonController c) {
 void main() {
   group('AsyncButtonController basics', () {
     test('starts idle by default with no onPressed', () {
-      final c = AsyncButtonController();
-      addTearDown(c.dispose);
+      final c = newController();
       check(c)
         ..isIdle()
         ..has((it) => it.canTrigger, 'canTrigger').isFalse();
     });
 
     test('trigger no-ops when no onPressed is attached', () async {
-      final c = AsyncButtonController();
-      addTearDown(c.dispose);
+      final c = newController();
       await c.trigger();
       check(c).isIdle();
     });

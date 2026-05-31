@@ -8,6 +8,12 @@ Widget _noopTransition(BuildContext context, Widget child, bool isLoading) {
   return child;
 }
 
+// Two distinct loading builders — reused across tests that assert field
+// identity (copyWith / lerp / equality). Their separate references are the
+// point, so they live at top level rather than being redeclared per test.
+Widget _loadingA(BuildContext _) => const SizedBox.shrink();
+Widget _loadingB(BuildContext _) => const SizedBox.shrink();
+
 void main() {
   group('AsyncButtonTheme', () {
     test('empty default has all null fields', () {
@@ -18,15 +24,13 @@ void main() {
     });
 
     test('copyWith overrides only specified fields, preserving the rest', () {
-      Widget loadingA(BuildContext _) => const SizedBox.shrink();
-      Widget loadingB(BuildContext _) => const SizedBox.shrink();
-      final base = AsyncButtonTheme(
-        loadingBuilder: loadingA,
+      const base = AsyncButtonTheme(
+        loadingBuilder: _loadingA,
         transitionBuilder: _noopTransition,
       );
-      final overridden = base.copyWith(loadingBuilder: loadingB);
+      final overridden = base.copyWith(loadingBuilder: _loadingB);
       check(overridden)
-        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(loadingB)
+        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingB)
         ..has(
           (it) => it.transitionBuilder,
           'transitionBuilder',
@@ -34,33 +38,29 @@ void main() {
     });
 
     test('lerp snaps fields at the halfway point', () {
-      Widget loadingA(BuildContext _) => const SizedBox.shrink();
-      Widget loadingB(BuildContext _) => const SizedBox.shrink();
-      final from = AsyncButtonTheme(loadingBuilder: loadingA);
-      final to = AsyncButtonTheme(loadingBuilder: loadingB);
+      const from = AsyncButtonTheme(loadingBuilder: _loadingA);
+      const to = AsyncButtonTheme(loadingBuilder: _loadingB);
       check(
         from.lerp(to, 0.4),
-      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(loadingA);
+      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingA);
       check(
         from.lerp(to, 0.6),
-      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(loadingB);
+      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingB);
     });
 
     test('lerp with non-AsyncButtonTheme returns self', () {
-      Widget loadingA(BuildContext _) => const SizedBox.shrink();
-      final a = AsyncButtonTheme(loadingBuilder: loadingA);
+      const a = AsyncButtonTheme(loadingBuilder: _loadingA);
       check(
         a.lerp(null, 0.5),
-      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(loadingA);
+      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingA);
     });
 
     testWidgets('of(context) returns the registered extension', (tester) async {
-      Widget loadingA(BuildContext _) => const SizedBox.shrink();
-      final ext = AsyncButtonTheme(loadingBuilder: loadingA);
+      const ext = AsyncButtonTheme(loadingBuilder: _loadingA);
       AsyncButtonTheme? captured;
       await tester.pumpWidget(
         MaterialApp(
-          theme: ThemeData(extensions: [ext]),
+          theme: ThemeData(extensions: const [ext]),
           home: Builder(
             builder: (ctx) {
               captured = AsyncButtonTheme.of(ctx);
@@ -72,7 +72,7 @@ void main() {
       check(captured)
           .isNotNull()
           .has((it) => it.loadingBuilder, 'loadingBuilder')
-          .equals(loadingA);
+          .equals(_loadingA);
     });
 
     testWidgets('of(context) falls back to empty when no extension is set', (
@@ -95,13 +95,12 @@ void main() {
     });
 
     test('equality is value-based', () {
-      Widget loadingA(BuildContext _) => const SizedBox.shrink();
-      final a = AsyncButtonTheme(
-        loadingBuilder: loadingA,
+      const a = AsyncButtonTheme(
+        loadingBuilder: _loadingA,
         transitionBuilder: _noopTransition,
       );
-      final b = AsyncButtonTheme(
-        loadingBuilder: loadingA,
+      const b = AsyncButtonTheme(
+        loadingBuilder: _loadingA,
         transitionBuilder: _noopTransition,
       );
       check(a).equals(b);

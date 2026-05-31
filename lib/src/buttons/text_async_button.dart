@@ -43,7 +43,6 @@ class TextAsyncButton extends AsyncStandardMaterialButton {
 
   @override
   Widget build(BuildContext context) {
-    final clip = clipBehavior ?? .none;
     return AsyncButton(
       onPressed: onPressed,
       enabled: enabled,
@@ -61,7 +60,7 @@ class TextAsyncButton extends AsyncStandardMaterialButton {
             style: style,
             focusNode: focusNode,
             autofocus: autofocus,
-            clipBehavior: clip,
+            clipBehavior: clipBehavior,
             statesController: statesController,
             iconAlignment: _iconAlignment,
             icon: isLoading ? null : _icon,
@@ -76,7 +75,7 @@ class TextAsyncButton extends AsyncStandardMaterialButton {
           style: style,
           focusNode: focusNode,
           autofocus: autofocus,
-          clipBehavior: clip,
+          clipBehavior: clipBehavior,
           statesController: statesController,
           child: animatedChild,
         );

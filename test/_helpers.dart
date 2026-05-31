@@ -12,10 +12,32 @@ import 'package:material_async_button/material_async_button.dart';
 /// see the per-widget / hard-coded fallbacks.
 Widget pumpHost(Widget child, {ThemeData? theme}) {
   return MaterialApp(
-    theme: theme ?? ThemeData(extensions: const [AsyncButtonTheme.empty]),
+    theme: theme ?? emptyAsyncButtonTheme,
     home: Scaffold(
       body: Center(child: child),
     ),
+  );
+}
+
+/// A [ThemeData] whose only extension is [AsyncButtonTheme.empty] — the
+/// zero-config baseline, used to assert the per-widget / hard-coded fallbacks.
+final ThemeData emptyAsyncButtonTheme = ThemeData(
+  extensions: const [AsyncButtonTheme.empty],
+);
+
+/// A [ThemeData] carrying an [AsyncButtonTheme] from the given fields — for
+/// asserting that theme values flow through when no per-widget override is set.
+ThemeData asyncButtonTheme({
+  WidgetBuilder? loadingBuilder,
+  AsyncButtonTransitionBuilder? transitionBuilder,
+}) {
+  return ThemeData(
+    extensions: [
+      AsyncButtonTheme(
+        loadingBuilder: loadingBuilder,
+        transitionBuilder: transitionBuilder,
+      ),
+    ],
   );
 }
 
@@ -26,7 +48,27 @@ Widget pumpHost(Widget child, {ThemeData? theme}) {
   return (onPressed: () => completer.future, completer: completer);
 }
 
-/// Controller pre-attached with `onPressed`. Auto-disposes.
+/// Taps [finder] and pumps into the loading frame: the spinner is mounted and
+/// its indeterminate animation has advanced far enough for `valueColor` to
+/// resolve (so [spinnerColor] reads the inherited foreground, not a null
+/// first-frame value).
+Future<void> tapIntoLoading(WidgetTester tester, Finder finder) async {
+  await tester.tap(finder);
+  await tester.pump(); // kick off the future → first loading frame
+  await tester.pump(const Duration(milliseconds: 250)); // advance the spinner
+}
+
+/// A fresh [AsyncButtonController] that auto-disposes at test teardown — for
+/// tests that hand the controller to a widget (which attaches `onPressed`
+/// itself). Use [attachedController] when driving a detached controller.
+AsyncButtonController newController() {
+  final c = AsyncButtonController();
+  addTearDown(c.dispose);
+  return c;
+}
+
+/// Controller pre-attached with `onPressed`, for driving it detached from any
+/// widget. Auto-disposes.
 AsyncButtonController attachedController({AsyncCallback? onPressed}) {
   final c = AsyncButtonController()..attach(onPressed: onPressed);
   addTearDown(c.dispose);
