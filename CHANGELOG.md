@@ -21,9 +21,11 @@ a pure complement to `ButtonStyle`.
   returns to idle and **re-throws** so the error reaches `FlutterError.onError`
   / your `runZonedGuarded` zone. `controller.trigger()` rethrows instead of
   completing normally.
-- **`AsyncButtonController` is now a `ValueListenable<bool>`** (`isLoading`).
-  Builders receive `bool isLoading` instead of an `AsyncButtonStatus`; observe
-  it with `addListener` / `ValueListenableBuilder<bool>`.
+- **`AsyncButtonController` is now a read-only `ValueListenable<bool>`**
+  (`ChangeNotifier implements ValueListenable<bool>`, `isLoading`). There is no
+  public `value` setter — drive it with `trigger()` / `reset()` and observe with
+  `addListener` / `ValueListenableBuilder<bool>`. Builders receive `bool
+  isLoading` instead of an `AsyncButtonStatus`.
 - **`AsyncButtonTheme` carries only `loadingBuilder` + `transitionBuilder`.**
   `AsyncButtonTheme.empty` (spinner-only) is the sole baseline; removed
   `AsyncButtonTheme.material()`. It complements `ButtonStyle` — no styling.
