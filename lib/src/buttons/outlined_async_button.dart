@@ -47,7 +47,7 @@ class OutlinedAsyncButton extends AsyncStandardMaterialButton {
       onPressed: onPressed,
       enabled: enabled,
       controller: controller,
-      loadingBuilder: loadingBuilder,
+      loadingBuilder: _resolveLoadingBuilder(context, _loadingSizing),
       transitionBuilder: transitionBuilder,
       builder: (context, animatedChild, callback, isLoading) {
         final longPress = (callback != null && !isLoading) ? onLongPress : null;

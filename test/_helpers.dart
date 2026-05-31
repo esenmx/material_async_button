@@ -103,6 +103,49 @@ Color? spinnerIconThemeColor(WidgetTester tester) {
   return iconTheme.data.color;
 }
 
+/// Side length the loading spinner is laid out in — the `width` of the nearest
+/// [SizedBox] above the [CircularProgressIndicator] ([AsyncButtonSpinner] uses
+/// [SizedBox.square], so width == height == the resolved dimension).
+double? loadingSpinnerSize(WidgetTester tester) {
+  final box = tester.widget<SizedBox>(
+    find
+        .ancestor(
+          of: find.byType(CircularProgressIndicator),
+          matching: find.byType(SizedBox),
+        )
+        .first,
+  );
+  return box.width;
+}
+
+/// The size of the nearest [IconTheme] above the spinner — the button's
+/// resolved icon size, the scope an icon loading child inherits.
+double? spinnerIconThemeSize(WidgetTester tester) {
+  final iconTheme = tester.widget<IconTheme>(
+    find
+        .ancestor(
+          of: find.byType(CircularProgressIndicator),
+          matching: find.byType(IconTheme),
+        )
+        .first,
+  );
+  return iconTheme.data.size;
+}
+
+/// The font size of the nearest [DefaultTextStyle] above the spinner — the
+/// button's resolved label size.
+double? spinnerFontSize(WidgetTester tester) {
+  final style = tester.widget<DefaultTextStyle>(
+    find
+        .ancestor(
+          of: find.byType(CircularProgressIndicator),
+          matching: find.byType(DefaultTextStyle),
+        )
+        .first,
+  );
+  return style.style.fontSize;
+}
+
 /// `checks`-style assertions for [Finder].
 extension FinderChecks on Subject<Finder> {
   void findsOne() => has((f) => f.evaluate().length, 'matches').equals(1);
