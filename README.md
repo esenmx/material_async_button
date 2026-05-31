@@ -103,9 +103,10 @@ ThemeData(
 With no extension registered, `AsyncButtonTheme.of` falls back to
 `AsyncButtonTheme.empty` — the default spinner and nothing else.
 
-The default spinner sizes itself from the ambient font size, not `IconTheme.size`,
-so inside an `IconAsyncButton` pass `loadingBuilder: (_) => AsyncButtonSpinner(size: ...)`
-to match the icon's footprint.
+The default spinner sizes itself to the ambient label's line box (the text's
+rendered height), not `IconTheme.size`, so inside an `IconAsyncButton` pass
+`loadingBuilder: (_) => AsyncButtonSpinner(size: ...)` to match the icon's
+footprint.
 
 ## Custom buttons — `AsyncButton`
 

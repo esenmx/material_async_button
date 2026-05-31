@@ -146,6 +146,28 @@ double? spinnerFontSize(WidgetTester tester) {
   return style.style.fontSize;
 }
 
+/// The single-line *line-box* height of the label style resolved at the spinner
+/// — the height the default spinner is meant to match (taller than the raw
+/// font size for real fonts / explicit `height`). Mirrors the package's own
+/// `_ambientTextLineBox` measurement so tests assert the same number.
+double spinnerTextLineBox(WidgetTester tester) {
+  final style = tester
+      .widget<DefaultTextStyle>(
+        find
+            .ancestor(
+              of: find.byType(CircularProgressIndicator),
+              matching: find.byType(DefaultTextStyle),
+            )
+            .first,
+      )
+      .style;
+  final painter = TextPainter(
+    text: TextSpan(text: '', style: style),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  return painter.preferredLineHeight;
+}
+
 /// `checks`-style assertions for [Finder].
 extension FinderChecks on Subject<Finder> {
   void findsOne() => has((f) => f.evaluate().length, 'matches').equals(1);
