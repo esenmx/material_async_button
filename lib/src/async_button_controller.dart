@@ -12,7 +12,7 @@ part of '../material_async_button.dart';
 ///   - trigger the attached `onPressed` from outside the button
 ///     (e.g. a form keyboard "Done" action),
 ///   - reset to idle,
-///   - read [isLoading] / [canTrigger] to gate surrounding UI.
+///   - read [value] / [canTrigger] to gate surrounding UI.
 ///
 /// Dispose like any [ChangeNotifier].
 class AsyncButtonController extends ChangeNotifier
@@ -26,9 +26,6 @@ class AsyncButtonController extends ChangeNotifier
   /// [trigger] / [reset], never from outside.
   @override
   bool get value => _isLoading;
-
-  /// Alias for [value] — whether `onPressed` is currently in flight.
-  bool get isLoading => _isLoading;
 
   /// True when [trigger] would actually run the attached callback (not loading
   /// and a callback is attached). Use it to gate surrounding UI.
