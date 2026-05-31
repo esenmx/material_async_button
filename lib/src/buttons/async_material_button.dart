@@ -54,7 +54,7 @@ abstract class AsyncMaterialButton extends StatelessWidget {
   ) {
     return loadingBuilder ??
         AsyncButtonTheme.of(context).loadingBuilder ??
-        (_) => _DefaultLoadingSpinner(sizing);
+        (context) => _DefaultLoadingSpinner(sizing);
   }
 }
 
@@ -121,8 +121,7 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
   /// constructor lays out an icon beside the label, so its idle row height is
   /// `max(iconSize, lineBox)`; a plain constructor shows only the label, so it
   /// tracks the label's line box.
-  _SpinnerSize get _loadingSizing =>
-      _icon != null ? _SpinnerSize.max : _SpinnerSize.fontSize;
+  _SpinnerSize get _loadingSizing => _icon != null ? .max : .fontSize;
 }
 
 /// How [_DefaultLoadingSpinner] derives its dimension from the ambient theme,
@@ -159,9 +158,9 @@ class _DefaultLoadingSpinner extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconSize = IconTheme.of(context).size;
     final dimension = switch (sizing) {
-      _SpinnerSize.fontSize => _ambientTextLineBox(context),
-      _SpinnerSize.iconSize => iconSize,
-      _SpinnerSize.max => _largest(iconSize, _ambientTextLineBox(context)),
+      .fontSize => _ambientTextLineBox(context),
+      .iconSize => iconSize,
+      .max => _largest(iconSize, _ambientTextLineBox(context)),
     };
     // A null dimension (icon-only with an unset icon size) lets
     // AsyncButtonSpinner fall back to the ambient line box.
