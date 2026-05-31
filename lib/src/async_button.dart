@@ -178,10 +178,7 @@ class _AsyncButtonState extends State<AsyncButton> {
     // Keyed by loading state so a user-supplied transitionBuilder can animate
     // the swap (e.g. via AnimatedSwitcher / AnimatedSize). With no builder it
     // is an instant swap.
-    content = KeyedSubtree(
-      key: ValueKey<bool>(isLoading),
-      child: content,
-    );
+    content = KeyedSubtree(key: ValueKey<bool>(isLoading), child: content);
     if (transitionBuilder != null) {
       content = transitionBuilder(context, content, isLoading);
     }
