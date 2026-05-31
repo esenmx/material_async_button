@@ -92,6 +92,20 @@ class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
   }
 }
 
+/// The single-line height of the ambient label style at [context] — the
+/// vertical extent a one-line [Text] occupies here. The default spinner sizes
+/// to this (the idle content's *line box*, which is taller than the raw
+/// `fontSize`) so the button keeps its idle height while loading instead of
+/// shrinking. Honours the ambient [TextScaler], matching how the label scales.
+double _ambientTextLineBox(BuildContext context) {
+  final painter = TextPainter(
+    text: TextSpan(text: '', style: DefaultTextStyle.of(context).style),
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
+  )..layout();
+  return painter.preferredLineHeight;
+}
+
 /// The default loading indicator — a sized, indeterminate
 /// [CircularProgressIndicator]. Used as the fallback loading view, and exposed
 /// so you can tweak it and return it from a `loadingBuilder`:
@@ -123,11 +137,12 @@ class AsyncButtonSpinner extends StatelessWidget {
   /// Stroke width of the [CircularProgressIndicator].
   final double strokeWidth;
 
-  /// Side length of the square the indicator is laid out in. When null it is
-  /// derived from the ambient [DefaultTextStyle] font size (matching a text
-  /// button's label), falling back to `16`. [IconThemeData.size] is
-  /// intentionally not used — it is typically 24 and would oversize the spinner
-  /// on text buttons.
+  /// Side length of the square the indicator is laid out in. When null it
+  /// tracks the ambient label's line-box height (the vertical extent of a
+  /// one-line [Text] in the surrounding [DefaultTextStyle]), so the spinner
+  /// fills the same height the label did and the button doesn't shrink.
+  /// [IconThemeData.size] is intentionally not read here — it is typically 24
+  /// and would oversize the spinner on text buttons.
   final double? size;
 
   @override
@@ -136,7 +151,7 @@ class AsyncButtonSpinner extends StatelessWidget {
         color ??
         IconTheme.of(context).color ??
         Theme.of(context).colorScheme.primary;
-    final dimension = size ?? DefaultTextStyle.of(context).style.fontSize ?? 16;
+    final dimension = size ?? _ambientTextLineBox(context);
     return Center(
       child: SizedBox.square(
         dimension: dimension,
