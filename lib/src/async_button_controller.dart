@@ -1,13 +1,15 @@
 part of '../material_async_button.dart';
 
-/// `ValueNotifier<bool>` of an [AsyncButton]'s loading state (`true` while
+/// A `ValueListenable<bool>` of an [AsyncButton]'s loading state (`true` while
 /// `onPressed` is in flight). Pipe it into a `ValueListenableBuilder<bool>` for
-/// reactive UI outside the button.
+/// reactive UI outside the button; drive the button with [trigger] / [reset]
+/// rather than mutating `value` directly.
 ///
 /// Use it to:
 ///   - trigger the attached `onPressed` from outside the button
 ///     (e.g. a form keyboard "Done" action),
-///   - reset to idle.
+///   - reset to idle,
+///   - read [isLoading] / [canTrigger] to gate surrounding UI.
 ///
 /// Dispose like any [ChangeNotifier].
 class AsyncButtonController extends ValueNotifier<bool> {
@@ -60,7 +62,9 @@ class AsyncButtonController extends ValueNotifier<bool> {
 
   /// Force the button back to idle.
   void reset() {
-    value = false;
+    if (!_disposed) {
+      value = false;
+    }
   }
 
   @override

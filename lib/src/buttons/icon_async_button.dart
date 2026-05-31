@@ -7,6 +7,11 @@ enum _IconVariant { standard, filled, filledTonal, outlined }
 /// [IconAsyncButton.filledTonal], [IconAsyncButton.outlined].
 ///
 /// The [icon] is swapped with the `loadingBuilder` output while loading.
+///
+/// Pass a [tooltip] for an accessible loading state: while loading the [icon]
+/// (often the button's only implicit label) is replaced by the spinner, which
+/// carries no semantic label, so without a tooltip a screen reader announces an
+/// unlabeled button.
 class IconAsyncButton extends AsyncMaterialButton {
   /// Mirrors [IconButton.new].
   const IconAsyncButton({
@@ -181,7 +186,9 @@ class IconAsyncButton extends AsyncMaterialButton {
   /// Forwarded to the underlying [IconButton].
   final bool autofocus;
 
-  /// Forwarded to the underlying [IconButton].
+  /// Forwarded to the underlying [IconButton]. Doubles as the button's
+  /// accessible label — recommended, since the spinner that replaces [icon]
+  /// while loading has no label of its own.
   final String? tooltip;
 
   /// Forwarded to the underlying [IconButton].
