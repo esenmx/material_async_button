@@ -10,61 +10,64 @@ void main() {
     testWidgets('renders an ElevatedButton with the child', (tester) async {
       await tester.pumpWidget(
         pumpHost(
-          ElevatedAsyncButton(
-            onPressed: () async {},
-            child: const Text('go'),
-          ),
+          ElevatedAsyncButton(onPressed: () async {}, child: const Text('go')),
         ),
       );
       check(find.byType(ElevatedButton)).findsOne();
       check(find.text('go')).findsOne();
     });
 
-    testWidgets('shows loading then returns to idle', (tester) async {
+    testWidgets('loading spinner uses primary, not the disabled grey', (
+      tester,
+    ) async {
+      final (:onPressed, :completer) = pendingPress();
+      final theme = ThemeData(extensions: const [AsyncButtonTheme.empty]);
+      await tester.pumpWidget(
+        pumpHost(
+          ElevatedAsyncButton(onPressed: onPressed, child: const Text('go')),
+          theme: theme,
+        ),
+      );
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      check(spinnerColor(tester)).equals(theme.colorScheme.primary);
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('onLongPress is gated off while loading', (tester) async {
       final (:onPressed, :completer) = pendingPress();
       await tester.pumpWidget(
         pumpHost(
           ElevatedAsyncButton(
             onPressed: onPressed,
+            onLongPress: () {},
             child: const Text('go'),
           ),
         ),
       );
+      // Idle: long-press is wired.
+      check(
+        tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onLongPress,
+      ).isNotNull();
+
       await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
-      check(find.byType(CircularProgressIndicator)).findsOne();
+      // Loading: the button looks enabled, but long-press is gated off.
+      check(
+        tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onLongPress,
+      ).isNull();
+
       completer.complete();
       await tester.pumpAndSettle();
-      check(find.text('go')).findsOne();
-    });
-
-    testWidgets('is disabled when onPressed is null', (tester) async {
-      await tester.pumpWidget(
-        pumpHost(
-          const ElevatedAsyncButton(onPressed: null, child: Text('go')),
-        ),
-      );
-      final btn = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
-      check(btn.onPressed).isNull();
-    });
-
-    testWidgets('is disabled when disabled=true', (tester) async {
-      await tester.pumpWidget(
-        pumpHost(
-          ElevatedAsyncButton(
-            onPressed: () async {},
-            disabled: true,
-            child: const Text('go'),
-          ),
-        ),
-      );
-      final btn = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
-      check(btn.onPressed).isNull();
     });
   });
 
   group('ElevatedAsyncButton.icon', () {
-    testWidgets('icon stays put while the label animates', (tester) async {
+    testWidgets('spinner replaces icon and label, both restored after', (
+      tester,
+    ) async {
       final (:onPressed, :completer) = pendingPress();
       await tester.pumpWidget(
         pumpHost(
@@ -79,10 +82,14 @@ void main() {
       check(find.text('send')).findsOne();
       await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
-      check(find.byIcon(Icons.send)).findsOne();
+      await tester.pump(const Duration(milliseconds: 250));
+      // Loading drops the icon and shows the spinner alone.
       check(find.byType(CircularProgressIndicator)).findsOne();
+      check(find.byIcon(Icons.send)).findsNone();
       completer.complete();
       await tester.pumpAndSettle();
+      // Icon and label both return once the work completes.
+      check(find.byIcon(Icons.send)).findsOne();
       check(find.text('send')).findsOne();
     });
   });

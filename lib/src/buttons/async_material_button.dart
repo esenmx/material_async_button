@@ -4,10 +4,10 @@ part of '../../material_async_button.dart';
 /// ([ElevatedAsyncButton], [FilledAsyncButton], [OutlinedAsyncButton],
 /// [TextAsyncButton], [IconAsyncButton]).
 ///
-/// Owns the shared async-status surface — [onPressed], [controller], and
-/// the theme-override knobs. Subclasses implement [build] and forward these
-/// fields to an [AsyncButton]. For custom non-Material buttons reach for
-/// [AsyncButton] directly.
+/// Owns the shared async surface — [onPressed], [controller], and the
+/// theme-override knobs. Subclasses implement [build] and forward these fields
+/// to an [AsyncButton]. For custom non-Material buttons reach for [AsyncButton]
+/// directly.
 abstract class AsyncMaterialButton extends StatelessWidget {
   /// Subclass-only constructor. Forwards every field to [AsyncButton]. See
   /// [AsyncButton] for the semantics of each parameter.
@@ -15,24 +15,10 @@ abstract class AsyncMaterialButton extends StatelessWidget {
     super.key,
     required this.child,
     required this.onPressed,
+    this.enabled = true,
     this.controller,
-    this.onSuccess,
-    this.onError,
-    this.onStateChanged,
-    this.confirmBeforePress,
-    this.loadingChild,
-    this.successChild,
-    this.errorChild,
-    this.disabled = false,
-    this.switchDuration,
+    this.loadingBuilder,
     this.transitionBuilder,
-    this.successDisplayDuration,
-    this.errorDisplayDuration,
-    this.cooldownDuration,
-    this.animateSize,
-    this.hapticOn,
-    this.announceSemantics,
-    this.rethrowErrors,
   });
 
   /// See [AsyncButton.child].
@@ -41,59 +27,17 @@ abstract class AsyncMaterialButton extends StatelessWidget {
   /// See [AsyncButton.onPressed].
   final AsyncCallback? onPressed;
 
+  /// See [AsyncButton.enabled].
+  final bool enabled;
+
   /// See [AsyncButton.controller].
   final AsyncButtonController? controller;
 
-  /// See [AsyncButton.onSuccess].
-  final VoidCallback? onSuccess;
-
-  /// See [AsyncButton.onError].
-  final AsyncButtonErrorCallback? onError;
-
-  /// See [AsyncButton.onStateChanged].
-  final ValueChanged<AsyncButtonStatus>? onStateChanged;
-
-  /// See [AsyncButton.confirmBeforePress].
-  final Future<bool> Function(BuildContext context)? confirmBeforePress;
-
-  /// See [AsyncButton.loadingChild].
-  final Widget? loadingChild;
-
-  /// See [AsyncButton.successChild].
-  final Widget? successChild;
-
-  /// See [AsyncButton.errorChild].
-  final Widget? errorChild;
-
-  /// See [AsyncButton.disabled].
-  final bool disabled;
-
-  /// See [AsyncButton.switchDuration].
-  final Duration? switchDuration;
+  /// See [AsyncButton.loadingBuilder].
+  final WidgetBuilder? loadingBuilder;
 
   /// See [AsyncButton.transitionBuilder].
-  final AnimatedSwitcherTransitionBuilder? transitionBuilder;
-
-  /// See [AsyncButton.successDisplayDuration].
-  final Duration? successDisplayDuration;
-
-  /// See [AsyncButton.errorDisplayDuration].
-  final Duration? errorDisplayDuration;
-
-  /// See [AsyncButton.cooldownDuration].
-  final Duration? cooldownDuration;
-
-  /// See [AsyncButton.animateSize].
-  final bool? animateSize;
-
-  /// See [AsyncButton.hapticOn].
-  final HapticOn? hapticOn;
-
-  /// See [AsyncButton.announceSemantics].
-  final bool? announceSemantics;
-
-  /// See [AsyncButton.rethrowErrors].
-  final bool? rethrowErrors;
+  final AsyncButtonTransitionBuilder? transitionBuilder;
 }
 
 /// Sub-base for the four [AsyncMaterialButton]s that share the standard
@@ -111,24 +55,10 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
     super.key,
     required super.child,
     required super.onPressed,
+    super.enabled,
     super.controller,
-    super.onSuccess,
-    super.onError,
-    super.onStateChanged,
-    super.confirmBeforePress,
-    super.loadingChild,
-    super.successChild,
-    super.errorChild,
-    super.disabled,
-    super.switchDuration,
+    super.loadingBuilder,
     super.transitionBuilder,
-    super.successDisplayDuration,
-    super.errorDisplayDuration,
-    super.cooldownDuration,
-    super.animateSize,
-    super.hapticOn,
-    super.announceSemantics,
-    super.rethrowErrors,
     this.onLongPress,
     this.onHover,
     this.onFocusChange,

@@ -3,99 +3,64 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
 
+// A no-op transition builder for theme-field tests.
+Widget _noopTransition(BuildContext context, Widget child, bool isLoading) {
+  return child;
+}
+
 void main() {
   group('AsyncButtonTheme', () {
     test('empty default has all null fields', () {
       const t = AsyncButtonTheme.empty;
       check(t)
-        ..has((it) => it.loadingChild, 'loadingChild').isNull()
-        ..has((it) => it.successChild, 'successChild').isNull()
-        ..has((it) => it.errorChild, 'errorChild').isNull()
-        ..has((it) => it.switchDuration, 'switchDuration').isNull()
-        ..has((it) => it.hapticOn, 'hapticOn').isNull();
+        ..has((it) => it.loadingBuilder, 'loadingBuilder').isNull()
+        ..has((it) => it.transitionBuilder, 'transitionBuilder').isNull();
     });
 
-    test('material() supplies opinionated baseline', () {
-      final t = AsyncButtonTheme.material();
-      check(t)
-        ..has((it) => it.loadingChild, 'loadingChild').isNotNull()
-        ..has((it) => it.successChild, 'successChild').isNotNull()
-        ..has((it) => it.errorChild, 'errorChild').isNotNull()
-        ..has(
-          (it) => it.switchDuration,
-          'switchDuration',
-        ).equals(const Duration(milliseconds: 200))
-        ..has(
-          (it) => it.successDisplayDuration,
-          'successDisplayDuration',
-        ).equals(const Duration(milliseconds: 800))
-        ..has(
-          (it) => it.errorDisplayDuration,
-          'errorDisplayDuration',
-        ).equals(const Duration(milliseconds: 800))
-        ..has((it) => it.animateSize, 'animateSize').equals(true)
-        ..has((it) => it.hapticOn, 'hapticOn').equals(HapticOn.both)
-        ..has((it) => it.announceSemantics, 'announceSemantics').equals(true);
-    });
-
-    test('copyWith overrides only specified fields', () {
-      final base = AsyncButtonTheme.material();
-      final overridden = base.copyWith(
-        switchDuration: const Duration(milliseconds: 500),
+    test('copyWith overrides only specified fields, preserving the rest', () {
+      Widget loadingA(BuildContext _) => const SizedBox.shrink();
+      Widget loadingB(BuildContext _) => const SizedBox.shrink();
+      final base = AsyncButtonTheme(
+        loadingBuilder: loadingA,
+        transitionBuilder: _noopTransition,
       );
+      final overridden = base.copyWith(loadingBuilder: loadingB);
       check(overridden)
+        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(loadingB)
         ..has(
-          (it) => it.switchDuration,
-          'switchDuration',
-        ).equals(const Duration(milliseconds: 500))
-        ..has(
-          (it) => it.successDisplayDuration,
-          'successDisplayDuration',
-        ).equals(base.successDisplayDuration)
-        ..has((it) => it.hapticOn, 'hapticOn').equals(base.hapticOn);
+          (it) => it.transitionBuilder,
+          'transitionBuilder',
+        ).equals(_noopTransition);
     });
 
-    test('lerp snaps non-numeric fields and interpolates durations', () {
-      const a = AsyncButtonTheme(
-        switchDuration: Duration(milliseconds: 100),
-        successDisplayDuration: Duration(milliseconds: 200),
-        hapticOn: HapticOn.success,
-      );
-      const b = AsyncButtonTheme(
-        switchDuration: Duration(milliseconds: 300),
-        successDisplayDuration: Duration(milliseconds: 600),
-        hapticOn: HapticOn.error,
-      );
-      final mid = a.lerp(b, 0.5);
-      check(mid)
-        ..has(
-          (it) => it.switchDuration,
-          'switchDuration',
-        ).equals(const Duration(milliseconds: 200))
-        ..has(
-          (it) => it.successDisplayDuration,
-          'successDisplayDuration',
-        ).equals(const Duration(milliseconds: 400))
-        ..has((it) => it.hapticOn, 'hapticOn').equals(HapticOn.error);
+    test('lerp snaps fields at the halfway point', () {
+      Widget loadingA(BuildContext _) => const SizedBox.shrink();
+      Widget loadingB(BuildContext _) => const SizedBox.shrink();
+      final from = AsyncButtonTheme(loadingBuilder: loadingA);
+      final to = AsyncButtonTheme(loadingBuilder: loadingB);
+      check(
+        from.lerp(to, 0.4),
+      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(loadingA);
+      check(
+        from.lerp(to, 0.6),
+      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(loadingB);
     });
 
     test('lerp with non-AsyncButtonTheme returns self', () {
-      const a = AsyncButtonTheme(
-        switchDuration: Duration(milliseconds: 100),
-      );
-      check(a.lerp(null, 0.5))
-          .has((it) => it.switchDuration, 'switchDuration')
-          .equals(a.switchDuration);
+      Widget loadingA(BuildContext _) => const SizedBox.shrink();
+      final a = AsyncButtonTheme(loadingBuilder: loadingA);
+      check(
+        a.lerp(null, 0.5),
+      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(loadingA);
     });
 
     testWidgets('of(context) returns the registered extension', (tester) async {
-      const ext = AsyncButtonTheme(
-        switchDuration: Duration(milliseconds: 123),
-      );
+      Widget loadingA(BuildContext _) => const SizedBox.shrink();
+      final ext = AsyncButtonTheme(loadingBuilder: loadingA);
       AsyncButtonTheme? captured;
       await tester.pumpWidget(
         MaterialApp(
-          theme: ThemeData(extensions: const [ext]),
+          theme: ThemeData(extensions: [ext]),
           home: Builder(
             builder: (ctx) {
               captured = AsyncButtonTheme.of(ctx);
@@ -106,11 +71,11 @@ void main() {
       );
       check(captured)
           .isNotNull()
-          .has((it) => it.switchDuration, 'switchDuration')
-          .equals(const Duration(milliseconds: 123));
+          .has((it) => it.loadingBuilder, 'loadingBuilder')
+          .equals(loadingA);
     });
 
-    testWidgets('of(context) falls back to material defaults when absent', (
+    testWidgets('of(context) falls back to empty when no extension is set', (
       tester,
     ) async {
       AsyncButtonTheme? captured;
@@ -124,41 +89,20 @@ void main() {
           ),
         ),
       );
-      check(captured)
-          .isNotNull()
-          .has((it) => it.switchDuration, 'switchDuration')
-          .equals(const Duration(milliseconds: 200));
+      check(captured).isNotNull()
+        ..has((it) => it.loadingBuilder, 'loadingBuilder').isNull()
+        ..has((it) => it.transitionBuilder, 'transitionBuilder').isNull();
     });
 
-    testWidgets(
-      'of(context) returns registered empty extension when explicitly set',
-      (tester) async {
-        AsyncButtonTheme? captured;
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: ThemeData(extensions: const [AsyncButtonTheme.empty]),
-            home: Builder(
-              builder: (ctx) {
-                captured = AsyncButtonTheme.of(ctx);
-                return const SizedBox.shrink();
-              },
-            ),
-          ),
-        );
-        check(
-          captured,
-        ).isNotNull().has((it) => it.switchDuration, 'switchDuration').isNull();
-      },
-    );
-
     test('equality is value-based', () {
-      const a = AsyncButtonTheme(
-        switchDuration: Duration(milliseconds: 100),
-        hapticOn: HapticOn.both,
+      Widget loadingA(BuildContext _) => const SizedBox.shrink();
+      final a = AsyncButtonTheme(
+        loadingBuilder: loadingA,
+        transitionBuilder: _noopTransition,
       );
-      const b = AsyncButtonTheme(
-        switchDuration: Duration(milliseconds: 100),
-        hapticOn: HapticOn.both,
+      final b = AsyncButtonTheme(
+        loadingBuilder: loadingA,
+        transitionBuilder: _noopTransition,
       );
       check(a).equals(b);
       check(a.hashCode).equals(b.hashCode);

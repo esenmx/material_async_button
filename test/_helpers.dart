@@ -9,9 +9,7 @@ import 'package:material_async_button/material_async_button.dart';
 /// Wraps a widget in a minimal MaterialApp + Scaffold for testing.
 ///
 /// Defaults to a [ThemeData] carrying [AsyncButtonTheme.empty] so the tests
-/// see the per-widget / hard-coded fallbacks instead of the opinionated
-/// [AsyncButtonTheme.material] baseline that `AsyncButtonTheme.of` returns
-/// when no extension is registered.
+/// see the per-widget / hard-coded fallbacks.
 Widget pumpHost(Widget child, {ThemeData? theme}) {
   return MaterialApp(
     theme: theme ?? ThemeData(extensions: const [AsyncButtonTheme.empty]),
@@ -28,22 +26,9 @@ Widget pumpHost(Widget child, {ThemeData? theme}) {
   return (onPressed: () => completer.future, completer: completer);
 }
 
-/// Controller pre-attached with `onPressed`/durations. Auto-disposes.
-AsyncButtonController attachedController({
-  AsyncCallback? onPressed,
-  Duration successDuration = .zero,
-  Duration errorDuration = .zero,
-  Duration cooldownDuration = .zero,
-  bool rethrowErrors = false,
-}) {
-  final c = AsyncButtonController()
-    ..attach(
-      onPressed: onPressed,
-      successDuration: successDuration,
-      errorDuration: errorDuration,
-      cooldownDuration: cooldownDuration,
-      rethrowErrors: rethrowErrors,
-    );
+/// Controller pre-attached with `onPressed`. Auto-disposes.
+AsyncButtonController attachedController({AsyncCallback? onPressed}) {
+  final c = AsyncButtonController()..attach(onPressed: onPressed);
   addTearDown(c.dispose);
   return c;
 }
@@ -51,6 +36,29 @@ AsyncButtonController attachedController({
 /// Builder that renders a [TextButton] driven by the AsyncButton callback.
 Widget textBuilder(_, Widget child, AsyncCallback? cb, _) {
   return TextButton(onPressed: cb, child: child);
+}
+
+/// The colour the loading [CircularProgressIndicator] resolved to — i.e. the
+/// spinner foreground inherited from the enabled button while loading.
+Color? spinnerColor(WidgetTester tester) {
+  final cpi = tester.widget<CircularProgressIndicator>(
+    find.byType(CircularProgressIndicator),
+  );
+  return cpi.valueColor?.value;
+}
+
+/// The colour of the nearest [IconTheme] above the spinner — the scope any
+/// `Icon` / spinner loading child inherits.
+Color? spinnerIconThemeColor(WidgetTester tester) {
+  final iconTheme = tester.widget<IconTheme>(
+    find
+        .ancestor(
+          of: find.byType(CircularProgressIndicator),
+          matching: find.byType(IconTheme),
+        )
+        .first,
+  );
+  return iconTheme.data.color;
 }
 
 /// `checks`-style assertions for [Finder].
@@ -63,9 +71,6 @@ extension FinderChecks on Subject<Finder> {
 
 /// `checks`-style assertions for [AsyncButtonController].
 extension AsyncButtonControllerChecks on Subject<AsyncButtonController> {
-  void hasStatus(AsyncButtonStatus expected) =>
-      has((c) => c.value, 'value').equals(expected);
-  void isIdle() => hasStatus(const .idle());
-  void isLoading() => hasStatus(const .loading());
-  void isSuccess() => hasStatus(const .success());
+  void isIdle() => has((c) => c.value, 'isLoading').isFalse();
+  void isLoading() => has((c) => c.value, 'isLoading').isTrue();
 }
