@@ -214,7 +214,7 @@ class IconAsyncButton extends AsyncMaterialButton {
       onPressed: onPressed,
       enabled: enabled,
       controller: controller,
-      loadingBuilder: _resolveLoadingBuilder(context, _SpinnerSize.iconSize),
+      loadingBuilder: _resolveLoadingBuilder(context, .iconSize),
       transitionBuilder: transitionBuilder,
       builder: (context, child, callback, isLoading) {
         return switch (_variant) {
