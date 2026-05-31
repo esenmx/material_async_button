@@ -89,7 +89,7 @@ void main() {
       check(find.text('send')).findsOne();
     });
 
-    testWidgets('loading spinner is sized to the taller of icon and font', (
+    testWidgets('loading spinner is sized to the taller of icon and line box', (
       tester,
     ) async {
       final (:onPressed, :completer) = pendingPress();
@@ -105,15 +105,16 @@ void main() {
       await tapIntoLoading(tester, find.byType(ElevatedButton));
       final iconSize = spinnerIconThemeSize(tester);
       final fontSize = spinnerFontSize(tester);
+      final lineBox = spinnerTextLineBox(tester);
       check(iconSize).isNotNull();
       check(fontSize).isNotNull();
-      // The .icon row height is max(icon, font); the spinner matches it so the
-      // button keeps its height while loading.
-      final expected = iconSize! > fontSize! ? iconSize : fontSize;
+      // The .icon row height is max(icon, lineBox); the spinner matches it so
+      // the button keeps its height while loading.
+      final expected = iconSize! > lineBox ? iconSize : lineBox;
       check(loadingSpinnerSize(tester)).equals(expected);
       // Regression guard: the icon is the taller element, so the spinner must
       // exceed the font size (the old, shrinking behaviour).
-      check(loadingSpinnerSize(tester)!).isGreaterThan(fontSize);
+      check(loadingSpinnerSize(tester)!).isGreaterThan(fontSize!);
       completer.complete();
       await tester.pump();
     });

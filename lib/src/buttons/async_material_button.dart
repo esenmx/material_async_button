@@ -44,9 +44,10 @@ abstract class AsyncMaterialButton extends StatelessWidget {
   /// then a default spinner sized for the button's shape (see [_SpinnerSize]).
   ///
   /// The shape-aware default exists because the bare [AsyncButtonSpinner] sizes
-  /// to the ambient font size — right for a text label, but it would shrink an
-  /// icon-bearing button (whose idle height is driven by the icon) while
-  /// loading.
+  /// to the ambient label line box — right for a text label, but an
+  /// icon-bearing button's idle height can be driven by the icon (taller than
+  /// the line box), so it would shrink while loading unless the icon is taken
+  /// into account.
   WidgetBuilder _resolveLoadingBuilder(
     BuildContext context,
     _SpinnerSize sizing,
@@ -118,8 +119,8 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
 
   /// The default spinner sizing for this button's current shape: an `.icon`
   /// constructor lays out an icon beside the label, so its idle row height is
-  /// `max(iconSize, fontSize)`; a plain constructor shows only the label, so it
-  /// tracks the font size.
+  /// `max(iconSize, lineBox)`; a plain constructor shows only the label, so it
+  /// tracks the label's line box.
   _SpinnerSize get _loadingSizing =>
       _icon != null ? _SpinnerSize.max : _SpinnerSize.fontSize;
 }
@@ -127,14 +128,15 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
 /// How [_DefaultLoadingSpinner] derives its dimension from the ambient theme,
 /// chosen per button shape so the loading view keeps the idle footprint.
 enum _SpinnerSize {
-  /// Text-only buttons — match the label font size.
+  /// Text-only buttons — match the label's line-box height (its idle extent,
+  /// taller than the raw `fontSize`).
   fontSize,
 
   /// Icon-only buttons ([IconAsyncButton]) — match the icon size.
   iconSize,
 
   /// Icon + label buttons (the `.icon` constructors) — match the taller of the
-  /// two, i.e. the idle row height.
+  /// icon size and the label line box, i.e. the idle row height.
   max,
 }
 
@@ -155,14 +157,14 @@ class _DefaultLoadingSpinner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fontSize = DefaultTextStyle.of(context).style.fontSize;
     final iconSize = IconTheme.of(context).size;
     final dimension = switch (sizing) {
-      _SpinnerSize.fontSize => fontSize,
+      _SpinnerSize.fontSize => _ambientTextLineBox(context),
       _SpinnerSize.iconSize => iconSize,
-      _SpinnerSize.max => _largest(iconSize, fontSize),
+      _SpinnerSize.max => _largest(iconSize, _ambientTextLineBox(context)),
     };
-    // A null dimension lets AsyncButtonSpinner fall back to fontSize ?? 16.
+    // A null dimension (icon-only with an unset icon size) lets
+    // AsyncButtonSpinner fall back to the ambient line box.
     return AsyncButtonSpinner(size: dimension);
   }
 }
