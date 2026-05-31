@@ -38,7 +38,7 @@ class AsyncButtonController extends ChangeNotifier
   // updates.
   AsyncCallback? _onPressed;
 
-  bool _disposed = false;
+  bool _isDisposed = false;
 
   /// Binds the host widget's current `onPressed` to the controller.
   ///
@@ -82,7 +82,7 @@ class AsyncButtonController extends ChangeNotifier
   /// Single mutation point. Dedupes (like the former [ValueNotifier]) so
   /// listeners fire only on a real change, and never notifies after [dispose].
   void _setLoading(bool value) {
-    if (_disposed || _isLoading == value) {
+    if (_isDisposed || _isLoading == value) {
       return;
     }
     _isLoading = value;
@@ -91,7 +91,7 @@ class AsyncButtonController extends ChangeNotifier
 
   @override
   void dispose() {
-    _disposed = true;
+    _isDisposed = true;
     super.dispose();
   }
 }

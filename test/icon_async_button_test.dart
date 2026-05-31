@@ -65,7 +65,7 @@ void main() {
   group('IconAsyncButton loading foreground', () {
     testWidgets('.filled spinner uses onPrimary', (tester) async {
       final (:onPressed, :completer) = pendingPress();
-      final theme = ThemeData(extensions: const [AsyncButtonTheme.empty]);
+      final theme = emptyAsyncButtonTheme;
       await tester.pumpWidget(
         pumpHost(
           IconAsyncButton.filled(
@@ -75,9 +75,7 @@ void main() {
           theme: theme,
         ),
       );
-      await tester.tap(find.byType(IconButton));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
+      await tapIntoLoading(tester, find.byType(IconButton));
       check(spinnerColor(tester)).equals(theme.colorScheme.onPrimary);
       completer.complete();
       await tester.pumpAndSettle();
@@ -94,9 +92,7 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.byType(IconButton));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
+      await tapIntoLoading(tester, find.byType(IconButton));
       check(spinnerColor(tester)).equals(Colors.purple);
       completer.complete();
       await tester.pumpAndSettle();

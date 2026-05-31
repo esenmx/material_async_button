@@ -95,12 +95,8 @@ void main() {
             builder: textBuilder,
             child: const Text('go'),
           ),
-          theme: ThemeData(
-            extensions: [
-              AsyncButtonTheme(
-                loadingBuilder: (_) => const Text('themed-loading'),
-              ),
-            ],
+          theme: asyncButtonTheme(
+            loadingBuilder: (_) => const Text('themed-loading'),
           ),
         ),
       );
@@ -121,11 +117,7 @@ void main() {
             builder: textBuilder,
             child: const Text('go'),
           ),
-          theme: ThemeData(
-            extensions: [
-              AsyncButtonTheme(loadingBuilder: (_) => const Text('themed')),
-            ],
-          ),
+          theme: asyncButtonTheme(loadingBuilder: (_) => const Text('themed')),
         ),
       );
       await tester.tap(find.byType(TextButton));
@@ -158,8 +150,7 @@ void main() {
     testWidgets('a throwing onPressed returns to idle and rethrows', (
       tester,
     ) async {
-      final controller = AsyncButtonController();
-      addTearDown(controller.dispose);
+      final controller = newController();
       await tester.pumpWidget(
         pumpHost(
           AsyncButton(
@@ -213,8 +204,7 @@ void main() {
       tester,
     ) async {
       var ran = 0;
-      final controller = AsyncButtonController();
-      addTearDown(controller.dispose);
+      final controller = newController();
       await tester.pumpWidget(
         pumpHost(
           AsyncButton(
@@ -240,8 +230,7 @@ void main() {
     testWidgets('controller.trigger drives loading; stays enabled', (
       tester,
     ) async {
-      final controller = AsyncButtonController();
-      addTearDown(controller.dispose);
+      final controller = newController();
       final completer = Completer<void>();
       await tester.pumpWidget(
         pumpHost(
@@ -272,8 +261,7 @@ void main() {
     });
 
     testWidgets('controller.reset clears the loading state', (tester) async {
-      final controller = AsyncButtonController();
-      addTearDown(controller.dispose);
+      final controller = newController();
       final completer = Completer<void>();
       await tester.pumpWidget(
         pumpHost(
@@ -297,14 +285,10 @@ void main() {
     testWidgets(
       'swapping the external controller transfers listening without leak',
       (tester) async {
-        final a = AsyncButtonController();
-        final b = AsyncButtonController();
+        final a = newController();
+        final b = newController();
         final aCompleter = Completer<void>();
         final bCompleter = Completer<void>();
-        addTearDown(() {
-          a.dispose();
-          b.dispose();
-        });
         AsyncButton button(AsyncButtonController c, Completer<void> done) =>
             AsyncButton(
               controller: c,

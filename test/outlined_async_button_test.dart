@@ -44,9 +44,7 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.byType(OutlinedButton));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
+      await tapIntoLoading(tester, find.byType(OutlinedButton));
       check(spinnerColor(tester)).equals(Colors.red);
       check(spinnerIconThemeColor(tester)).equals(Colors.red);
       completer.complete();

@@ -65,7 +65,7 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
     this.style,
     this.focusNode,
     this.autofocus = false,
-    this.clipBehavior,
+    this.clipBehavior = .none,
     this.statesController,
     Widget? icon,
     IconAlignment? iconAlignment,
@@ -91,7 +91,7 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
   final bool autofocus;
 
   /// Forwarded to the underlying Material button.
-  final Clip? clipBehavior;
+  final Clip clipBehavior;
 
   /// Forwarded to the underlying Material button.
   final WidgetStatesController? statesController;
