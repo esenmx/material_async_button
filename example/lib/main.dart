@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:material_async_button/material_async_button.dart';
 
 void main() => runApp(const MyApp());
@@ -205,6 +206,17 @@ class _HomePageState extends State<HomePage> {
             child: const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Text('Custom', style: TextStyle(color: Colors.white)),
+            ),
+          ),
+          const Divider(height: 32),
+          const _SectionLabel('Custom button style OutlinedButton'),
+          OutlinedAsyncButton.icon(
+            onPressed: _simulateWork,
+            icon: const Icon(Icons.save),
+            label: const Text('Save'),
+            style: OutlinedButton.styleFrom(
+              padding: const .symmetric(vertical: 16, horizontal: 24),
+              textStyle: GoogleFonts.dmSans(fontSize: 15, fontWeight: .w500),
             ),
           ),
         ],
