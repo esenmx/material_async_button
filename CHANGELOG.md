@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2.0.2
+
+### Fixed
+
+- **Buttons no longer shrink by a sub-pixel while loading.** The default spinner
+  now sizes to the label's **line-box height** (the idle content's vertical
+  extent) rather than the raw `fontSize`, which is shorter than the rendered
+  line. `.icon` buttons take `max(iconSize, lineBox)`, text-only buttons take the
+  line box, icon-only buttons keep `iconSize` (unchanged). The line box is
+  measured with the ambient `TextScaler`, so the loading view also tracks text
+  scaling.
+
 ## 2.0.1
 
 ### Fixed
