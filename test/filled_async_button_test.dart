@@ -54,9 +54,7 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.byType(FilledButton));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
+      await tapIntoLoading(tester, find.byType(FilledButton));
       // Loading drops the icon and shows the spinner alone.
       check(find.byType(CircularProgressIndicator)).findsOne();
       check(find.byIcon(Icons.save)).findsNone();
@@ -73,16 +71,14 @@ void main() {
       tester,
     ) async {
       final (:onPressed, :completer) = pendingPress();
-      final theme = ThemeData(extensions: const [AsyncButtonTheme.empty]);
+      final theme = emptyAsyncButtonTheme;
       await tester.pumpWidget(
         pumpHost(
           FilledAsyncButton(onPressed: onPressed, child: const Text('go')),
           theme: theme,
         ),
       );
-      await tester.tap(find.byType(FilledButton));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
+      await tapIntoLoading(tester, find.byType(FilledButton));
       check(spinnerColor(tester)).equals(theme.colorScheme.onPrimary);
       completer.complete();
       await tester.pumpAndSettle();
@@ -90,7 +86,7 @@ void main() {
 
     testWidgets('.tonal spinner uses onSecondaryContainer', (tester) async {
       final (:onPressed, :completer) = pendingPress();
-      final theme = ThemeData(extensions: const [AsyncButtonTheme.empty]);
+      final theme = emptyAsyncButtonTheme;
       await tester.pumpWidget(
         pumpHost(
           FilledAsyncButton.tonal(
@@ -100,9 +96,7 @@ void main() {
           theme: theme,
         ),
       );
-      await tester.tap(find.byType(FilledButton));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
+      await tapIntoLoading(tester, find.byType(FilledButton));
       check(
         spinnerColor(tester),
       ).equals(theme.colorScheme.onSecondaryContainer);
@@ -123,9 +117,7 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.byType(FilledButton));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
+      await tapIntoLoading(tester, find.byType(FilledButton));
       check(spinnerColor(tester)).equals(Colors.teal);
       completer.complete();
       await tester.pumpAndSettle();
