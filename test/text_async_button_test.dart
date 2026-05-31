@@ -31,7 +31,7 @@ void main() {
       check(find.text('copy')).findsOne();
     });
 
-    testWidgets('plain loading spinner tracks the label font size', (
+    testWidgets('plain loading spinner tracks the label line box', (
       tester,
     ) async {
       final (:onPressed, :completer) = pendingPress();
@@ -41,9 +41,11 @@ void main() {
         ),
       );
       await tapIntoLoading(tester, find.byType(TextButton));
-      final fontSize = spinnerFontSize(tester);
-      check(fontSize).isNotNull();
-      check(loadingSpinnerSize(tester)).equals(fontSize);
+      // The spinner fills the label's line box, so a text button keeps its idle
+      // height while loading. (In the test font the line box equals the font
+      // size; the line-box basis is exercised explicitly in the OutlinedButton
+      // regression test, where an explicit `height` makes them differ.)
+      check(loadingSpinnerSize(tester)).equals(spinnerTextLineBox(tester));
       completer.complete();
       await tester.pump();
     });

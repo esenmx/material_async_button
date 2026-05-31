@@ -50,5 +50,40 @@ void main() {
       completer.complete();
       await tester.pumpAndSettle();
     });
+
+    testWidgets('.icon spinner tracks the line box, not the raw font size', (
+      tester,
+    ) async {
+      final (:onPressed, :completer) = pendingPress();
+      // An explicit `height: 2` makes the label's line box (fontSize * 2)
+      // exceed both the raw font size and the default icon size — the same way
+      // a real font's rendered line is taller than its fontSize. The default
+      // spinner must size to that line box so the button keeps its idle height
+      // while loading (the old behaviour sized to the raw fontSize and shrank).
+      final theme = ThemeData(
+        extensions: const [AsyncButtonTheme.empty],
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            textStyle: const TextStyle(fontSize: 15, height: 2),
+          ),
+        ),
+      );
+      await tester.pumpWidget(
+        pumpHost(
+          OutlinedAsyncButton.icon(
+            onPressed: onPressed,
+            icon: const Icon(Icons.delete),
+            label: const Text('Delete account'),
+          ),
+          theme: theme,
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(OutlinedButton));
+      final lineBox = spinnerTextLineBox(tester); // 15 * 2 = 30
+      check(lineBox).isGreaterThan(spinnerFontSize(tester)!); // 30 > 15
+      check(loadingSpinnerSize(tester)).equals(lineBox);
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
   });
 }
