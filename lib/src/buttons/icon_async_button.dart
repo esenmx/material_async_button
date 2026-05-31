@@ -1,6 +1,6 @@
 part of '../../material_async_button.dart';
 
-enum _IconVariant { standard, filled, filledTonal, outlined }
+enum _IconButtonVariant { standard, filled, filledTonal, outlined }
 
 /// Async-aware [IconButton]. Includes all four Material 3 flavors:
 /// [IconAsyncButton.new], [IconAsyncButton.filled],
@@ -206,7 +206,7 @@ class IconAsyncButton extends AsyncMaterialButton {
   /// Forwarded to the underlying [IconButton].
   final Widget? selectedIcon;
 
-  final _IconVariant _variant;
+  final _IconButtonVariant _variant;
 
   @override
   Widget build(BuildContext context) {

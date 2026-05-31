@@ -1,6 +1,6 @@
 part of '../../material_async_button.dart';
 
-enum _FilledVariant { primary, tonal }
+enum _FilledButtonVariant { primary, tonal }
 
 /// Async-aware [FilledButton] with all four Material 3 flavors:
 /// [FilledAsyncButton.new], [FilledAsyncButton.tonal],
@@ -86,11 +86,10 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
   }) : _variant = .tonal,
        super(child: label);
 
-  final _FilledVariant _variant;
+  final _FilledButtonVariant _variant;
 
   @override
   Widget build(BuildContext context) {
-    final clip = clipBehavior ?? .none;
     return AsyncButton(
       onPressed: onPressed,
       enabled: enabled,
@@ -109,7 +108,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
               style: style,
               focusNode: focusNode,
               autofocus: autofocus,
-              clipBehavior: clip,
+              clipBehavior: clipBehavior,
               statesController: statesController,
               iconAlignment: _iconAlignment,
               icon: isLoading ? null : _icon,
@@ -123,7 +122,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
               style: style,
               focusNode: focusNode,
               autofocus: autofocus,
-              clipBehavior: clip,
+              clipBehavior: clipBehavior,
               statesController: statesController,
               iconAlignment: _iconAlignment,
               icon: isLoading ? null : _icon,
@@ -140,7 +139,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
             style: style,
             focusNode: focusNode,
             autofocus: autofocus,
-            clipBehavior: clip,
+            clipBehavior: clipBehavior,
             statesController: statesController,
             child: animatedChild,
           ),
@@ -152,7 +151,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
             style: style,
             focusNode: focusNode,
             autofocus: autofocus,
-            clipBehavior: clip,
+            clipBehavior: clipBehavior,
             statesController: statesController,
             child: animatedChild,
           ),
