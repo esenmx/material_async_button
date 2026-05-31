@@ -21,7 +21,7 @@ dependencies:
   material_async_button: ^2.0.0
 ```
 
-Requires Dart `^3.10.0` (any Flutter SDK shipping Dart 3.10+).
+Requires Dart `^3.10.0` and Flutter `>=3.38.0`.
 
 ## Why
 
@@ -103,6 +103,10 @@ ThemeData(
 With no extension registered, `AsyncButtonTheme.of` falls back to
 `AsyncButtonTheme.empty` — the default spinner and nothing else.
 
+The default spinner sizes itself from the ambient font size, not `IconTheme.size`,
+so inside an `IconAsyncButton` pass `loadingBuilder: (_) => AsyncButtonSpinner(size: ...)`
+to match the icon's footprint.
+
 ## Custom buttons — `AsyncButton`
 
 `AsyncButton` is the low-level escape hatch. Use it when none of the Material
@@ -142,6 +146,7 @@ ElevatedAsyncButton(
 controller.trigger();    // run onPressed from outside (rethrows on failure)
 controller.reset();      // force back to idle
 controller.isLoading;    // bool
+controller.canTrigger;   // bool — true when trigger() would run (not loading, callback attached)
 ```
 
 ## Defaults
@@ -151,7 +156,10 @@ controller.isLoading;    // bool
 | idle     | your `child`                                |
 | loading  | `AsyncButtonSpinner` (sized to the label)   |
 
-`.icon` constructors drop the icon while loading and show the spinner alone.
+The label-button `.icon` constructors (`ElevatedAsyncButton.icon`,
+`FilledAsyncButton.icon`, etc.) drop the icon while loading and show the spinner
+alone. (`IconAsyncButton` has no `.icon` variant — it swaps its sole icon for the
+spinner.)
 
 **Loading never disables the button.** Being loading and being *disabled* are
 different things — the spinner is the indicator, the button keeps its themed

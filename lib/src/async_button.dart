@@ -98,9 +98,7 @@ class AsyncButton extends StatefulWidget {
   final AsyncButtonTransitionBuilder? transitionBuilder;
 
   @override
-  State<AsyncButton> createState() {
-    return _AsyncButtonState();
-  }
+  State<AsyncButton> createState() => _AsyncButtonState();
 }
 
 class _AsyncButtonState extends State<AsyncButton> {
