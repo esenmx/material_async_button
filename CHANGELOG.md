@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2.0.1
+
+### Fixed
+
+- **Icon-bearing buttons no longer shrink vertically while loading.** The
+  default spinner sizes to the button's shape instead of always to the font
+  size: `iconSize` for `IconAsyncButton`, `max(iconSize, fontSize)` for the
+  `.icon` constructors (the idle row height), and `fontSize` for text-only
+  buttons (unchanged). Sizes are read from the button's resolved `IconTheme` /
+  `DefaultTextStyle`, so a per-widget `iconSize` and theme overrides flow
+  through.
+
 ## 2.0.0
 
 Breaking redesign. The button now does exactly one job — show a spinner while
