@@ -88,5 +88,34 @@ void main() {
       check(find.byIcon(Icons.send)).findsOne();
       check(find.text('send')).findsOne();
     });
+
+    testWidgets('loading spinner is sized to the taller of icon and font', (
+      tester,
+    ) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          ElevatedAsyncButton.icon(
+            onPressed: onPressed,
+            icon: const Icon(Icons.send),
+            label: const Text('send'),
+          ),
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(ElevatedButton));
+      final iconSize = spinnerIconThemeSize(tester);
+      final fontSize = spinnerFontSize(tester);
+      check(iconSize).isNotNull();
+      check(fontSize).isNotNull();
+      // The .icon row height is max(icon, font); the spinner matches it so the
+      // button keeps its height while loading.
+      final expected = iconSize! > fontSize! ? iconSize : fontSize;
+      check(loadingSpinnerSize(tester)).equals(expected);
+      // Regression guard: the icon is the taller element, so the spinner must
+      // exceed the font size (the old, shrinking behaviour).
+      check(loadingSpinnerSize(tester)!).isGreaterThan(fontSize);
+      completer.complete();
+      await tester.pump();
+    });
   });
 }

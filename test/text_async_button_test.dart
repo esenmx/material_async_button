@@ -30,5 +30,22 @@ void main() {
       check(find.byIcon(Icons.copy)).findsOne();
       check(find.text('copy')).findsOne();
     });
+
+    testWidgets('plain loading spinner tracks the label font size', (
+      tester,
+    ) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          TextAsyncButton(onPressed: onPressed, child: const Text('go')),
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(TextButton));
+      final fontSize = spinnerFontSize(tester);
+      check(fontSize).isNotNull();
+      check(loadingSpinnerSize(tester)).equals(fontSize);
+      completer.complete();
+      await tester.pump();
+    });
   });
 }
