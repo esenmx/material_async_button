@@ -145,7 +145,7 @@ ElevatedAsyncButton(
 
 controller.trigger();    // run onPressed from outside (rethrows on failure)
 controller.reset();      // force back to idle
-controller.isLoading;    // bool
+controller.value;        // bool — true while loading (ValueListenable<bool>)
 controller.canTrigger;   // bool — true when trigger() would run (not loading, callback attached)
 ```
 

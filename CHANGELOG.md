@@ -22,8 +22,8 @@ a pure complement to `ButtonStyle`.
   / your `runZonedGuarded` zone. `controller.trigger()` rethrows instead of
   completing normally.
 - **`AsyncButtonController` is now a read-only `ValueListenable<bool>`**
-  (`ChangeNotifier implements ValueListenable<bool>`, `isLoading`). There is no
-  public `value` setter — drive it with `trigger()` / `reset()` and observe with
+  (`ChangeNotifier implements ValueListenable<bool>`). There is no public
+  `value` setter — drive it with `trigger()` / `reset()` and observe with
   `addListener` / `ValueListenableBuilder<bool>`. Builders receive `bool
   isLoading` instead of an `AsyncButtonStatus`.
 - **`AsyncButtonTheme` carries only `loadingBuilder` + `transitionBuilder`.**

@@ -51,7 +51,7 @@ controller.trigger(); // run onPressed externally (e.g. form "Done")
 controller.reset();
 ```
 
-`ValueListenable<bool>` (`isLoading`).
+Read-only `ValueListenable<bool>` — observe `value` (true while loading); gate UI with `canTrigger`.
 
 ## Custom button — `AsyncButton`
 
