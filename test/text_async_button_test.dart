@@ -10,10 +10,7 @@ void main() {
     testWidgets('renders TextButton', (tester) async {
       await tester.pumpWidget(
         pumpHost(
-          TextAsyncButton(
-            onPressed: () async {},
-            child: const Text('go'),
-          ),
+          TextAsyncButton(onPressed: () async {}, child: const Text('go')),
         ),
       );
       check(find.byType(TextButton)).findsOne();
@@ -31,26 +28,7 @@ void main() {
       );
       check(find.byType(TextButton)).findsOne();
       check(find.byIcon(Icons.copy)).findsOne();
-    });
-
-    testWidgets('controller.trigger() works for "Done" keyboard pattern', (
-      tester,
-    ) async {
-      final controller = AsyncButtonController();
-      addTearDown(controller.dispose);
-      var ran = 0;
-      await tester.pumpWidget(
-        pumpHost(
-          TextAsyncButton(
-            controller: controller,
-            onPressed: () async => ran++,
-            child: const Text('go'),
-          ),
-        ),
-      );
-      await controller.trigger();
-      await tester.pumpAndSettle();
-      check(ran).equals(1);
+      check(find.text('copy')).findsOne();
     });
   });
 }

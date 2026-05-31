@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,7 +22,7 @@ void main() {
       check(find.text('hello')).findsOne();
     });
 
-    testWidgets('falls back to built-in spinner when no loadingChild', (
+    testWidgets('falls back to built-in spinner when no loadingBuilder', (
       tester,
     ) async {
       final (:onPressed, :completer) = pendingPress();
@@ -40,13 +42,36 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('uses per-widget loadingChild when given', (tester) async {
+    testWidgets('stays enabled while loading (taps are no-ops)', (
+      tester,
+    ) async {
       final (:onPressed, :completer) = pendingPress();
       await tester.pumpWidget(
         pumpHost(
           AsyncButton(
             onPressed: onPressed,
-            loadingChild: const Text('spinning'),
+            builder: textBuilder,
+            child: const Text('go'),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(TextButton));
+      await tester.pump();
+      // Loading never disables the button — the callback stays wired; the
+      // controller swallows the tap (still loading), so it doesn't re-run.
+      final btn = tester.widget<TextButton>(find.byType(TextButton));
+      check(btn.onPressed).isNotNull();
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('uses per-widget loadingBuilder when given', (tester) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          AsyncButton(
+            onPressed: onPressed,
+            loadingBuilder: (_) => const Text('spinning'),
             builder: textBuilder,
             child: const Text('go'),
           ),
@@ -59,7 +84,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('theme loadingChild used when no per-widget override', (
+    testWidgets('theme loadingBuilder used when no per-widget override', (
       tester,
     ) async {
       final (:onPressed, :completer) = pendingPress();
@@ -71,8 +96,10 @@ void main() {
             child: const Text('go'),
           ),
           theme: ThemeData(
-            extensions: const [
-              AsyncButtonTheme(loadingChild: Text('themed-loading')),
+            extensions: [
+              AsyncButtonTheme(
+                loadingBuilder: (_) => const Text('themed-loading'),
+              ),
             ],
           ),
         ),
@@ -84,19 +111,19 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('widget loadingChild beats theme', (tester) async {
+    testWidgets('widget loadingBuilder beats theme', (tester) async {
       final (:onPressed, :completer) = pendingPress();
       await tester.pumpWidget(
         pumpHost(
           AsyncButton(
             onPressed: onPressed,
-            loadingChild: const Text('widget'),
+            loadingBuilder: (_) => const Text('widget'),
             builder: textBuilder,
             child: const Text('go'),
           ),
           theme: ThemeData(
-            extensions: const [
-              AsyncButtonTheme(loadingChild: Text('themed')),
+            extensions: [
+              AsyncButtonTheme(loadingBuilder: (_) => const Text('themed')),
             ],
           ),
         ),
@@ -111,7 +138,7 @@ void main() {
   });
 
   group('AsyncButton transitions', () {
-    testWidgets('returns to child after success with zero display duration', (
+    testWidgets('returns to its child after onPressed completes', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -128,84 +155,31 @@ void main() {
       check(find.text('label')).findsOne();
     });
 
-    testWidgets('shows successChild for successDisplayDuration', (
+    testWidgets('a throwing onPressed returns to idle and rethrows', (
       tester,
     ) async {
+      final controller = AsyncButtonController();
+      addTearDown(controller.dispose);
       await tester.pumpWidget(
         pumpHost(
           AsyncButton(
-            onPressed: () async {},
-            successChild: const Text('done!'),
-            successDisplayDuration: const Duration(milliseconds: 200),
-            builder: textBuilder,
-            child: const Text('label'),
-          ),
-        ),
-      );
-      await tester.tap(find.byType(TextButton));
-      await tester.pump();
-      await tester.pump();
-      check(find.text('done!')).findsOne();
-      await tester.pump(const Duration(milliseconds: 250));
-      await tester.pumpAndSettle();
-      check(find.text('done!')).findsNone();
-      check(find.text('label')).findsOne();
-    });
-
-    testWidgets('shows errorChild during error status', (tester) async {
-      await tester.pumpWidget(
-        pumpHost(
-          AsyncButton(
+            controller: controller,
             onPressed: () async => throw StateError('boom'),
-            errorChild: const Text('errored'),
-            errorDisplayDuration: const Duration(milliseconds: 100),
             builder: textBuilder,
             child: const Text('label'),
           ),
         ),
       );
-      await tester.tap(find.byType(TextButton));
+      // The error is not swallowed — trigger() rethrows so the caller (state
+      // management / the surrounding zone) sees it.
+      await check(controller.trigger()).throws<StateError>();
       await tester.pump();
-      await tester.pump();
-      check(find.text('errored')).findsOne();
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('onError carries the thrown error payload', (tester) async {
-      Object? captured;
-      await tester.pumpWidget(
-        pumpHost(
-          AsyncButton(
-            onPressed: () async => throw StateError('x'),
-            onError: (e, _) => captured = e,
-            builder: textBuilder,
-            child: const Text('label'),
-          ),
-        ),
-      );
-      await tester.tap(find.byType(TextButton));
-      await tester.pumpAndSettle();
-      check(captured).isA<StateError>();
+      // The button is back to its idle child — there is no error view.
+      check(find.text('label')).findsOne();
     });
   });
 
   group('AsyncButton callbacks', () {
-    testWidgets('callback null when disabled', (tester) async {
-      await tester.pumpWidget(
-        pumpHost(
-          AsyncButton(
-            onPressed: () async {},
-            disabled: true,
-            builder: textBuilder,
-            child: const Text('label'),
-          ),
-        ),
-      );
-      final btn = tester.widget<TextButton>(find.byType(TextButton));
-      check(btn.onPressed).isNull();
-    });
-
     testWidgets('callback null when onPressed is null', (tester) async {
       await tester.pumpWidget(
         pumpHost(
@@ -220,127 +194,104 @@ void main() {
       check(btn.onPressed).isNull();
     });
 
-    testWidgets('onSuccess and onStateChanged fire', (tester) async {
-      var successCount = 0;
-      final statuses = <AsyncButtonStatus>[];
+    testWidgets('callback null when enabled is false', (tester) async {
       await tester.pumpWidget(
         pumpHost(
           AsyncButton(
             onPressed: () async {},
-            onSuccess: () => successCount++,
-            onStateChanged: statuses.add,
+            enabled: false,
             builder: textBuilder,
             child: const Text('label'),
           ),
         ),
       );
-      await tester.tap(find.byType(TextButton));
-      await tester.pumpAndSettle();
-      check(successCount).equals(1);
-      check(statuses.map((s) => s.runtimeType).toList())
-        ..contains(AsyncButtonStatusLoading)
-        ..contains(AsyncButtonStatusSuccess)
-        ..contains(AsyncButtonStatusIdle);
+      final btn = tester.widget<TextButton>(find.byType(TextButton));
+      check(btn.onPressed).isNull();
     });
 
-    testWidgets('onError fires with the thrown error', (tester) async {
-      Object? captured;
-      await tester.pumpWidget(
-        pumpHost(
-          AsyncButton(
-            onPressed: () async => throw StateError('x'),
-            onError: (e, _) => captured = e,
-            builder: textBuilder,
-            child: const Text('label'),
-          ),
-        ),
-      );
-      await tester.tap(find.byType(TextButton));
-      await tester.pumpAndSettle();
-      check(captured).isA<StateError>();
-    });
-
-    testWidgets('confirmBeforePress can cancel the press', (tester) async {
+    testWidgets('enabled:false no-ops external controller.trigger', (
+      tester,
+    ) async {
       var ran = 0;
+      final controller = AsyncButtonController();
+      addTearDown(controller.dispose);
       await tester.pumpWidget(
         pumpHost(
           AsyncButton(
+            controller: controller,
             onPressed: () async => ran++,
-            confirmBeforePress: (_) async => false,
+            enabled: false,
             builder: textBuilder,
             child: const Text('label'),
           ),
         ),
       );
-      await tester.tap(find.byType(TextButton));
-      await tester.pumpAndSettle();
+      // enabled:false collapses to onPressed:null at the controller seam, so an
+      // external trigger can't run either.
+      await controller.trigger();
+      await tester.pump();
       check(ran).equals(0);
+      check(controller).isIdle();
+      check(find.byType(CircularProgressIndicator)).findsNone();
     });
   });
 
   group('AsyncButton external control', () {
-    testWidgets('controller.trigger() runs onPressed', (tester) async {
+    testWidgets('controller.trigger drives loading; stays enabled', (
+      tester,
+    ) async {
       final controller = AsyncButtonController();
       addTearDown(controller.dispose);
-      var ran = 0;
+      final completer = Completer<void>();
       await tester.pumpWidget(
         pumpHost(
           AsyncButton(
             controller: controller,
-            onPressed: () async => ran++,
+            onPressed: () => completer.future,
             builder: textBuilder,
             child: const Text('label'),
           ),
         ),
       );
-      await controller.trigger();
+      // Idle: interactive.
+      check(
+        tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      ).isNotNull();
+
+      unawaited(controller.trigger());
+      await tester.pump();
+      // Loading: spinner shows and the button keeps its enabled look.
+      check(find.byType(CircularProgressIndicator)).findsOne();
+      check(
+        tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      ).isNotNull();
+
+      completer.complete();
       await tester.pumpAndSettle();
-      check(ran).equals(1);
+      check(find.text('label')).findsOne();
     });
 
-    testWidgets('controller.invalidate flips to error', (tester) async {
+    testWidgets('controller.reset clears the loading state', (tester) async {
       final controller = AsyncButtonController();
       addTearDown(controller.dispose);
+      final completer = Completer<void>();
       await tester.pumpWidget(
         pumpHost(
           AsyncButton(
             controller: controller,
-            onPressed: () async {},
-            errorChild: const Text('errored'),
-            errorDisplayDuration: const Duration(milliseconds: 100),
+            onPressed: () => completer.future,
             builder: textBuilder,
             child: const Text('label'),
           ),
         ),
       );
-      controller.invalidate('bad');
+      unawaited(controller.trigger());
       await tester.pump();
-      check(find.text('errored')).findsOne();
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('controller.reset clears mid-display', (tester) async {
-      final controller = AsyncButtonController();
-      addTearDown(controller.dispose);
-      await tester.pumpWidget(
-        pumpHost(
-          AsyncButton(
-            controller: controller,
-            onPressed: () async {},
-            successChild: const Text('yay'),
-            successDisplayDuration: const Duration(seconds: 5),
-            builder: textBuilder,
-            child: const Text('label'),
-          ),
-        ),
-      );
-      controller.markSuccess();
-      await tester.pump();
-      check(find.text('yay')).findsOne();
+      check(find.byType(CircularProgressIndicator)).findsOne();
       controller.reset();
       await tester.pump();
       check(find.text('label')).findsOne();
+      completer.complete();
     });
 
     testWidgets(
@@ -348,54 +299,81 @@ void main() {
       (tester) async {
         final a = AsyncButtonController();
         final b = AsyncButtonController();
+        final aCompleter = Completer<void>();
+        final bCompleter = Completer<void>();
         addTearDown(() {
           a.dispose();
           b.dispose();
         });
-        AsyncButton button(AsyncButtonController c) => AsyncButton(
-          controller: c,
-          onPressed: () async {},
-          successChild: const Text('done'),
-          successDisplayDuration: const Duration(milliseconds: 100),
-          builder: textBuilder,
-          child: const Text('child'),
-        );
-        await tester.pumpWidget(pumpHost(button(a)));
-        await tester.pumpWidget(pumpHost(button(b)));
-        a.markSuccess();
+        AsyncButton button(AsyncButtonController c, Completer<void> done) =>
+            AsyncButton(
+              controller: c,
+              onPressed: () => done.future,
+              builder: textBuilder,
+              child: const Text('child'),
+            );
+        await tester.pumpWidget(pumpHost(button(a, aCompleter)));
+        await tester.pumpWidget(pumpHost(button(b, bCompleter)));
+        // The widget now listens to b: driving a must not show loading.
+        unawaited(a.trigger());
         await tester.pump();
-        check(find.text('done')).findsNone();
-        b.markSuccess();
+        check(find.byType(CircularProgressIndicator)).findsNone();
+        // Driving b does.
+        unawaited(b.trigger());
         await tester.pump();
-        check(find.text('done')).findsOne();
-        await tester.pump(const Duration(milliseconds: 200));
+        check(find.byType(CircularProgressIndicator)).findsOne();
+        aCompleter.complete();
+        bCompleter.complete();
         await tester.pumpAndSettle();
       },
     );
   });
 
-  group('AsyncButton timer hygiene', () {
-    testWidgets('invalidate then markSuccess does not race', (tester) async {
-      final controller = AsyncButtonController();
-      addTearDown(controller.dispose);
+  group('AsyncButton transition builder', () {
+    testWidgets('no transition by default — the swap is instant', (
+      tester,
+    ) async {
+      final (:onPressed, :completer) = pendingPress();
       await tester.pumpWidget(
         pumpHost(
-          AsyncButton(
-            controller: controller,
-            onPressed: () async {},
-            errorChild: const Text('e'),
-            errorDisplayDuration: const Duration(milliseconds: 200),
-            builder: textBuilder,
-            child: const Text('child'),
+          FilledAsyncButton(onPressed: onPressed, child: const Text('go')),
+        ),
+      );
+      await tester.tap(find.byType(FilledButton));
+      await tester.pump();
+      // No AnimatedSwitcher/AnimatedSize is inserted by the package.
+      check(find.byType(AnimatedSwitcher)).findsNone();
+      check(find.byType(CircularProgressIndicator)).findsOne();
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('wraps the keyed state child with the supplied builder', (
+      tester,
+    ) async {
+      final (:onPressed, :completer) = pendingPress();
+      final seenLoading = <bool>[];
+      await tester.pumpWidget(
+        pumpHost(
+          FilledAsyncButton(
+            onPressed: onPressed,
+            transitionBuilder: (context, child, isLoading) {
+              seenLoading.add(isLoading);
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 100),
+                child: child,
+              );
+            },
+            child: const Text('go'),
           ),
         ),
       );
-      controller.invalidate('1');
+      await tester.tap(find.byType(FilledButton));
       await tester.pump();
-      controller.markSuccess();
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
-      check(find.text('child')).findsOne();
+      check(find.byType(AnimatedSwitcher)).findsOne();
+      check(seenLoading).contains(true);
+      completer.complete();
+      await tester.pumpAndSettle();
     });
   });
 }
