@@ -1,8 +1,7 @@
 part of '../../material_async_button.dart';
 
 /// Async-aware [ElevatedButton]. While `onPressed` is running the label is
-/// swapped for a loading widget; an optional success view is shown afterwards
-/// if configured via prop or theme.
+/// swapped for the loading widget.
 class ElevatedAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [ElevatedButton.new].
   const ElevatedAsyncButton({
@@ -23,8 +22,8 @@ class ElevatedAsyncButton extends AsyncStandardMaterialButton {
     super.transitionBuilder,
   });
 
-  /// Mirrors [ElevatedButton.icon]. The loading/success children replace
-  /// `label` while `icon` stays put.
+  /// Mirrors [ElevatedButton.icon]. The loading widget replaces `label`
+  /// while `icon` stays put.
   const ElevatedAsyncButton.icon({
     super.key,
     required super.onPressed,
