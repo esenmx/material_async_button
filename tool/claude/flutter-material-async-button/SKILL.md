@@ -38,6 +38,8 @@ AsyncButtonTheme(loadingBuilder: (_) => const AsyncButtonSpinner(strokeWidth: 3)
 
 Per-button props win. No styling knobs — that's `ButtonStyle`'s job. Animate the
 swap with `transitionBuilder` (wrap `child` in `AnimatedSwitcher` + `AnimatedSize`).
+The default spinner sizes from the ambient font size, not `IconTheme.size`; inside an
+`IconAsyncButton` pass `loadingBuilder: (_) => AsyncButtonSpinner(size: ...)` to match the icon.
 
 ## Controller — drive from outside
 
