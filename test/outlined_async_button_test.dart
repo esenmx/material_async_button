@@ -10,10 +10,7 @@ void main() {
     testWidgets('renders OutlinedButton', (tester) async {
       await tester.pumpWidget(
         pumpHost(
-          OutlinedAsyncButton(
-            onPressed: () async {},
-            child: const Text('go'),
-          ),
+          OutlinedAsyncButton(onPressed: () async {}, child: const Text('go')),
         ),
       );
       check(find.byType(OutlinedButton)).findsOne();
@@ -34,19 +31,24 @@ void main() {
       check(find.text('share')).findsOne();
     });
 
-    testWidgets('cycles through loading', (tester) async {
+    testWidgets('loading spinner honours style.foregroundColor', (
+      tester,
+    ) async {
       final (:onPressed, :completer) = pendingPress();
       await tester.pumpWidget(
         pumpHost(
           OutlinedAsyncButton(
             onPressed: onPressed,
-            child: const Text('go'),
+            style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('delete'),
           ),
         ),
       );
       await tester.tap(find.byType(OutlinedButton));
       await tester.pump();
-      check(find.byType(CircularProgressIndicator)).findsOne();
+      await tester.pump(const Duration(milliseconds: 250));
+      check(spinnerColor(tester)).equals(Colors.red);
+      check(spinnerIconThemeColor(tester)).equals(Colors.red);
       completer.complete();
       await tester.pumpAndSettle();
     });

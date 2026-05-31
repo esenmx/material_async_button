@@ -1,8 +1,8 @@
 part of '../../material_async_button.dart';
 
 /// Async-aware [ElevatedButton]. While `onPressed` is running the label is
-/// swapped for a loading widget; success/error are shown afterwards if
-/// configured via prop or theme.
+/// swapped for a loading widget; an optional success view is shown afterwards
+/// if configured via prop or theme.
 class ElevatedAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [ElevatedButton.new].
   const ElevatedAsyncButton({
@@ -17,28 +17,14 @@ class ElevatedAsyncButton extends AsyncStandardMaterialButton {
     super.autofocus,
     super.clipBehavior,
     super.statesController,
+    super.enabled,
     super.controller,
-    super.onSuccess,
-    super.onError,
-    super.onStateChanged,
-    super.confirmBeforePress,
-    super.loadingChild,
-    super.successChild,
-    super.errorChild,
-    super.disabled,
-    super.switchDuration,
+    super.loadingBuilder,
     super.transitionBuilder,
-    super.successDisplayDuration,
-    super.errorDisplayDuration,
-    super.cooldownDuration,
-    super.animateSize,
-    super.hapticOn,
-    super.announceSemantics,
-    super.rethrowErrors,
   });
 
-  /// Mirrors [ElevatedButton.icon]. The loading/success/error children
-  /// replace `label` while `icon` stays put.
+  /// Mirrors [ElevatedButton.icon]. The loading/success children replace
+  /// `label` while `icon` stays put.
   const ElevatedAsyncButton.icon({
     super.key,
     required super.onPressed,
@@ -52,52 +38,23 @@ class ElevatedAsyncButton extends AsyncStandardMaterialButton {
     super.statesController,
     super.iconAlignment,
     super.controller,
-    super.onSuccess,
-    super.onError,
-    super.onStateChanged,
-    super.confirmBeforePress,
-    super.loadingChild,
-    super.successChild,
-    super.errorChild,
-    super.disabled,
-    super.switchDuration,
+    super.loadingBuilder,
     super.transitionBuilder,
-    super.successDisplayDuration,
-    super.errorDisplayDuration,
-    super.cooldownDuration,
-    super.animateSize,
-    super.hapticOn,
-    super.announceSemantics,
-    super.rethrowErrors,
-    required Widget icon,
+    required super.icon,
     required Widget label,
-  }) : super(icon: icon, child: label);
+  }) : super(child: label);
 
   @override
   Widget build(BuildContext context) {
+    final clip = clipBehavior ?? .none;
     return AsyncButton(
       onPressed: onPressed,
+      enabled: enabled,
       controller: controller,
-      onSuccess: onSuccess,
-      onError: onError,
-      onStateChanged: onStateChanged,
-      confirmBeforePress: confirmBeforePress,
-      loadingChild: loadingChild,
-      successChild: successChild,
-      errorChild: errorChild,
-      disabled: disabled,
-      switchDuration: switchDuration,
+      loadingBuilder: loadingBuilder,
       transitionBuilder: transitionBuilder,
-      successDisplayDuration: successDisplayDuration,
-      errorDisplayDuration: errorDisplayDuration,
-      cooldownDuration: cooldownDuration,
-      animateSize: animateSize,
-      hapticOn: hapticOn,
-      announceSemantics: announceSemantics,
-      rethrowErrors: rethrowErrors,
-      builder: (context, animatedChild, callback, status) {
-        final clip = clipBehavior ?? .none;
-        final longPress = callback == null ? null : onLongPress;
+      builder: (context, animatedChild, callback, isLoading) {
+        final longPress = (callback != null && !isLoading) ? onLongPress : null;
         if (_icon != null) {
           return ElevatedButton.icon(
             onPressed: callback,
@@ -110,7 +67,7 @@ class ElevatedAsyncButton extends AsyncStandardMaterialButton {
             clipBehavior: clip,
             statesController: statesController,
             iconAlignment: _iconAlignment,
-            icon: _icon,
+            icon: isLoading ? null : _icon,
             label: animatedChild,
           );
         }

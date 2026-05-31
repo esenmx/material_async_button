@@ -1,33 +1,23 @@
 part of '../material_async_button.dart';
 
-/// Which haptic event, if any, to fire on state transitions.
-enum HapticOn {
-  /// Fire no haptic on state transitions.
-  none,
-
-  /// Fire a light haptic on success only.
-  success,
-
-  /// Fire a light haptic on error only.
-  error,
-
-  /// Fire a light haptic on both success and error.
-  both,
-}
-
 /// App-wide defaults for `material_async_button` widgets, attached as a
-/// [ThemeExtension] on [ThemeData].
+/// [ThemeExtension] on [ThemeData]. Complements [ButtonStyle] / `ButtonThemeData`
+/// — it carries only async behaviour (the loading view and its transition),
+/// never styling knobs.
 ///
 /// Resolution order for any field: per-widget value, then theme value, then
-/// the hard-coded fallback documented on each field.
-///
-/// Use [AsyncButtonTheme.material] for an opinionated baseline that
-/// mirrors what most apps want; otherwise build the extension yourself with
-/// only the fields you care about.
+/// the hard-coded fallback. With no extension registered the zero-config
+/// fallback ([empty]) shows the default spinner and nothing else.
 ///
 /// ```dart
 /// MaterialApp(
-///   theme: ThemeData(extensions: [AsyncButtonTheme.material()]),
+///   theme: ThemeData(
+///     extensions: [
+///       AsyncButtonTheme(
+///         loadingBuilder: (_) => const AsyncButtonSpinner(strokeWidth: 3),
+///       ),
+///     ],
+///   ),
 /// )
 /// ```
 @immutable
@@ -35,184 +25,43 @@ class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
   /// Builds an [AsyncButtonTheme]. Every field is nullable so callers only
   /// set the ones they want.
   const AsyncButtonTheme({
-    this.loadingChild,
-    this.successChild,
-    this.errorChild,
-    this.switchDuration,
-    this.switchReverseDuration,
-    this.switchCurve,
-    this.switchInCurve,
-    this.switchOutCurve,
+    this.loadingBuilder,
     this.transitionBuilder,
-    this.successDisplayDuration,
-    this.errorDisplayDuration,
-    this.cooldownDuration,
-    this.animateSize,
-    this.sizeCurve,
-    this.sizeAlignment,
-    this.sizeClipBehavior,
-    this.hapticOn,
-    this.announceSemantics,
-    this.rethrowErrors,
   });
 
-  /// Convenience: an opinionated baseline.
-  ///
-  ///   - 16x16 indeterminate spinner during loading
-  ///   - check icon for 800ms after success
-  ///   - error icon for 800ms after error
-  ///   - 200ms cross-fade between states
-  ///   - light haptic on success and error
-  ///   - announces state changes to assistive tech
-  factory AsyncButtonTheme.material({
-    Color? loadingColor,
-    Color? successColor,
-    Color? errorColor,
-  }) {
-    return AsyncButtonTheme(
-      loadingChild: _DefaultLoadingChild(color: loadingColor),
-      successChild: _DefaultSuccessIcon(color: successColor),
-      errorChild: _DefaultErrorIcon(color: errorColor),
-      switchDuration: const Duration(milliseconds: 200),
-      switchReverseDuration: const Duration(milliseconds: 200),
-      successDisplayDuration: const Duration(milliseconds: 800),
-      errorDisplayDuration: const Duration(milliseconds: 800),
-      animateSize: true,
-      hapticOn: .both,
-      announceSemantics: true,
-    );
-  }
+  /// Builds the widget shown in place of the button's child while the future is
+  /// in flight. Falls back to an [AsyncButtonSpinner] when null. The spinner
+  /// inherits the button's foreground; return `AsyncButtonSpinner(color: ...)`
+  /// to recolour it.
+  final WidgetBuilder? loadingBuilder;
 
-  /// Shown in place of the button's child while the future is in flight.
-  /// Falls back to a 16x16 [CircularProgressIndicator] when null.
-  final Widget? loadingChild;
+  /// Wraps the state widget to animate the idle ⇄ loading swap. `null` by
+  /// default — the button performs no animation of its own. See
+  /// [AsyncButtonTransitionBuilder] for plugging in an [AnimatedSwitcher] /
+  /// [AnimatedSize].
+  final AsyncButtonTransitionBuilder? transitionBuilder;
 
-  /// Shown after success for [successDisplayDuration]. Null = keep the
-  /// original child visible (no visual swap, only the idle delay applies).
-  final Widget? successChild;
-
-  /// Shown after error for [errorDisplayDuration]. Null = keep the
-  /// original child visible.
-  final Widget? errorChild;
-
-  /// Cross-fade duration between state widgets.
-  /// Falls back to 200ms when null.
-  final Duration? switchDuration;
-
-  /// Reverse cross-fade duration. Falls back to [switchDuration] when null.
-  final Duration? switchReverseDuration;
-
-  /// Convenience: applied to both [switchInCurve] and [switchOutCurve]
-  /// unless one of those is set explicitly.
-  final Curve? switchCurve;
-
-  /// Curve for the incoming widget during the cross-fade.
-  final Curve? switchInCurve;
-
-  /// Curve for the outgoing widget during the cross-fade.
-  final Curve? switchOutCurve;
-
-  /// Custom transition for the underlying [AnimatedSwitcher]. Defaults to a
-  /// fade transition.
-  final AnimatedSwitcherTransitionBuilder? transitionBuilder;
-
-  /// How long [successChild] is shown before returning to idle. Defaults to
-  /// [.zero] (immediate return).
-  final Duration? successDisplayDuration;
-
-  /// How long [errorChild] is shown before returning to idle. Defaults to
-  /// [.zero].
-  final Duration? errorDisplayDuration;
-
-  /// After a success/error display, keep the button disabled for this long
-  /// to prevent accidental double-submits. Defaults to [.zero].
-  final Duration? cooldownDuration;
-
-  /// Whether to animate the implicit size between state widgets of differing
-  /// dimensions. Falls back to `false`.
-  final bool? animateSize;
-
-  /// Curve used by the [AnimatedSize] when [animateSize] is true.
-  final Curve? sizeCurve;
-
-  /// Alignment used by the [AnimatedSize] when [animateSize] is true.
-  final AlignmentGeometry? sizeAlignment;
-
-  /// Clip behavior used by the [AnimatedSize] when [animateSize] is true.
-  final Clip? sizeClipBehavior;
-
-  /// Whether to fire a [HapticFeedback] on success / error transitions.
-  /// Defaults to [HapticOn.none].
-  final HapticOn? hapticOn;
-
-  /// Whether to announce state changes via
-  /// [SemanticsService.sendAnnouncement]. Defaults to `false`.
-  final bool? announceSemantics;
-
-  /// If true, errors from `onPressed` are rethrown after the error state is
-  /// displayed. Useful when a caller awaits the future. Defaults to `false`.
-  final bool? rethrowErrors;
-
-  /// An extension with every field left null. Use this to opt out of the
-  /// opinionated [AsyncButtonTheme.material] baseline returned by [of] when
-  /// no extension is registered on the surrounding [ThemeData].
+  /// An extension with every field left null — also the zero-config fallback
+  /// returned by [of] when no extension is registered. Renders the default
+  /// spinner on loading and nothing else.
   static const AsyncButtonTheme empty = AsyncButtonTheme();
-
-  static final AsyncButtonTheme _materialDefaults = AsyncButtonTheme.material();
 
   /// Resolves the [AsyncButtonTheme] visible at [context]. Returns the
   /// extension registered on the surrounding [ThemeData] when one exists;
-  /// otherwise falls back to [AsyncButtonTheme.material] so that apps
-  /// without explicit theming still get the spinner / check / error UX
-  /// out of the box. Pass [empty] to opt out.
+  /// otherwise falls back to [empty] — apps without explicit theming still get
+  /// the loading spinner (via the built-in fallback).
   static AsyncButtonTheme of(BuildContext context) {
-    return Theme.of(context).extension<AsyncButtonTheme>() ?? _materialDefaults;
+    return Theme.of(context).extension<AsyncButtonTheme>() ?? empty;
   }
 
   @override
   AsyncButtonTheme copyWith({
-    Widget? loadingChild,
-    Widget? successChild,
-    Widget? errorChild,
-    Duration? switchDuration,
-    Duration? switchReverseDuration,
-    Curve? switchCurve,
-    Curve? switchInCurve,
-    Curve? switchOutCurve,
-    AnimatedSwitcherTransitionBuilder? transitionBuilder,
-    Duration? successDisplayDuration,
-    Duration? errorDisplayDuration,
-    Duration? cooldownDuration,
-    bool? animateSize,
-    Curve? sizeCurve,
-    AlignmentGeometry? sizeAlignment,
-    Clip? sizeClipBehavior,
-    HapticOn? hapticOn,
-    bool? announceSemantics,
-    bool? rethrowErrors,
+    WidgetBuilder? loadingBuilder,
+    AsyncButtonTransitionBuilder? transitionBuilder,
   }) {
     return AsyncButtonTheme(
-      loadingChild: loadingChild ?? this.loadingChild,
-      successChild: successChild ?? this.successChild,
-      errorChild: errorChild ?? this.errorChild,
-      switchDuration: switchDuration ?? this.switchDuration,
-      switchReverseDuration:
-          switchReverseDuration ?? this.switchReverseDuration,
-      switchCurve: switchCurve ?? this.switchCurve,
-      switchInCurve: switchInCurve ?? this.switchInCurve,
-      switchOutCurve: switchOutCurve ?? this.switchOutCurve,
+      loadingBuilder: loadingBuilder ?? this.loadingBuilder,
       transitionBuilder: transitionBuilder ?? this.transitionBuilder,
-      successDisplayDuration:
-          successDisplayDuration ?? this.successDisplayDuration,
-      errorDisplayDuration: errorDisplayDuration ?? this.errorDisplayDuration,
-      cooldownDuration: cooldownDuration ?? this.cooldownDuration,
-      animateSize: animateSize ?? this.animateSize,
-      sizeCurve: sizeCurve ?? this.sizeCurve,
-      sizeAlignment: sizeAlignment ?? this.sizeAlignment,
-      sizeClipBehavior: sizeClipBehavior ?? this.sizeClipBehavior,
-      hapticOn: hapticOn ?? this.hapticOn,
-      announceSemantics: announceSemantics ?? this.announceSemantics,
-      rethrowErrors: rethrowErrors ?? this.rethrowErrors,
     );
   }
 
@@ -224,158 +73,81 @@ class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
     if (other is! AsyncButtonTheme) {
       return this;
     }
-    // Widgets and enums don't lerp meaningfully; snap at the halfway point.
+    // Widgets and callbacks don't lerp; snap at the halfway point.
     final snap = t < 0.5;
     return AsyncButtonTheme(
-      loadingChild: snap ? loadingChild : other.loadingChild,
-      successChild: snap ? successChild : other.successChild,
-      errorChild: snap ? errorChild : other.errorChild,
-      switchDuration: _lerpDuration(
-        switchDuration,
-        other.switchDuration,
-        t,
-      ),
-      switchReverseDuration: _lerpDuration(
-        switchReverseDuration,
-        other.switchReverseDuration,
-        t,
-      ),
-      switchCurve: snap ? switchCurve : other.switchCurve,
-      switchInCurve: snap ? switchInCurve : other.switchInCurve,
-      switchOutCurve: snap ? switchOutCurve : other.switchOutCurve,
+      loadingBuilder: snap ? loadingBuilder : other.loadingBuilder,
       transitionBuilder: snap ? transitionBuilder : other.transitionBuilder,
-      successDisplayDuration: _lerpDuration(
-        successDisplayDuration,
-        other.successDisplayDuration,
-        t,
-      ),
-      errorDisplayDuration: _lerpDuration(
-        errorDisplayDuration,
-        other.errorDisplayDuration,
-        t,
-      ),
-      cooldownDuration: _lerpDuration(
-        cooldownDuration,
-        other.cooldownDuration,
-        t,
-      ),
-      animateSize: snap ? animateSize : other.animateSize,
-      sizeCurve: snap ? sizeCurve : other.sizeCurve,
-      sizeAlignment: .lerp(
-        sizeAlignment,
-        other.sizeAlignment,
-        t,
-      ),
-      sizeClipBehavior: snap ? sizeClipBehavior : other.sizeClipBehavior,
-      hapticOn: snap ? hapticOn : other.hapticOn,
-      announceSemantics: snap ? announceSemantics : other.announceSemantics,
-      rethrowErrors: snap ? rethrowErrors : other.rethrowErrors,
     );
-  }
-
-  static Duration? _lerpDuration(Duration? a, Duration? b, double t) {
-    if (a == null && b == null) {
-      return null;
-    }
-    final aMs = (a ?? .zero).inMicroseconds;
-    final bMs = (b ?? .zero).inMicroseconds;
-    return Duration(microseconds: (aMs + (bMs - aMs) * t).round());
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         other is AsyncButtonTheme &&
-            loadingChild == other.loadingChild &&
-            successChild == other.successChild &&
-            errorChild == other.errorChild &&
-            switchDuration == other.switchDuration &&
-            switchReverseDuration == other.switchReverseDuration &&
-            switchCurve == other.switchCurve &&
-            switchInCurve == other.switchInCurve &&
-            switchOutCurve == other.switchOutCurve &&
-            transitionBuilder == other.transitionBuilder &&
-            successDisplayDuration == other.successDisplayDuration &&
-            errorDisplayDuration == other.errorDisplayDuration &&
-            cooldownDuration == other.cooldownDuration &&
-            animateSize == other.animateSize &&
-            sizeCurve == other.sizeCurve &&
-            sizeAlignment == other.sizeAlignment &&
-            sizeClipBehavior == other.sizeClipBehavior &&
-            hapticOn == other.hapticOn &&
-            announceSemantics == other.announceSemantics &&
-            rethrowErrors == other.rethrowErrors;
+            loadingBuilder == other.loadingBuilder &&
+            transitionBuilder == other.transitionBuilder;
   }
 
   @override
   int get hashCode {
-    return Object.hashAll([
-      loadingChild,
-      successChild,
-      errorChild,
-      switchDuration,
-      switchReverseDuration,
-      switchCurve,
-      switchInCurve,
-      switchOutCurve,
-      transitionBuilder,
-      successDisplayDuration,
-      errorDisplayDuration,
-      cooldownDuration,
-      animateSize,
-      sizeCurve,
-      sizeAlignment,
-      sizeClipBehavior,
-      hapticOn,
-      announceSemantics,
-      rethrowErrors,
-    ]);
+    return Object.hash(loadingBuilder, transitionBuilder);
   }
 }
 
-class _DefaultLoadingChild extends StatelessWidget {
-  const _DefaultLoadingChild({this.color});
+/// The default loading indicator — a sized, indeterminate
+/// [CircularProgressIndicator]. Used as the fallback loading view, and exposed
+/// so you can tweak it and return it from a `loadingBuilder`:
+///
+/// ```dart
+/// FilledAsyncButton(
+///   onPressed: api.save,
+///   loadingBuilder: (_) => const AsyncButtonSpinner(strokeWidth: 3),
+///   child: const Text('Save'),
+/// )
+/// ```
+class AsyncButtonSpinner extends StatelessWidget {
+  /// Creates a spinner. [color] defaults to the button's foreground and
+  /// otherwise the primary colour; [strokeWidth] sets the line weight; [size]
+  /// sets the square the indicator occupies — when null it tracks the ambient
+  /// font size so the spinner matches the button's label.
+  const AsyncButtonSpinner({
+    super.key,
+    this.color,
+    this.strokeWidth = 2,
+    this.size,
+  });
 
+  /// Indicator colour. When null, inherits the button's foreground (its
+  /// enabled foreground while loading), falling back to [ColorScheme.primary]
+  /// outside any button.
   final Color? color;
+
+  /// Stroke width of the [CircularProgressIndicator].
+  final double strokeWidth;
+
+  /// Side length of the square the indicator is laid out in. When null it is
+  /// derived from the ambient [DefaultTextStyle] font size (matching a text
+  /// button's label), falling back to `16`. [IconThemeData.size] is
+  /// intentionally not used — it is typically 24 and would oversize the spinner
+  /// on text buttons.
+  final double? size;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: 16,
-      child: CircularProgressIndicator(
-        strokeWidth: 2,
-        valueColor: color == null
-            ? null
-            : AlwaysStoppedAnimation<Color>(color!),
+    final resolved =
+        color ??
+        IconTheme.of(context).color ??
+        Theme.of(context).colorScheme.primary;
+    final dimension = size ?? DefaultTextStyle.of(context).style.fontSize ?? 16;
+    return Center(
+      child: SizedBox.square(
+        dimension: dimension,
+        child: CircularProgressIndicator(
+          strokeWidth: strokeWidth,
+          valueColor: AlwaysStoppedAnimation<Color>(resolved),
+        ),
       ),
-    );
-  }
-}
-
-class _DefaultSuccessIcon extends StatelessWidget {
-  const _DefaultSuccessIcon({this.color});
-
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Icon(
-      Icons.check,
-      color: color ?? Theme.of(context).colorScheme.primary,
-    );
-  }
-}
-
-class _DefaultErrorIcon extends StatelessWidget {
-  const _DefaultErrorIcon({this.color});
-
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Icon(
-      Icons.error,
-      color: color ?? Theme.of(context).colorScheme.error,
     );
   }
 }

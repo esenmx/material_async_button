@@ -10,11 +10,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'material_async_button demo',
-      theme: ThemeData(
-        colorSchemeSeed: Colors.indigo,
-        useMaterial3: true,
-        extensions: [AsyncButtonTheme.material()],
-      ),
+      theme: ThemeData(colorSchemeSeed: Colors.indigo),
       home: const HomePage(),
     );
   }
@@ -41,15 +37,32 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _simulateWork({bool fail = false}) async {
-    await Future<void>.delayed(const Duration(milliseconds: 800));
-    if (fail) throw StateError('simulated failure');
+    await Future<void>.delayed(const Duration(seconds: 1));
+    if (fail) {
+      throw Exception('simulated failure');
+    }
+  }
+
+  /// A button is not the place to surface errors. A throw from `onPressed`
+  /// returns the button to idle and re-propagates — so handle it here (in real
+  /// apps, in your state management) and surface it your way.
+  Future<void> _submit(BuildContext context, {bool fail = false}) async {
+    try {
+      await _simulateWork(fail: fail);
+    } on Exception catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed: $error')));
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('material_async_button')),
     body: SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const .all(16),
       child: Column(
         crossAxisAlignment: .stretch,
         children: [
@@ -88,13 +101,19 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 8),
           OutlinedAsyncButton(
-            onPressed: () => _simulateWork(fail: true),
-            child: const Text('OutlinedAsyncButton (fails)'),
+            onPressed: () => _submit(context, fail: true),
+            child: const Text('OutlinedAsyncButton (handles failure)'),
           ),
           const SizedBox(height: 8),
           TextAsyncButton(
             onPressed: _simulateWork,
             child: const Text('TextAsyncButton'),
+          ),
+          const SizedBox(height: 8),
+          FilledAsyncButton(
+            onPressed: _simulateWork,
+            enabled: false,
+            child: const Text('Disabled (enabled: false)'),
           ),
           const SizedBox(height: 8),
           Row(
@@ -119,21 +138,18 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           const Divider(height: 32),
-          const _SectionLabel('Per-button overrides'),
+          const _SectionLabel('Animated spinner swap'),
+          FilledAsyncButton(
+            onPressed: _simulateWork,
+            transitionBuilder: _animatedSwitchSize,
+            child: const Text('Save (animated)'),
+          ),
+          const Divider(height: 32),
+          const _SectionLabel('Custom loading widget'),
           ElevatedAsyncButton(
             onPressed: _simulateWork,
-            successChild: const Text('Saved!'),
-            successDisplayDuration: const Duration(milliseconds: 1200),
-            cooldownDuration: const Duration(seconds: 1),
-            child: const Text('Custom successChild + 1s cooldown'),
-          ),
-          const SizedBox(height: 8),
-          OutlinedAsyncButton(
-            onPressed: () => _simulateWork(fail: true),
-            errorChild: const Text('Failed — try again'),
-            errorDisplayDuration: const Duration(milliseconds: 1200),
-            onError: (error, _) => debugPrint('error: $error'),
-            child: const Text('Custom errorChild + onError'),
+            loadingBuilder: (_) => const AsyncButtonSpinner(strokeWidth: 3),
+            child: const Text('Thicker spinner'),
           ),
           const Divider(height: 32),
           const _SectionLabel('Form "Done" → controller.trigger()'),
@@ -165,15 +181,6 @@ class _HomePageState extends State<HomePage> {
                 child: const Text('trigger()'),
               ),
               OutlinedButton(
-                onPressed: () =>
-                    _externalController.invalidate('server rejected'),
-                child: const Text('invalidate()'),
-              ),
-              OutlinedButton(
-                onPressed: _externalController.markSuccess,
-                child: const Text('markSuccess()'),
-              ),
-              OutlinedButton(
                 onPressed: _externalController.reset,
                 child: const Text('reset()'),
               ),
@@ -183,18 +190,23 @@ class _HomePageState extends State<HomePage> {
           const _SectionLabel('Custom button via AsyncButton'),
           AsyncButton(
             onPressed: _simulateWork,
-            animateSize: true,
-            builder: (ctx, child, callback, status) => Material(
-              color: switch (status) {
-                AsyncButtonStatusIdle() ||
-                AsyncButtonStatusLoading() => Colors.indigo,
-                AsyncButtonStatusSuccess() => Colors.green,
-                AsyncButtonStatusError() => Colors.red,
-              },
-              clipBehavior: .hardEdge,
-              shape: const StadiumBorder(),
-              child: InkWell(onTap: callback, child: child),
-            ),
+            loadingBuilder: (context) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: const AsyncButtonSpinner(strokeWidth: 3),
+              );
+            },
+            builder: (context, child, callback, isLoading) {
+              return Material(
+                color: isLoading ? Colors.indigo.shade200 : Colors.indigo,
+                clipBehavior: .hardEdge,
+                shape: const StadiumBorder(),
+                child: InkWell(onTap: callback, child: child),
+              );
+            },
             child: const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Text('Custom', style: TextStyle(color: Colors.white)),
@@ -202,6 +214,20 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+    ),
+  );
+}
+
+/// Animates the spinner swap: [AnimatedSwitcher] cross-fades between the idle
+/// child and the loading spinner (already keyed by loading state), and
+/// [AnimatedSize] tweens the button's width as they differ in size.
+Widget _animatedSwitchSize(BuildContext context, Widget child, bool isLoading) {
+  return AnimatedSize(
+    duration: const Duration(milliseconds: 250),
+    curve: Curves.easeOut,
+    child: AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: child,
     ),
   );
 }

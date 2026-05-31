@@ -5,16 +5,11 @@
 /// variants. Use `AsyncButton` when you need a custom non-Material button.
 library;
 
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
-import 'package:flutter/services.dart';
 
 part 'src/async_button.dart';
 part 'src/async_button_controller.dart';
-part 'src/async_button_status.dart';
 part 'src/buttons/async_material_button.dart';
 part 'src/buttons/elevated_async_button.dart';
 part 'src/buttons/filled_async_button.dart';

@@ -61,4 +61,45 @@ void main() {
       check(find.byIcon(Icons.refresh)).findsOne();
     });
   });
+
+  group('IconAsyncButton loading foreground', () {
+    testWidgets('.filled spinner uses onPrimary', (tester) async {
+      final (:onPressed, :completer) = pendingPress();
+      final theme = ThemeData(extensions: const [AsyncButtonTheme.empty]);
+      await tester.pumpWidget(
+        pumpHost(
+          IconAsyncButton.filled(
+            onPressed: onPressed,
+            icon: const Icon(Icons.add),
+          ),
+          theme: theme,
+        ),
+      );
+      await tester.tap(find.byType(IconButton));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      check(spinnerColor(tester)).equals(theme.colorScheme.onPrimary);
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('honours the color property', (tester) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          IconAsyncButton(
+            onPressed: onPressed,
+            color: Colors.purple,
+            icon: const Icon(Icons.refresh),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(IconButton));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      check(spinnerColor(tester)).equals(Colors.purple);
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+  });
 }

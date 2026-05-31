@@ -1,10 +1,65 @@
-# 1.0.1
+# CHANGELOG
+
+## 2.0.0
+
+Breaking redesign. The button now does exactly one job — show a spinner while
+`onPressed` is in flight — and stays out of error handling, success feedback,
+and styling. State collapses to a single `bool` (loading), and the theme becomes
+a pure complement to `ButtonStyle`.
+
+### Breaking
+
+- **Loading-only: no success or error state.** Removed `AsyncButtonStatus`
+  entirely (the state is now a plain `bool isLoading`), along with `onSuccess`,
+  `onError`, `successBuilder`, `errorBuilder`, `feedbackDuration`,
+  `cooldownDuration`, `markSuccess`, `markError`, `haptic` / `HapticOn`, and
+  `announce` / `AsyncButtonAnnouncer` / `defaultAsyncButtonAnnouncer`. An
+  in-button error view is a Material anti-pattern; success is handled by what
+  your action already does (navigate away, flip the label). Both belong to your
+  state management, not the button.
+- **`onPressed` throws now re-propagate.** When `onPressed` throws, the button
+  returns to idle and **re-throws** so the error reaches `FlutterError.onError`
+  / your `runZonedGuarded` zone. `controller.trigger()` rethrows instead of
+  completing normally.
+- **`AsyncButtonController` is now a `ValueListenable<bool>`** (`isLoading`).
+  Builders receive `bool isLoading` instead of an `AsyncButtonStatus`; observe
+  it with `addListener` / `ValueListenableBuilder<bool>`.
+- **`AsyncButtonTheme` carries only `loadingBuilder` + `transitionBuilder`.**
+  `AsyncButtonTheme.empty` (spinner-only) is the sole baseline; removed
+  `AsyncButtonTheme.material()`. It complements `ButtonStyle` — no styling.
+- **`disabled` flag → `enabled` (defaults to `true`).** Affirmative naming that
+  pairs with a tear-off `onPressed`. Either `enabled: false` or `onPressed: null`
+  disables — both also no-op an external `controller.trigger()`.
+- **`loadingChild` (a `Widget`) → `loadingBuilder` (a `WidgetBuilder`)** on both
+  the widgets and `AsyncButtonTheme`.
+- **Removed the loading-colour knobs** (`loadingForegroundColor`,
+  `material(loadingColor:)`). The spinner inherits each button variant's
+  foreground; recolour a single button via `AsyncButtonSpinner(color: ...)`.
+
+### Fixed
+
+- **Loading never disables the button.** It keeps the button's themed enabled
+  colours — being loading and being *disabled* are different things. The spinner
+  inherits the enabled foreground for free (no more greyed indicator); taps that
+  can't run are silently swallowed, and `onLongPress` is gated off while busy.
+  The button shows the disabled look **only** when explicitly disabled via
+  `onPressed: null`.
+- **`.icon` buttons drop the icon while loading**, rendering the spinner alone.
+
+### Improved
+
+- The default `AsyncButtonSpinner` derives its size from the ambient font size,
+  so it matches the button's label instead of a fixed 16px.
+- Guarded against state changes on an unmounted button.
+- Corrected the `flutter` SDK constraint.
+
+## 1.0.1
 
 - Docs: use tear-off form (`onPressed: api.save`) in README examples.
 - CI: split workflow into format/analyze/test/pana/example, add
   tag-triggered pub.dev publish via OIDC trusted publishing.
 
-# 1.0.0
+## 1.0.0
 
 Initial release. Renamed from `async_button_builder` to `material_async_button`
 with a redesigned, theme-aware API.

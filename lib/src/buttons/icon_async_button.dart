@@ -6,31 +6,16 @@ enum _IconVariant { standard, filled, filledTonal, outlined }
 /// [IconAsyncButton.new], [IconAsyncButton.filled],
 /// [IconAsyncButton.filledTonal], [IconAsyncButton.outlined].
 ///
-/// The [icon] is swapped with `loadingChild`/`successChild`/`errorChild`
-/// during the corresponding state.
+/// The [icon] is swapped with the `loadingBuilder` output while loading.
 class IconAsyncButton extends AsyncMaterialButton {
   /// Mirrors [IconButton.new].
   const IconAsyncButton({
     super.key,
     required super.onPressed,
+    super.enabled,
     super.controller,
-    super.onSuccess,
-    super.onError,
-    super.onStateChanged,
-    super.confirmBeforePress,
-    super.loadingChild,
-    super.successChild,
-    super.errorChild,
-    super.disabled,
-    super.switchDuration,
+    super.loadingBuilder,
     super.transitionBuilder,
-    super.successDisplayDuration,
-    super.errorDisplayDuration,
-    super.cooldownDuration,
-    super.animateSize,
-    super.hapticOn,
-    super.announceSemantics,
-    super.rethrowErrors,
     required this.icon,
     this.iconSize,
     this.visualDensity,
@@ -59,24 +44,10 @@ class IconAsyncButton extends AsyncMaterialButton {
   const IconAsyncButton.filled({
     super.key,
     required super.onPressed,
+    super.enabled,
     super.controller,
-    super.onSuccess,
-    super.onError,
-    super.onStateChanged,
-    super.confirmBeforePress,
-    super.loadingChild,
-    super.successChild,
-    super.errorChild,
-    super.disabled,
-    super.switchDuration,
+    super.loadingBuilder,
     super.transitionBuilder,
-    super.successDisplayDuration,
-    super.errorDisplayDuration,
-    super.cooldownDuration,
-    super.animateSize,
-    super.hapticOn,
-    super.announceSemantics,
-    super.rethrowErrors,
     required this.icon,
     this.iconSize,
     this.visualDensity,
@@ -105,24 +76,10 @@ class IconAsyncButton extends AsyncMaterialButton {
   const IconAsyncButton.filledTonal({
     super.key,
     required super.onPressed,
+    super.enabled,
     super.controller,
-    super.onSuccess,
-    super.onError,
-    super.onStateChanged,
-    super.confirmBeforePress,
-    super.loadingChild,
-    super.successChild,
-    super.errorChild,
-    super.disabled,
-    super.switchDuration,
+    super.loadingBuilder,
     super.transitionBuilder,
-    super.successDisplayDuration,
-    super.errorDisplayDuration,
-    super.cooldownDuration,
-    super.animateSize,
-    super.hapticOn,
-    super.announceSemantics,
-    super.rethrowErrors,
     required this.icon,
     this.iconSize,
     this.visualDensity,
@@ -151,24 +108,10 @@ class IconAsyncButton extends AsyncMaterialButton {
   const IconAsyncButton.outlined({
     super.key,
     required super.onPressed,
+    super.enabled,
     super.controller,
-    super.onSuccess,
-    super.onError,
-    super.onStateChanged,
-    super.confirmBeforePress,
-    super.loadingChild,
-    super.successChild,
-    super.errorChild,
-    super.disabled,
-    super.switchDuration,
+    super.loadingBuilder,
     super.transitionBuilder,
-    super.successDisplayDuration,
-    super.errorDisplayDuration,
-    super.cooldownDuration,
-    super.animateSize,
-    super.hapticOn,
-    super.announceSemantics,
-    super.rethrowErrors,
     required this.icon,
     this.iconSize,
     this.visualDensity,
@@ -193,7 +136,7 @@ class IconAsyncButton extends AsyncMaterialButton {
   }) : _variant = .outlined,
        super(child: icon);
 
-  /// Idle icon. Swapped with `loadingChild`/`successChild`/`errorChild`.
+  /// Idle icon. Swapped with the `loadingBuilder` output while loading.
   final Widget icon;
 
   /// Forwarded to the underlying [IconButton].
@@ -262,25 +205,11 @@ class IconAsyncButton extends AsyncMaterialButton {
   Widget build(BuildContext context) {
     return AsyncButton(
       onPressed: onPressed,
+      enabled: enabled,
       controller: controller,
-      onSuccess: onSuccess,
-      onError: onError,
-      onStateChanged: onStateChanged,
-      confirmBeforePress: confirmBeforePress,
-      loadingChild: loadingChild,
-      successChild: successChild,
-      errorChild: errorChild,
-      disabled: disabled,
-      switchDuration: switchDuration,
+      loadingBuilder: loadingBuilder,
       transitionBuilder: transitionBuilder,
-      successDisplayDuration: successDisplayDuration,
-      errorDisplayDuration: errorDisplayDuration,
-      cooldownDuration: cooldownDuration,
-      animateSize: animateSize,
-      hapticOn: hapticOn,
-      announceSemantics: announceSemantics,
-      rethrowErrors: rethrowErrors,
-      builder: (context, child, callback, status) {
+      builder: (context, child, callback, isLoading) {
         return switch (_variant) {
           .standard => IconButton(
             onPressed: callback,
