@@ -107,8 +107,6 @@ Color? spinnerIconThemeColor(WidgetTester tester) {
 extension FinderChecks on Subject<Finder> {
   void findsOne() => has((f) => f.evaluate().length, 'matches').equals(1);
   void findsNone() => has((f) => f.evaluate(), 'matches').isEmpty();
-  void findsMany([int min = 1]) =>
-      has((f) => f.evaluate().length, 'matches').isGreaterOrEqual(min);
 }
 
 /// `checks`-style assertions for [AsyncButtonController].
