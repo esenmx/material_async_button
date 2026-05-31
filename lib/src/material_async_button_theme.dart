@@ -24,10 +24,7 @@ part of '../material_async_button.dart';
 class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
   /// Builds an [AsyncButtonTheme]. Every field is nullable so callers only
   /// set the ones they want.
-  const AsyncButtonTheme({
-    this.loadingBuilder,
-    this.transitionBuilder,
-  });
+  const AsyncButtonTheme({this.loadingBuilder, this.transitionBuilder});
 
   /// Builds the widget shown in place of the button's child while the future is
   /// in flight. Falls back to an [AsyncButtonSpinner] when null. The spinner
