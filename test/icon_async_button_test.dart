@@ -98,4 +98,45 @@ void main() {
       await tester.pumpAndSettle();
     });
   });
+
+  group('IconAsyncButton loading size', () {
+    testWidgets('spinner matches the resolved icon size, not the font size', (
+      tester,
+    ) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          IconAsyncButton(
+            onPressed: onPressed,
+            icon: const Icon(Icons.refresh),
+          ),
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(IconButton));
+      final iconSize = spinnerIconThemeSize(tester);
+      check(iconSize).isNotNull();
+      check(loadingSpinnerSize(tester)).equals(iconSize);
+      completer.complete();
+      await tester.pump();
+    });
+
+    testWidgets('explicit iconSize flows through to the spinner', (
+      tester,
+    ) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          IconAsyncButton(
+            onPressed: onPressed,
+            iconSize: 40,
+            icon: const Icon(Icons.refresh),
+          ),
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(IconButton));
+      check(loadingSpinnerSize(tester)).equals(40);
+      completer.complete();
+      await tester.pump();
+    });
+  });
 }

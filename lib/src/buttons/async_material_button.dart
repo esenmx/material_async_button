@@ -38,6 +38,23 @@ abstract class AsyncMaterialButton extends StatelessWidget {
 
   /// See [AsyncButton.transitionBuilder].
   final AsyncButtonTransitionBuilder? transitionBuilder;
+
+  /// Resolves the loading builder this button hands to its [AsyncButton]: the
+  /// per-widget [loadingBuilder] wins, then [AsyncButtonTheme.loadingBuilder],
+  /// then a default spinner sized for the button's shape (see [_SpinnerSize]).
+  ///
+  /// The shape-aware default exists because the bare [AsyncButtonSpinner] sizes
+  /// to the ambient font size — right for a text label, but it would shrink an
+  /// icon-bearing button (whose idle height is driven by the icon) while
+  /// loading.
+  WidgetBuilder _resolveLoadingBuilder(
+    BuildContext context,
+    _SpinnerSize sizing,
+  ) {
+    return loadingBuilder ??
+        AsyncButtonTheme.of(context).loadingBuilder ??
+        (_) => _DefaultLoadingSpinner(sizing);
+  }
 }
 
 /// Sub-base for the four [AsyncMaterialButton]s that share the standard
@@ -98,4 +115,54 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
 
   final Widget? _icon;
   final IconAlignment? _iconAlignment;
+
+  /// The default spinner sizing for this button's current shape: an `.icon`
+  /// constructor lays out an icon beside the label, so its idle row height is
+  /// `max(iconSize, fontSize)`; a plain constructor shows only the label, so it
+  /// tracks the font size.
+  _SpinnerSize get _loadingSizing =>
+      _icon != null ? _SpinnerSize.max : _SpinnerSize.fontSize;
+}
+
+/// How [_DefaultLoadingSpinner] derives its dimension from the ambient theme,
+/// chosen per button shape so the loading view keeps the idle footprint.
+enum _SpinnerSize {
+  /// Text-only buttons — match the label font size.
+  fontSize,
+
+  /// Icon-only buttons ([IconAsyncButton]) — match the icon size.
+  iconSize,
+
+  /// Icon + label buttons (the `.icon` constructors) — match the taller of the
+  /// two, i.e. the idle row height.
+  max,
+}
+
+double? _largest(double? a, double? b) => a == null
+    ? b
+    : b == null
+    ? a
+    : (a > b ? a : b);
+
+/// The shape-aware default loading view. Reads the resolved [IconTheme] /
+/// [DefaultTextStyle] set by the surrounding Material button (the same scope
+/// [AsyncButtonSpinner] reads for its colour) and sizes the spinner so the
+/// button holds its idle height while loading.
+class _DefaultLoadingSpinner extends StatelessWidget {
+  const _DefaultLoadingSpinner(this.sizing);
+
+  final _SpinnerSize sizing;
+
+  @override
+  Widget build(BuildContext context) {
+    final fontSize = DefaultTextStyle.of(context).style.fontSize;
+    final iconSize = IconTheme.of(context).size;
+    final dimension = switch (sizing) {
+      _SpinnerSize.fontSize => fontSize,
+      _SpinnerSize.iconSize => iconSize,
+      _SpinnerSize.max => _largest(iconSize, fontSize),
+    };
+    // A null dimension lets AsyncButtonSpinner fall back to fontSize ?? 16.
+    return AsyncButtonSpinner(size: dimension);
+  }
 }
