@@ -139,6 +139,30 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           const Divider(height: 32),
+          const _SectionLabel('Floating Action Buttons'),
+          Row(
+            mainAxisAlignment: .spaceEvenly,
+            children: [
+              FloatingActionAsyncButton(
+                onPressed: _simulateWork,
+                child: const Icon(Icons.navigation),
+              ),
+              FloatingActionAsyncButton.small(
+                onPressed: _simulateWork,
+                child: const Icon(Icons.navigation),
+              ),
+              FloatingActionAsyncButton.large(
+                onPressed: _simulateWork,
+                child: const Icon(Icons.navigation),
+              ),
+              FloatingActionAsyncButton.extended(
+                onPressed: _simulateWork,
+                icon: const Icon(Icons.navigation),
+                label: const Text('Navigate'),
+              ),
+            ],
+          ),
+          const Divider(height: 32),
           const _SectionLabel('Animated spinner swap'),
           FilledAsyncButton(
             onPressed: _simulateWork,

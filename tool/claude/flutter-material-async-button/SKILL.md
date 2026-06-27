@@ -3,9 +3,9 @@ name: flutter-material-async-button
 description: Use this skill when working in a Flutter project that depends on
   the material_async_button package, or when the user wants to add a loading
   state to a Material button (ElevatedButton, FilledButton, OutlinedButton,
-  TextButton, IconButton) whose onPressed is async. Triggers on "async button",
-  "loading button", or any handler the user writes as `() async {}` and passes
-  to a Material button.
+  TextButton, IconButton, FloatingActionButton) whose onPressed is async. Triggers
+  on "async button", "loading button", "floating action async button", or any handler
+  the user writes as `() async {}` and passes to a Material button.
 ---
 
 # material_async_button
@@ -20,6 +20,7 @@ it shows a spinner while the future runs. Every Material param is forwarded.
 |`OutlinedButton`|`OutlinedAsyncButton`|`.icon`|
 |`TextButton`|`TextAsyncButton`|`.icon`|
 |`IconButton`|`IconAsyncButton`|`.filled` `.filledTonal` `.outlined`|
+|`FloatingActionButton`|`FloatingActionAsyncButton`|`.small` `.large` `.extended`|
 
 ```dart
 ElevatedAsyncButton(onPressed: notifier.save, child: const Text('Save'))
@@ -33,14 +34,19 @@ button.
 ## Theme (once)
 
 ```dart
-AsyncButtonTheme(loadingBuilder: (_) => const AsyncButtonSpinner(strokeWidth: 3))
+AsyncButtonTheme(
+  loadingBuilder: (_) => const AsyncButtonSpinner(
+    strokeWidth: 3,
+    semanticsLabel: 'Loading', // screen readers (defaults to 'Loading')
+  ),
+)
 ```
 
 Per-button props win. No styling knobs — that's `ButtonStyle`'s job. Animate the
 swap with `transitionBuilder` (wrap `child` in `AnimatedSwitcher` + `AnimatedSize`).
 The default spinner sizes to the ambient label's line box (rendered text height), not
-`IconTheme.size`; inside an `IconAsyncButton` pass `loadingBuilder: (_) => AsyncButtonSpinner(size: ...)`
-to match the icon.
+`IconTheme.size`; inside an `IconAsyncButton` or `FloatingActionAsyncButton` pass
+`loadingBuilder: (_) => AsyncButtonSpinner(size: ...)` to match the icon.
 
 ## Controller — drive from outside
 
