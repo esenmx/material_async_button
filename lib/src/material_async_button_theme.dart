@@ -121,12 +121,14 @@ class AsyncButtonSpinner extends StatelessWidget {
   /// Creates a spinner. [color] defaults to the button's foreground and
   /// otherwise the primary colour; [strokeWidth] sets the line weight; [size]
   /// sets the square the indicator occupies — when null it tracks the ambient
-  /// font size so the spinner matches the button's label.
+  /// font size so the spinner matches the button's label; [semanticsLabel]
+  /// sets the accessibility label read by screen readers.
   const AsyncButtonSpinner({
     super.key,
     this.color,
     this.strokeWidth = 2,
     this.size,
+    this.semanticsLabel = 'Loading',
   });
 
   /// Indicator colour. When null, inherits the button's foreground (its
@@ -145,6 +147,9 @@ class AsyncButtonSpinner extends StatelessWidget {
   /// and would oversize the spinner on text buttons.
   final double? size;
 
+  /// Accessibility label read by screen readers. Defaults to `'Loading'`.
+  final String? semanticsLabel;
+
   @override
   Widget build(BuildContext context) {
     final resolved =
@@ -158,6 +163,7 @@ class AsyncButtonSpinner extends StatelessWidget {
         child: CircularProgressIndicator(
           strokeWidth: strokeWidth,
           valueColor: AlwaysStoppedAnimation<Color>(resolved),
+          semanticsLabel: semanticsLabel,
         ),
       ),
     );

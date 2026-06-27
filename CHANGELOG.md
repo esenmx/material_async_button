@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2.1.0
+
+### Added
+
+- **New `FloatingActionAsyncButton` wrapper.** Adds drop-in async loading states
+  to `FloatingActionButton` with support for all four core variants: standard,
+  `.small`, `.large`, and `.extended`.
+- **Improved accessibility for screen readers.** Added `semanticsLabel` parameter to
+  `AsyncButtonSpinner` (defaulting to `'Loading'`) to ensure screen readers
+  actively announce the progress of asynchronous operations when buttons are clicked.
+
 ## 2.0.2
 
 ### Fixed
