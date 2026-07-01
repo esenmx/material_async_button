@@ -64,10 +64,10 @@ class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
 
   @override
   AsyncButtonTheme lerp(
-    covariant ThemeExtension<AsyncButtonTheme>? other,
+    covariant AsyncButtonTheme? other,
     double t,
   ) {
-    if (other is! AsyncButtonTheme) {
+    if (other == null) {
       return this;
     }
     // Widgets and callbacks don't lerp; snap at the halfway point.
