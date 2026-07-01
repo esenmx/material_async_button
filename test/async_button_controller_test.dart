@@ -93,7 +93,8 @@ void main() {
 
     test('disposing during onPressed does not throw on completion', () async {
       final completer = Completer<void>();
-      final c = AsyncButtonController()..attach(onPressed: () => completer.future);
+      final c = AsyncButtonController()
+        ..attach(onPressed: () => completer.future);
       final f = c.trigger();
       check(c).isLoading();
       c.dispose();
