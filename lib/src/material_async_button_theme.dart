@@ -92,18 +92,40 @@ class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
   }
 }
 
+TextStyle? _cachedTextStyle;
+TextDirection? _cachedTextDirection;
+TextScaler? _cachedTextScaler;
+double? _cachedLineBox;
+
 /// The single-line height of the ambient label style at [context] — the
 /// vertical extent a one-line [Text] occupies here. The default spinner sizes
 /// to this (the idle content's *line box*, which is taller than the raw
 /// `fontSize`) so the button keeps its idle height while loading instead of
 /// shrinking. Honours the ambient [TextScaler], matching how the label scales.
 double _ambientTextLineBox(BuildContext context) {
+  final style = DefaultTextStyle.of(context).style;
+  final textDirection = Directionality.of(context);
+  final textScaler = MediaQuery.textScalerOf(context);
+
+  if (_cachedTextStyle == style &&
+      _cachedTextDirection == textDirection &&
+      _cachedTextScaler == textScaler &&
+      _cachedLineBox != null) {
+    return _cachedLineBox!;
+  }
+
   final painter = TextPainter(
-    text: TextSpan(text: '', style: DefaultTextStyle.of(context).style),
-    textDirection: Directionality.of(context),
-    textScaler: MediaQuery.textScalerOf(context),
+    text: TextSpan(text: '', style: style),
+    textDirection: textDirection,
+    textScaler: textScaler,
   )..layout();
-  return painter.preferredLineHeight;
+
+  _cachedTextStyle = style;
+  _cachedTextDirection = textDirection;
+  _cachedTextScaler = textScaler;
+  _cachedLineBox = painter.preferredLineHeight;
+
+  return _cachedLineBox!;
 }
 
 /// The default loading indicator — a sized, indeterminate
