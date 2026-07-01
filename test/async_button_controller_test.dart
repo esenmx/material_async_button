@@ -90,6 +90,18 @@ void main() {
       await f;
       check(c).isIdle();
     });
+
+    test('disposing during onPressed does not throw on completion', () async {
+      final completer = Completer<void>();
+      final c = AsyncButtonController()
+        ..attach(onPressed: () => completer.future);
+      final f = c.trigger();
+      check(c).isLoading();
+      c.dispose();
+      completer.complete();
+      await f;
+      // Should complete without FlutterError/AssertionError from notifyListeners
+    });
   });
 
   group('AsyncButtonController interop', () {
