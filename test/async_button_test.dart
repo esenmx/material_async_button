@@ -283,16 +283,17 @@ void main() {
     });
 
     testWidgets(
-      'swapping from internal to external controller disposes internal and uses new',
+      'swapping from internal to external controller disposes internal '
+      'and uses new',
       (tester) async {
         final externalController = newController();
         final completer = Completer<void>();
         AsyncButton button(AsyncButtonController? c) => AsyncButton(
-              controller: c,
-              onPressed: () => completer.future,
-              builder: textBuilder,
-              child: const Text('child'),
-            );
+          controller: c,
+          onPressed: () => completer.future,
+          builder: textBuilder,
+          child: const Text('child'),
+        );
 
         // 1. Pump with internal controller (null)
         await tester.pumpWidget(pumpHost(button(null)));
@@ -300,7 +301,8 @@ void main() {
         // 2. Pump with external controller
         await tester.pumpWidget(pumpHost(button(externalController)));
 
-        // The widget now listens to externalController: driving it must show loading.
+        // The widget now listens to externalController: driving it must show
+        // loading.
         unawaited(externalController.trigger());
         await tester.pump();
         check(find.byType(CircularProgressIndicator)).findsOne();
@@ -316,11 +318,11 @@ void main() {
         final externalController = newController();
         final completer = Completer<void>();
         AsyncButton button(AsyncButtonController? c) => AsyncButton(
-              controller: c,
-              onPressed: () => completer.future,
-              builder: textBuilder,
-              child: const Text('child'),
-            );
+          controller: c,
+          onPressed: () => completer.future,
+          builder: textBuilder,
+          child: const Text('child'),
+        );
 
         // 1. Pump with external controller
         await tester.pumpWidget(pumpHost(button(externalController)));
@@ -328,7 +330,8 @@ void main() {
         // 2. Pump with internal controller (null)
         await tester.pumpWidget(pumpHost(button(null)));
 
-        // Driving externalController should NOT show loading because it's detached
+        // Driving externalController should NOT show loading because it's
+        // detached.
         unawaited(externalController.trigger());
         await tester.pump();
         check(find.byType(CircularProgressIndicator)).findsNone();
