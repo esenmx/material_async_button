@@ -283,6 +283,62 @@ void main() {
     });
 
     testWidgets(
+      'swapping from internal to external controller disposes internal and uses new',
+      (tester) async {
+        final externalController = newController();
+        final completer = Completer<void>();
+        AsyncButton button(AsyncButtonController? c) => AsyncButton(
+              controller: c,
+              onPressed: () => completer.future,
+              builder: textBuilder,
+              child: const Text('child'),
+            );
+
+        // 1. Pump with internal controller (null)
+        await tester.pumpWidget(pumpHost(button(null)));
+
+        // 2. Pump with external controller
+        await tester.pumpWidget(pumpHost(button(externalController)));
+
+        // The widget now listens to externalController: driving it must show loading.
+        unawaited(externalController.trigger());
+        await tester.pump();
+        check(find.byType(CircularProgressIndicator)).findsOne();
+
+        completer.complete();
+        await tester.pumpAndSettle();
+      },
+    );
+
+    testWidgets(
+      'swapping from external to internal controller',
+      (tester) async {
+        final externalController = newController();
+        final completer = Completer<void>();
+        AsyncButton button(AsyncButtonController? c) => AsyncButton(
+              controller: c,
+              onPressed: () => completer.future,
+              builder: textBuilder,
+              child: const Text('child'),
+            );
+
+        // 1. Pump with external controller
+        await tester.pumpWidget(pumpHost(button(externalController)));
+
+        // 2. Pump with internal controller (null)
+        await tester.pumpWidget(pumpHost(button(null)));
+
+        // Driving externalController should NOT show loading because it's detached
+        unawaited(externalController.trigger());
+        await tester.pump();
+        check(find.byType(CircularProgressIndicator)).findsNone();
+
+        completer.complete();
+        await tester.pumpAndSettle();
+      },
+    );
+
+    testWidgets(
       'swapping the external controller transfers listening without leak',
       (tester) async {
         final a = newController();
