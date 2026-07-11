@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.1.1
+
+### Fixed
+
+- **Avoid layout cache thrashing.** Replaced the singleton `TextPainter` cache with a bounded Map. This fixes a performance issue where the cache would thrash (and incorrectly re-measure) if multiple buttons with different text styles were rendered in the same frame.
+- **Dead code warning.** Fixed a static analysis warning in `AsyncButtonTheme.lerp` by using `covariant` for the `other` parameter.
+- Added comprehensive test coverage for `AsyncButtonController` disposal during an active asynchronous operation and external controller swapping.
+
 ## 2.1.0
 
 ### Added
