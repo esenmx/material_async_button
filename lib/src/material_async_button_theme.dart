@@ -92,10 +92,10 @@ class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
   }
 }
 
-TextStyle? _cachedTextStyle;
-TextDirection? _cachedTextDirection;
-TextScaler? _cachedTextScaler;
-double? _cachedLineBox;
+// Bounded cache to prevent thrashing between multiple button styles on screen,
+// while avoiding unbounded memory growth in apps with dynamic text styles.
+typedef _LineBoxKey = (TextStyle, TextDirection, TextScaler);
+final _lineBoxCache = <_LineBoxKey, double>{};
 
 /// The single-line height of the ambient label style at [context] — the
 /// vertical extent a one-line [Text] occupies here. The default spinner sizes
@@ -106,12 +106,15 @@ double _ambientTextLineBox(BuildContext context) {
   final style = DefaultTextStyle.of(context).style;
   final textDirection = Directionality.of(context);
   final textScaler = MediaQuery.textScalerOf(context);
+  final key = (style, textDirection, textScaler);
 
-  if (_cachedTextStyle == style &&
-      _cachedTextDirection == textDirection &&
-      _cachedTextScaler == textScaler &&
-      _cachedLineBox != null) {
-    return _cachedLineBox!;
+  final cached = _lineBoxCache[key];
+  if (cached != null) {
+    return cached;
+  }
+
+  if (_lineBoxCache.length >= 16) {
+    _lineBoxCache.clear();
   }
 
   final painter = TextPainter(
@@ -120,12 +123,7 @@ double _ambientTextLineBox(BuildContext context) {
     textScaler: textScaler,
   )..layout();
 
-  _cachedTextStyle = style;
-  _cachedTextDirection = textDirection;
-  _cachedTextScaler = textScaler;
-  _cachedLineBox = painter.preferredLineHeight;
-
-  return _cachedLineBox!;
+  return _lineBoxCache[key] = painter.preferredLineHeight;
 }
 
 /// The default loading indicator — a sized, indeterminate
