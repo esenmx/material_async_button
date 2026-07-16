@@ -12,13 +12,13 @@ abstract class AsyncMaterialButton extends StatelessWidget {
   /// Subclass-only constructor. Forwards every field to [AsyncButton]. See
   /// [AsyncButton] for the semantics of each parameter.
   const AsyncMaterialButton({
-    super.key,
     required this.child,
     required this.onPressed,
     this.enabled = true,
     this.controller,
     this.loadingBuilder,
     this.transitionBuilder,
+    super.key,
   });
 
   /// See [AsyncButton.child].
@@ -70,7 +70,6 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
   /// Subclass-only constructor. Adds Material parameters common to
   /// [ElevatedButton]/[FilledButton]/[OutlinedButton]/[TextButton].
   const AsyncStandardMaterialButton({
-    super.key,
     required super.child,
     required super.onPressed,
     super.enabled,
@@ -87,6 +86,7 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
     this.statesController,
     Widget? icon,
     IconAlignment? iconAlignment,
+    super.key,
   }) : _icon = icon,
        _iconAlignment = iconAlignment;
 

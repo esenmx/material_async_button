@@ -8,7 +8,6 @@ enum _FilledButtonVariant { primary, tonal }
 class FilledAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [FilledButton.new].
   const FilledAsyncButton({
-    super.key,
     required super.onPressed,
     required super.child,
     super.onLongPress,
@@ -23,11 +22,12 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.key,
   }) : _variant = .primary;
 
   /// Mirrors [FilledButton.tonal].
   const FilledAsyncButton.tonal({
-    super.key,
+    required super.child,
     required super.onPressed,
     super.onLongPress,
     super.onHover,
@@ -41,13 +41,14 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
-    required super.child,
+    super.key,
   }) : _variant = .tonal;
 
   /// Mirrors [FilledButton.icon].
   const FilledAsyncButton.icon({
-    super.key,
     required super.onPressed,
+    required super.icon,
+    required Widget label,
     super.onLongPress,
     super.onHover,
     super.onFocusChange,
@@ -60,15 +61,15 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
-    required super.icon,
-    required Widget label,
+    super.key,
   }) : _variant = .primary,
        super(child: label);
 
   /// Mirrors [FilledButton.tonalIcon].
   const FilledAsyncButton.tonalIcon({
-    super.key,
     required super.onPressed,
+    required super.icon,
+    required Widget label,
     super.onLongPress,
     super.onHover,
     super.onFocusChange,
@@ -81,8 +82,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
-    required super.icon,
-    required Widget label,
+    super.key,
   }) : _variant = .tonal,
        super(child: label);
 

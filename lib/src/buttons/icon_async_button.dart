@@ -15,13 +15,12 @@ enum _IconButtonVariant { standard, filled, filledTonal, outlined }
 class IconAsyncButton extends AsyncMaterialButton {
   /// Mirrors [IconButton.new].
   const IconAsyncButton({
-    super.key,
     required super.onPressed,
+    required this.icon,
     super.enabled,
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
-    required this.icon,
     this.iconSize,
     this.visualDensity,
     this.padding,
@@ -42,18 +41,18 @@ class IconAsyncButton extends AsyncMaterialButton {
     this.style,
     this.isSelected,
     this.selectedIcon,
+    super.key,
   }) : _variant = .standard,
        super(child: icon);
 
   /// Mirrors [IconButton.filled].
   const IconAsyncButton.filled({
-    super.key,
     required super.onPressed,
+    required this.icon,
     super.enabled,
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
-    required this.icon,
     this.iconSize,
     this.visualDensity,
     this.padding,
@@ -74,18 +73,18 @@ class IconAsyncButton extends AsyncMaterialButton {
     this.style,
     this.isSelected,
     this.selectedIcon,
+    super.key,
   }) : _variant = .filled,
        super(child: icon);
 
   /// Mirrors [IconButton.filledTonal].
   const IconAsyncButton.filledTonal({
-    super.key,
     required super.onPressed,
+    required this.icon,
     super.enabled,
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
-    required this.icon,
     this.iconSize,
     this.visualDensity,
     this.padding,
@@ -106,18 +105,18 @@ class IconAsyncButton extends AsyncMaterialButton {
     this.style,
     this.isSelected,
     this.selectedIcon,
+    super.key,
   }) : _variant = .filledTonal,
        super(child: icon);
 
   /// Mirrors [IconButton.outlined].
   const IconAsyncButton.outlined({
-    super.key,
     required super.onPressed,
+    required this.icon,
     super.enabled,
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
-    required this.icon,
     this.iconSize,
     this.visualDensity,
     this.padding,
@@ -138,6 +137,7 @@ class IconAsyncButton extends AsyncMaterialButton {
     this.style,
     this.isSelected,
     this.selectedIcon,
+    super.key,
   }) : _variant = .outlined,
        super(child: icon);
 

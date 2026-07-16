@@ -13,9 +13,7 @@ import 'package:material_async_button/material_async_button.dart';
 Widget pumpHost(Widget child, {ThemeData? theme}) {
   return MaterialApp(
     theme: theme ?? emptyAsyncButtonTheme,
-    home: Scaffold(
-      body: Center(child: child),
-    ),
+    home: Scaffold(body: Center(child: child)),
   );
 }
 
