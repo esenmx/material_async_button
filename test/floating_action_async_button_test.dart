@@ -122,7 +122,31 @@ void main() {
     );
   });
 
-  group('AsyncButtonSpinner Accessibility', () {
+  group('AsyncButtonSpinner', () {
+    testWidgets('custom strokeWidth flows to CircularProgressIndicator', (
+      tester,
+    ) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          FloatingActionAsyncButton(
+            onPressed: onPressed,
+            loadingBuilder: (context) => const AsyncButtonSpinner(
+              strokeWidth: 4.5,
+            ),
+            child: const Text('go'),
+          ),
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(FloatingActionButton));
+      final cpi = tester.widget<CircularProgressIndicator>(
+        find.byType(CircularProgressIndicator),
+      );
+      check(cpi.strokeWidth).equals(4.5);
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
     testWidgets(
       'spinner exposes semanticsLabel for screen readers by default',
       (tester) async {
