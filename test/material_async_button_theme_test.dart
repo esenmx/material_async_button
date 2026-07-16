@@ -106,5 +106,12 @@ void main() {
       check(a).equals(b);
       check(a.hashCode).equals(b.hashCode);
     });
+
+    test('empty equality is value-based', () {
+      const a = AsyncButtonTheme.empty;
+      const b = AsyncButtonTheme();
+      check(a).equals(b);
+      check(a.hashCode).equals(b.hashCode);
+    });
   });
 }
