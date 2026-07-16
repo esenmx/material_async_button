@@ -58,7 +58,6 @@ typedef AsyncButtonTransitionBuilder =
 class AsyncButton extends StatefulWidget {
   /// Creates an [AsyncButton]. See the class doc for usage.
   const AsyncButton({
-    super.key,
     required this.child,
     required this.onPressed,
     required this.builder,
@@ -66,6 +65,7 @@ class AsyncButton extends StatefulWidget {
     this.controller,
     this.loadingBuilder,
     this.transitionBuilder,
+    super.key,
   });
 
   /// Idle widget. Replaced by [loadingBuilder] while loading.
