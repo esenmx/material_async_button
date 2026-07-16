@@ -63,10 +63,7 @@ class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
   }
 
   @override
-  AsyncButtonTheme lerp(
-    covariant AsyncButtonTheme? other,
-    double t,
-  ) {
+  AsyncButtonTheme lerp(covariant AsyncButtonTheme? other, double t) {
     if (other == null) {
       return this;
     }
@@ -144,11 +141,11 @@ class AsyncButtonSpinner extends StatelessWidget {
   /// font size so the spinner matches the button's label; [semanticsLabel]
   /// sets the accessibility label read by screen readers.
   const AsyncButtonSpinner({
-    super.key,
     this.color,
     this.strokeWidth = 2,
     this.size,
     this.semanticsLabel = 'Loading',
+    super.key,
   });
 
   /// Indicator colour. When null, inherits the button's foreground (its

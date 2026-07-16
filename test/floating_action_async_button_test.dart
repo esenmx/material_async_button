@@ -95,31 +95,28 @@ void main() {
       check(find.text('send')).findsOne();
     });
 
-    testWidgets(
-      'loading spinner is sized to the taller of icon and line box '
-      'when IconTheme is present',
-      (tester) async {
-        final (:onPressed, :completer) = pendingPress();
-        await tester.pumpWidget(
-          pumpHost(
-            IconTheme(
-              data: const IconThemeData(size: 32),
-              child: FloatingActionAsyncButton.extended(
-                onPressed: onPressed,
-                icon: const Icon(Icons.send),
-                label: const Text('send'),
-              ),
+    testWidgets('loading spinner is sized to the taller of icon and line box '
+        'when IconTheme is present', (tester) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          IconTheme(
+            data: const IconThemeData(size: 32),
+            child: FloatingActionAsyncButton.extended(
+              onPressed: onPressed,
+              icon: const Icon(Icons.send),
+              label: const Text('send'),
             ),
           ),
-        );
-        await tapIntoLoading(tester, find.byType(FloatingActionButton));
-        final lineBox = spinnerTextLineBox(tester);
-        final expected = 32.0 > lineBox ? 32.0 : lineBox;
-        check(loadingSpinnerSize(tester)).equals(expected);
-        completer.complete();
-        await tester.pump();
-      },
-    );
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(FloatingActionButton));
+      final lineBox = spinnerTextLineBox(tester);
+      final expected = 32.0 > lineBox ? 32.0 : lineBox;
+      check(loadingSpinnerSize(tester)).equals(expected);
+      completer.complete();
+      await tester.pump();
+    });
   });
 
   group('AsyncButtonSpinner Accessibility', () {
@@ -153,9 +150,8 @@ void main() {
         pumpHost(
           FloatingActionAsyncButton(
             onPressed: onPressed,
-            loadingBuilder: (context) => const AsyncButtonSpinner(
-              semanticsLabel: 'Submitting',
-            ),
+            loadingBuilder: (context) =>
+                const AsyncButtonSpinner(semanticsLabel: 'Submitting'),
             child: const Text('go'),
           ),
         ),
