@@ -109,6 +109,7 @@ void main() {
 
     test('empty equality is value-based', () {
       const a = AsyncButtonTheme.empty;
+      // ignore: use_named_constants, intentional for testing equality to empty instance
       const b = AsyncButtonTheme();
       check(a).equals(b);
       check(a.hashCode).equals(b.hashCode);
