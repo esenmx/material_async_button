@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.1.2
+
+### Improved
+
+- **Smarter line-box cache eviction.** The bounded text line-box cache now
+  evicts only its least-recently-used entry when full, instead of clearing
+  entirely — cycling through many text styles no longer re-measures every
+  cached style.
+- Added test coverage for `AsyncButtonSpinner.strokeWidth`.
+
 ## 2.1.1
 
 ### Fixed
