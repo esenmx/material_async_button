@@ -128,9 +128,8 @@ void main() {
         pumpHost(
           FloatingActionAsyncButton(
             onPressed: onPressed,
-            loadingBuilder: (context) => const AsyncButtonSpinner(
-              strokeWidth: 4.5,
-            ),
+            loadingBuilder: (context) =>
+                const AsyncButtonSpinner(strokeWidth: 4.5),
             child: const Text('go'),
           ),
         ),
