@@ -13,7 +13,6 @@ const Object _defaultHeroTag = _DefaultHeroTag();
 class FloatingActionAsyncButton extends AsyncMaterialButton {
   /// Mirrors [FloatingActionButton.new].
   const FloatingActionAsyncButton({
-    super.key,
     required super.onPressed,
     Widget? child,
     super.enabled,
@@ -41,6 +40,7 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
     this.heroTag = _defaultHeroTag,
     this.enableFeedback,
     this.mini = false,
+    super.key,
   }) : _variant = .standard,
        _icon = null,
        _extendedIconLabelSpacing = null,
@@ -50,7 +50,6 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
 
   /// Mirrors [FloatingActionButton.small].
   const FloatingActionAsyncButton.small({
-    super.key,
     required super.onPressed,
     Widget? child,
     super.enabled,
@@ -76,6 +75,7 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
     this.materialTapTargetSize,
     this.heroTag = _defaultHeroTag,
     this.enableFeedback,
+    super.key,
   }) : _variant = .small,
        mini = false,
        isExtended = false,
@@ -87,7 +87,6 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
 
   /// Mirrors [FloatingActionButton.large].
   const FloatingActionAsyncButton.large({
-    super.key,
     required super.onPressed,
     Widget? child,
     super.enabled,
@@ -113,6 +112,7 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
     this.materialTapTargetSize,
     this.heroTag = _defaultHeroTag,
     this.enableFeedback,
+    super.key,
   }) : _variant = .large,
        mini = false,
        isExtended = false,
@@ -124,7 +124,6 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
 
   /// Mirrors [FloatingActionButton.extended].
   const FloatingActionAsyncButton.extended({
-    super.key,
     required super.onPressed,
     required Widget label,
     Widget? icon,
@@ -155,6 +154,7 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
     double? extendedIconLabelSpacing,
     EdgeInsetsGeometry? extendedPadding,
     TextStyle? extendedTextStyle,
+    super.key,
   }) : _variant = .extended,
        mini = false,
        _icon = icon,

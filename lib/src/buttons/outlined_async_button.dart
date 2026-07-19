@@ -4,7 +4,6 @@ part of '../../material_async_button.dart';
 class OutlinedAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [OutlinedButton.new].
   const OutlinedAsyncButton({
-    super.key,
     required super.onPressed,
     required super.child,
     super.onLongPress,
@@ -19,12 +18,14 @@ class OutlinedAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.key,
   });
 
   /// Mirrors [OutlinedButton.icon].
   const OutlinedAsyncButton.icon({
-    super.key,
     required super.onPressed,
+    required super.icon,
+    required Widget label,
     super.onLongPress,
     super.onHover,
     super.onFocusChange,
@@ -37,8 +38,7 @@ class OutlinedAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
-    required super.icon,
-    required Widget label,
+    super.key,
   }) : super(child: label);
 
   @override

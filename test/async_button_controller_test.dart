@@ -113,10 +113,8 @@ void main() {
         MaterialApp(
           home: ValueListenableBuilder<bool>(
             valueListenable: c,
-            builder: (context, isLoading, child) => Text(
-              isLoading ? 'loading' : 'idle',
-              textDirection: .ltr,
-            ),
+            builder: (context, isLoading, child) =>
+                Text(isLoading ? 'loading' : 'idle', textDirection: .ltr),
           ),
         ),
       );
