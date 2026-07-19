@@ -115,12 +115,15 @@ void main() {
       check(a.hashCode).equals(b.hashCode);
     });
 
-    test('empty equality is value-based', () {
-      const a = AsyncButtonTheme.empty;
-      // ignore: use_named_constants, intentional for testing equality to empty instance
+    test('empty leaves every field at its default', () {
+      // `empty` is itself `const AsyncButtonTheme()`, so the equality below is
+      // satisfied by const canonicalization alone. The field checks are what
+      // actually pin the invariant: `empty` must never grow a set field.
+      // ignore: use_named_constants
       const b = AsyncButtonTheme();
-      check(a).equals(b);
-      check(a.hashCode).equals(b.hashCode);
+      check(AsyncButtonTheme.empty).equals(b);
+      check(AsyncButtonTheme.empty.loadingBuilder).isNull();
+      check(AsyncButtonTheme.empty.transitionBuilder).isNull();
     });
   });
 }
