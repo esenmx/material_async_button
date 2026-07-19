@@ -23,6 +23,14 @@ void main() {
         ..has((it) => it.transitionBuilder, 'transitionBuilder').isNull();
     });
 
+    test('copyWith with no arguments returns an identical theme', () {
+      const base = AsyncButtonTheme(
+        loadingBuilder: _loadingA,
+        transitionBuilder: _noopTransition,
+      );
+      check(base.copyWith()).equals(base);
+    });
+
     test('copyWith overrides only specified fields, preserving the rest', () {
       const base = AsyncButtonTheme(
         loadingBuilder: _loadingA,
