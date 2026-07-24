@@ -48,19 +48,13 @@ void main() {
     test('lerp snaps fields at the halfway point', () {
       const from = AsyncButtonTheme(loadingBuilder: _loadingA);
       const to = AsyncButtonTheme(loadingBuilder: _loadingB);
-      check(
-        from.lerp(to, 0.4),
-      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingA);
-      check(
-        from.lerp(to, 0.6),
-      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingB);
+      check(from.lerp(to, 0.4).loadingBuilder).equals(_loadingA);
+      check(from.lerp(to, 0.6).loadingBuilder).equals(_loadingB);
     });
 
     test('lerp with non-AsyncButtonTheme returns self', () {
       const a = AsyncButtonTheme(loadingBuilder: _loadingA);
-      check(
-        a.lerp(null, 0.5),
-      ).has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingA);
+      check(a.lerp(null, 0.5).loadingBuilder).equals(_loadingA);
     });
 
     testWidgets('of(context) returns the registered extension', (tester) async {
