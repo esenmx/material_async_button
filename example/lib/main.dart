@@ -52,9 +52,8 @@ class _HomePageState extends State<HomePage> {
       await _simulateWork(fail: fail);
     } on Exception catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed: $error')));
+        final snackBar = SnackBar(content: Text('Failed: $error'));
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }
     }
   }

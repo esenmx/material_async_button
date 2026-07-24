@@ -242,18 +242,15 @@ void main() {
           ),
         ),
       );
+      final textButton = find.byType(TextButton);
       // Idle: interactive.
-      check(
-        tester.widget<TextButton>(find.byType(TextButton)).onPressed,
-      ).isNotNull();
+      check(tester.widget<TextButton>(textButton).onPressed).isNotNull();
 
       unawaited(controller.trigger());
       await tester.pump();
       // Loading: spinner shows and the button keeps its enabled look.
       check(find.byType(CircularProgressIndicator)).findsOne();
-      check(
-        tester.widget<TextButton>(find.byType(TextButton)).onPressed,
-      ).isNotNull();
+      check(tester.widget<TextButton>(textButton).onPressed).isNotNull();
 
       completer.complete();
       await tester.pumpAndSettle();
