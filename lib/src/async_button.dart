@@ -7,6 +7,10 @@ part of '../material_async_button.dart';
 /// button: while loading, `callback` stays non-null so the button keeps its
 /// enabled look (the spinner is the state indicator). Taps that can't run are
 /// silently swallowed by the controller, so they never double-submit.
+// Formatter generations disagree on splitting a generalized typedef header
+// (`=` break vs `= Widget Function(`); pin one form so local dart format,
+// CI, and pana's package-config-free dart_style all leave it untouched.
+// dart format off
 typedef AsyncButtonWidgetBuilder =
     Widget Function(
       BuildContext context,
@@ -33,6 +37,7 @@ typedef AsyncButtonTransitionBuilder =
       // ignore: avoid_positional_boolean_parameters
       bool isLoading,
     );
+// dart format on
 
 /// Low-level async-loading shell for arbitrary buttons.
 ///
