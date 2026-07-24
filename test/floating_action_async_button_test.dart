@@ -59,9 +59,8 @@ void main() {
           ),
         );
         await tapIntoLoading(tester, find.byType(FloatingActionButton));
-        check(
-          spinnerColor(tester),
-        ).equals(theme.colorScheme.onPrimaryContainer);
+        final expected = theme.colorScheme.onPrimaryContainer;
+        check(spinnerColor(tester)).equals(expected);
         completer.complete();
         await tester.pumpAndSettle();
       },

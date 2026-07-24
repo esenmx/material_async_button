@@ -97,9 +97,8 @@ void main() {
         ),
       );
       await tapIntoLoading(tester, find.byType(FilledButton));
-      check(
-        spinnerColor(tester),
-      ).equals(theme.colorScheme.onSecondaryContainer);
+      final expected = theme.colorScheme.onSecondaryContainer;
+      check(spinnerColor(tester)).equals(expected);
       completer.complete();
       await tester.pumpAndSettle();
     });
