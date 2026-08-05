@@ -197,7 +197,7 @@ its `color` / `strokeWidth` / `size` and return it from `loadingBuilder`.
 
 A Claude Code skill that teaches Claude to use this package idiomatically
 lives in the GitHub repo at
-[`tool/claude/flutter-material-async-button/SKILL.md`](https://github.com/esenmx/material_async_button/blob/main/tool/claude/flutter-material-async-button/SKILL.md).
+[`skills/flutter-material-async-button/SKILL.md`](https://github.com/esenmx/material_async_button/blob/main/skills/flutter-material-async-button/SKILL.md).
 Copy it into `.claude/skills/` in your project.
 
 ## License
