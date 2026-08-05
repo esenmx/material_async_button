@@ -1,11 +1,6 @@
 ---
 name: flutter-material-async-button
-description: Use this skill when working in a Flutter project that depends on
-  the material_async_button package, or when the user wants to add a loading
-  state to a Material button (ElevatedButton, FilledButton, OutlinedButton,
-  TextButton, IconButton, FloatingActionButton) whose onPressed is async. Triggers
-  on "async button", "loading button", "floating action async button", or any handler
-  the user writes as `() async {}` and passes to a Material button.
+description: Add a loading state to a Material button (ElevatedButton, FilledButton, OutlinedButton, TextButton, IconButton, FloatingActionButton) whose onPressed is async, via the material_async_button package. Triggers on "async button", "loading button", or any `() async {}` handler passed to a Material button.
 ---
 
 # material_async_button
