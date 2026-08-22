@@ -366,6 +366,82 @@ void main() {
         await tester.pumpAndSettle();
       },
     );
+
+    testWidgets('disposes internal controller when unmounted', (tester) async {
+      await tester.pumpWidget(
+        pumpHost(
+          AsyncButton(
+            onPressed: () async {},
+            builder: textBuilder,
+            child: const Text('label'),
+          ),
+        ),
+      );
+      final internalController =
+          (tester.state(find.byType(AsyncButton)) as dynamic).controller
+              as AsyncButtonController;
+
+      await tester.pumpWidget(pumpHost(const SizedBox()));
+
+      check(() => internalController.addListener(() {})).throws<FlutterError>();
+    });
+
+    testWidgets('does not dispose external controller when unmounted', (
+      tester,
+    ) async {
+      final spyController = _SpyController();
+      addTearDown(spyController.dispose);
+      await tester.pumpWidget(
+        pumpHost(
+          AsyncButton(
+            controller: spyController,
+            onPressed: () async {},
+            builder: textBuilder,
+            child: const Text('label'),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(pumpHost(const SizedBox()));
+
+      check(spyController.isDisposed).isFalse();
+    });
+
+    testWidgets(
+      'swapping external controllers does not dispose former external '
+      'controller',
+      (tester) async {
+        final a = _SpyController();
+        final b = _SpyController();
+        addTearDown(a.dispose);
+        addTearDown(b.dispose);
+
+        await tester.pumpWidget(
+          pumpHost(
+            AsyncButton(
+              controller: a,
+              onPressed: () async {},
+              builder: textBuilder,
+              child: const Text('label'),
+            ),
+          ),
+        );
+
+        await tester.pumpWidget(
+          pumpHost(
+            AsyncButton(
+              controller: b,
+              onPressed: () async {},
+              builder: textBuilder,
+              child: const Text('label'),
+            ),
+          ),
+        );
+
+        check(a.isDisposed).isFalse();
+        check(b.isDisposed).isFalse();
+      },
+    );
   });
 
   group('AsyncButton transition builder', () {
@@ -415,4 +491,14 @@ void main() {
       await tester.pumpAndSettle();
     });
   });
+}
+
+class _SpyController extends AsyncButtonController {
+  bool isDisposed = false;
+
+  @override
+  void dispose() {
+    isDisposed = true;
+    super.dispose();
+  }
 }
