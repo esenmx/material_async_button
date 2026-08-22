@@ -94,6 +94,10 @@ class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
 typedef _LineBoxKey = (TextStyle, TextDirection, TextScaler);
 final _lineBoxCache = <_LineBoxKey, double>{};
 
+/// Exposes the line box cache for testing cache limits and eviction.
+@visibleForTesting
+Map<Object, double> get debugLineBoxCache => _lineBoxCache;
+
 /// The single-line height of the ambient label style at [context] — the
 /// vertical extent a one-line [Text] occupies here. The default spinner sizes
 /// to this (the idle content's *line box*, which is taller than the raw
