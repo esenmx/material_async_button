@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
 
-// A no-op transition builder for theme-field tests.
+// Two distinct transition builders for theme-field tests.
 Widget _noopTransition(BuildContext context, Widget child, bool isLoading) {
+  return child;
+}
+
+Widget _otherTransition(BuildContext context, Widget child, bool isLoading) {
   return child;
 }
 
@@ -46,10 +50,38 @@ void main() {
     });
 
     test('lerp snaps fields at the halfway point', () {
-      const from = AsyncButtonTheme(loadingBuilder: _loadingA);
-      const to = AsyncButtonTheme(loadingBuilder: _loadingB);
-      check(from.lerp(to, 0.4).loadingBuilder).equals(_loadingA);
-      check(from.lerp(to, 0.6).loadingBuilder).equals(_loadingB);
+      const from = AsyncButtonTheme(
+        loadingBuilder: _loadingA,
+        transitionBuilder: _noopTransition,
+      );
+      const to = AsyncButtonTheme(
+        loadingBuilder: _loadingB,
+        transitionBuilder: _otherTransition,
+      );
+
+      final lerpBeforeHalf = from.lerp(to, 0.4);
+      check(lerpBeforeHalf)
+        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingA)
+        ..has(
+          (it) => it.transitionBuilder,
+          'transitionBuilder',
+        ).equals(_noopTransition);
+
+      final lerpAtHalf = from.lerp(to, 0.5);
+      check(lerpAtHalf)
+        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingB)
+        ..has(
+          (it) => it.transitionBuilder,
+          'transitionBuilder',
+        ).equals(_otherTransition);
+
+      final lerpAfterHalf = from.lerp(to, 0.6);
+      check(lerpAfterHalf)
+        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingB)
+        ..has(
+          (it) => it.transitionBuilder,
+          'transitionBuilder',
+        ).equals(_otherTransition);
     });
 
     test('lerp with non-AsyncButtonTheme returns self', () {
