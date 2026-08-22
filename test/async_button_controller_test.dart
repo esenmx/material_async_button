@@ -56,8 +56,10 @@ void main() {
         onPressed: () async => throw StateError('oops'),
       );
       final states = recordStates(c);
+      check(c.value).isFalse();
       await check(c.trigger()).throws<StateError>();
       check(states).deepEquals([true, false]);
+      check(c.value).isFalse();
       check(c).isIdle();
     });
   });
