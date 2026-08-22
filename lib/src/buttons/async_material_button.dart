@@ -122,6 +122,55 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
   /// `max(iconSize, lineBox)`; a plain constructor shows only the label, so it
   /// tracks the label's line box.
   _SpinnerSize get _loadingSizing => _icon != null ? .max : .fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return AsyncButton(
+      onPressed: onPressed,
+      enabled: enabled,
+      controller: controller,
+      loadingBuilder: _resolveLoadingBuilder(context, _loadingSizing),
+      transitionBuilder: transitionBuilder,
+      builder: (context, animatedChild, callback, isLoading) {
+        final longPress = (callback != null && !isLoading) ? onLongPress : null;
+        if (_icon != null) {
+          return buildIconButton(
+            context,
+            onPressed: callback,
+            onLongPress: longPress,
+            icon: isLoading ? null : _icon,
+            label: animatedChild,
+          );
+        }
+        return buildButton(
+          context,
+          onPressed: callback,
+          onLongPress: longPress,
+          child: animatedChild,
+        );
+      },
+      child: child,
+    );
+  }
+
+  /// Builds the non-icon Material button widget.
+  @protected
+  Widget buildButton(
+    BuildContext context, {
+    required VoidCallback? onPressed,
+    required VoidCallback? onLongPress,
+    required Widget child,
+  });
+
+  /// Builds the icon Material button widget.
+  @protected
+  Widget buildIconButton(
+    BuildContext context, {
+    required VoidCallback? onPressed,
+    required VoidCallback? onLongPress,
+    required Widget? icon,
+    required Widget label,
+  });
 }
 
 /// How [_DefaultLoadingSpinner] derives its dimension from the ambient theme,
