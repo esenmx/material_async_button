@@ -233,6 +233,9 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
 
   final _FloatingActionButtonVariant _variant;
 
+  Object? get _resolvedHeroTag =>
+      heroTag != _defaultHeroTag ? heroTag : const _DefaultHeroTag();
+
   @override
   Widget build(BuildContext context) {
     return AsyncButton(
@@ -244,111 +247,141 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
         _variant == .extended ? .max : .iconSize,
       ),
       transitionBuilder: transitionBuilder,
-      builder: (context, animatedChild, callback, isLoading) {
-        final hasHeroTag = heroTag != _defaultHeroTag;
-        return switch (_variant) {
-          .standard => FloatingActionButton(
-            onPressed: callback,
-            tooltip: tooltip,
-            foregroundColor: foregroundColor,
-            backgroundColor: backgroundColor,
-            focusColor: focusColor,
-            hoverColor: hoverColor,
-            splashColor: splashColor,
-            elevation: elevation,
-            focusElevation: focusElevation,
-            hoverElevation: hoverElevation,
-            highlightElevation: highlightElevation,
-            disabledElevation: disabledElevation,
-            mouseCursor: mouseCursor,
-            shape: shape,
-            clipBehavior: clipBehavior,
-            focusNode: focusNode,
-            autofocus: autofocus,
-            materialTapTargetSize: materialTapTargetSize,
-            isExtended: isExtended,
-            heroTag: hasHeroTag ? heroTag : const _DefaultHeroTag(),
-            enableFeedback: enableFeedback,
-            mini: mini,
-            child: animatedChild,
-          ),
-          .small => FloatingActionButton.small(
-            onPressed: callback,
-            tooltip: tooltip,
-            foregroundColor: foregroundColor,
-            backgroundColor: backgroundColor,
-            focusColor: focusColor,
-            hoverColor: hoverColor,
-            splashColor: splashColor,
-            elevation: elevation,
-            focusElevation: focusElevation,
-            hoverElevation: hoverElevation,
-            highlightElevation: highlightElevation,
-            disabledElevation: disabledElevation,
-            mouseCursor: mouseCursor,
-            shape: shape,
-            clipBehavior: clipBehavior,
-            focusNode: focusNode,
-            autofocus: autofocus,
-            materialTapTargetSize: materialTapTargetSize,
-            heroTag: hasHeroTag ? heroTag : const _DefaultHeroTag(),
-            enableFeedback: enableFeedback,
-            child: animatedChild,
-          ),
-          .large => FloatingActionButton.large(
-            onPressed: callback,
-            tooltip: tooltip,
-            foregroundColor: foregroundColor,
-            backgroundColor: backgroundColor,
-            focusColor: focusColor,
-            hoverColor: hoverColor,
-            splashColor: splashColor,
-            elevation: elevation,
-            focusElevation: focusElevation,
-            hoverElevation: hoverElevation,
-            highlightElevation: highlightElevation,
-            disabledElevation: disabledElevation,
-            mouseCursor: mouseCursor,
-            shape: shape,
-            clipBehavior: clipBehavior,
-            focusNode: focusNode,
-            autofocus: autofocus,
-            materialTapTargetSize: materialTapTargetSize,
-            heroTag: hasHeroTag ? heroTag : const _DefaultHeroTag(),
-            enableFeedback: enableFeedback,
-            child: animatedChild,
-          ),
-          .extended => FloatingActionButton.extended(
-            onPressed: callback,
-            label: animatedChild,
-            icon: isLoading ? null : _icon,
-            tooltip: tooltip,
-            foregroundColor: foregroundColor,
-            backgroundColor: backgroundColor,
-            focusColor: focusColor,
-            hoverColor: hoverColor,
-            splashColor: splashColor,
-            elevation: elevation,
-            focusElevation: focusElevation,
-            hoverElevation: hoverElevation,
-            highlightElevation: highlightElevation,
-            disabledElevation: disabledElevation,
-            mouseCursor: mouseCursor,
-            shape: shape,
-            clipBehavior: clipBehavior,
-            focusNode: focusNode,
-            autofocus: autofocus,
-            materialTapTargetSize: materialTapTargetSize,
-            isExtended: isExtended,
-            heroTag: hasHeroTag ? heroTag : const _DefaultHeroTag(),
-            enableFeedback: enableFeedback,
-            extendedIconLabelSpacing: _extendedIconLabelSpacing,
-            extendedPadding: _extendedPadding,
-            extendedTextStyle: _extendedTextStyle,
-          ),
-        };
-      },
+      builder: (context, animatedChild, callback, isLoading) =>
+          _buildButton(callback, animatedChild, isLoading: isLoading),
       child: child,
+    );
+  }
+
+  Widget _buildButton(
+    VoidCallback? callback,
+    Widget animatedChild, {
+    required bool isLoading,
+  }) {
+    return switch (_variant) {
+      .standard => _buildStandard(callback, animatedChild),
+      .small => _buildSmall(callback, animatedChild),
+      .large => _buildLarge(callback, animatedChild),
+      .extended => _buildExtended(
+        callback,
+        animatedChild,
+        isLoading: isLoading,
+      ),
+    };
+  }
+
+  Widget _buildStandard(VoidCallback? callback, Widget animatedChild) {
+    return FloatingActionButton(
+      onPressed: callback,
+      tooltip: tooltip,
+      foregroundColor: foregroundColor,
+      backgroundColor: backgroundColor,
+      focusColor: focusColor,
+      hoverColor: hoverColor,
+      splashColor: splashColor,
+      elevation: elevation,
+      focusElevation: focusElevation,
+      hoverElevation: hoverElevation,
+      highlightElevation: highlightElevation,
+      disabledElevation: disabledElevation,
+      mouseCursor: mouseCursor,
+      shape: shape,
+      clipBehavior: clipBehavior,
+      focusNode: focusNode,
+      autofocus: autofocus,
+      materialTapTargetSize: materialTapTargetSize,
+      isExtended: isExtended,
+      heroTag: _resolvedHeroTag,
+      enableFeedback: enableFeedback,
+      mini: mini,
+      child: animatedChild,
+    );
+  }
+
+  Widget _buildSmall(VoidCallback? callback, Widget animatedChild) {
+    return FloatingActionButton.small(
+      onPressed: callback,
+      tooltip: tooltip,
+      foregroundColor: foregroundColor,
+      backgroundColor: backgroundColor,
+      focusColor: focusColor,
+      hoverColor: hoverColor,
+      splashColor: splashColor,
+      elevation: elevation,
+      focusElevation: focusElevation,
+      hoverElevation: hoverElevation,
+      highlightElevation: highlightElevation,
+      disabledElevation: disabledElevation,
+      mouseCursor: mouseCursor,
+      shape: shape,
+      clipBehavior: clipBehavior,
+      focusNode: focusNode,
+      autofocus: autofocus,
+      materialTapTargetSize: materialTapTargetSize,
+      heroTag: _resolvedHeroTag,
+      enableFeedback: enableFeedback,
+      child: animatedChild,
+    );
+  }
+
+  Widget _buildLarge(VoidCallback? callback, Widget animatedChild) {
+    return FloatingActionButton.large(
+      onPressed: callback,
+      tooltip: tooltip,
+      foregroundColor: foregroundColor,
+      backgroundColor: backgroundColor,
+      focusColor: focusColor,
+      hoverColor: hoverColor,
+      splashColor: splashColor,
+      elevation: elevation,
+      focusElevation: focusElevation,
+      hoverElevation: hoverElevation,
+      highlightElevation: highlightElevation,
+      disabledElevation: disabledElevation,
+      mouseCursor: mouseCursor,
+      shape: shape,
+      clipBehavior: clipBehavior,
+      focusNode: focusNode,
+      autofocus: autofocus,
+      materialTapTargetSize: materialTapTargetSize,
+      heroTag: _resolvedHeroTag,
+      enableFeedback: enableFeedback,
+      child: animatedChild,
+    );
+  }
+
+  Widget _buildExtended(
+    VoidCallback? callback,
+    Widget animatedChild, {
+    required bool isLoading,
+  }) {
+    return FloatingActionButton.extended(
+      onPressed: callback,
+      label: animatedChild,
+      icon: isLoading ? null : _icon,
+      tooltip: tooltip,
+      foregroundColor: foregroundColor,
+      backgroundColor: backgroundColor,
+      focusColor: focusColor,
+      hoverColor: hoverColor,
+      splashColor: splashColor,
+      elevation: elevation,
+      focusElevation: focusElevation,
+      hoverElevation: hoverElevation,
+      highlightElevation: highlightElevation,
+      disabledElevation: disabledElevation,
+      mouseCursor: mouseCursor,
+      shape: shape,
+      clipBehavior: clipBehavior,
+      focusNode: focusNode,
+      autofocus: autofocus,
+      materialTapTargetSize: materialTapTargetSize,
+      isExtended: isExtended,
+      heroTag: _resolvedHeroTag,
+      enableFeedback: enableFeedback,
+      extendedIconLabelSpacing: _extendedIconLabelSpacing,
+      extendedPadding: _extendedPadding,
+      extendedTextStyle: _extendedTextStyle,
     );
   }
 }
