@@ -36,16 +36,19 @@ void main() {
     check(find.byType(CircularProgressIndicator)).findsNone();
   });
 
-  testWidgets('failing action surfaces a generic error message without exposing raw exception details', (
-    tester,
-  ) async {
-    await tester.pumpWidget(const MyApp());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'failing action surfaces a generic error message without exposing raw exception details',
+    (tester) async {
+      await tester.pumpWidget(const MyApp());
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('OutlinedAsyncButton (handles failure)'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('OutlinedAsyncButton (handles failure)'));
+      await tester.pumpAndSettle();
 
-    check(find.text('An unexpected error occurred. Please try again.')).findsOne();
-    check(find.textContaining('simulated failure')).findsNone();
-  });
+      check(
+        find.text('An unexpected error occurred. Please try again.'),
+      ).findsOne();
+      check(find.textContaining('simulated failure')).findsNone();
+    },
+  );
 }
