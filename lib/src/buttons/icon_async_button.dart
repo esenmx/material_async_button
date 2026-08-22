@@ -253,10 +253,7 @@ class IconAsyncButton extends AsyncMaterialButton {
       loadingBuilder: _resolveLoadingBuilder(context, .iconSize),
       transitionBuilder: transitionBuilder,
       builder: (context, child, callback, isLoading) {
-        return _buildIconButton(
-          onPressed: callback,
-          icon: child,
-        );
+        return _buildIconButton(onPressed: callback, icon: child);
       },
       child: icon,
     );
