@@ -105,9 +105,12 @@ double _ambientTextLineBox(BuildContext context) {
   final textScaler = MediaQuery.textScalerOf(context);
   final key = (style, textDirection, textScaler);
 
-  final cached = _lineBoxCache.remove(key);
+  final cached = _lineBoxCache[key];
   if (cached != null) {
-    _lineBoxCache[key] = cached;
+    if (_lineBoxCache.keys.last != key) {
+      _lineBoxCache.remove(key);
+      _lineBoxCache[key] = cached;
+    }
     return cached;
   }
 
