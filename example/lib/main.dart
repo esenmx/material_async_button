@@ -50,9 +50,11 @@ class _HomePageState extends State<HomePage> {
   Future<void> _submit(BuildContext context, {bool fail = false}) async {
     try {
       await _simulateWork(fail: fail);
-    } on Exception catch (error) {
+    } on Exception {
       if (context.mounted) {
-        final snackBar = SnackBar(content: Text('Failed: $error'));
+        const snackBar = SnackBar(
+          content: Text('An unexpected error occurred. Please try again.'),
+        );
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }
     }

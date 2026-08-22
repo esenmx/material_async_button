@@ -71,8 +71,10 @@ no success or error state.
     onPressed: () async {
       try {
         await repo.submit();
-      } on Exception catch (error) {
-        messenger.showSnackBar(SnackBar(content: Text('$error')));
+      } on Exception {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Failed to submit. Please try again.')),
+        );
       }
     },
     child: const Text('Submit'),
