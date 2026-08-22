@@ -142,55 +142,52 @@ void main() {
       check(AsyncButtonTheme.empty.transitionBuilder).isNull();
     });
 
-    testWidgets(
-      'AsyncButtonSpinner line box cache evicts oldest entry when '
-      'capacity exceeds 16',
-      (tester) async {
-        debugLineBoxCache.clear();
+    testWidgets('AsyncButtonSpinner line box cache evicts oldest entry when '
+        'capacity exceeds 16', (tester) async {
+      debugLineBoxCache.clear();
 
-        Future<void> pumpSpinnerWithFontSize(double fontSize) async {
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Scaffold(
-                body: DefaultTextStyle(
-                  style: TextStyle(fontSize: fontSize),
-                  child: const AsyncButtonSpinner(),
-                ),
+      Future<void> pumpSpinnerWithFontSize(double fontSize) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: DefaultTextStyle(
+                style: TextStyle(fontSize: fontSize),
+                child: const AsyncButtonSpinner(),
               ),
             ),
-          );
-        }
+          ),
+        );
+      }
 
-        // Pump 16 distinct text styles to fill cache to its max capacity of 16.
-        for (var i = 1; i <= 16; i++) {
-          await pumpSpinnerWithFontSize(i.toDouble());
-        }
+      // Pump 16 distinct text styles to fill cache to its max capacity of 16.
+      for (var i = 1; i <= 16; i++) {
+        await pumpSpinnerWithFontSize(i.toDouble());
+      }
 
-        check(debugLineBoxCache.length).equals(16);
+      check(debugLineBoxCache.length).equals(16);
 
-        // Identify the key for fontSize 1 (the first inserted entry).
-        final firstKey = debugLineBoxCache.keys.first;
-        check(debugLineBoxCache.containsKey(firstKey)).isTrue();
+      // Identify the key for fontSize 1 (the first inserted entry).
+      final firstKey = debugLineBoxCache.keys.first;
+      check(debugLineBoxCache.containsKey(firstKey)).isTrue();
 
-        // Pump 17th distinct text style. This should evict oldest entry.
-        await pumpSpinnerWithFontSize(17);
+      // Pump 17th distinct text style. This should evict oldest entry.
+      await pumpSpinnerWithFontSize(17);
 
-        check(debugLineBoxCache.length).equals(16);
-        check(debugLineBoxCache.containsKey(firstKey)).isFalse();
+      check(debugLineBoxCache.length).equals(16);
+      check(debugLineBoxCache.containsKey(firstKey)).isFalse();
 
-        // Re-querying an existing cached style (e.g. fontSize 2) promotes it
-        // and does not expand cache length or evict any entry.
-        final secondKey = debugLineBoxCache.keys.first; // fontSize 2
-        await pumpSpinnerWithFontSize(2);
+      // Re-querying an existing cached style (e.g. fontSize 2) promotes it
+      // and does not expand cache length or evict any entry.
+      final secondKey = debugLineBoxCache.keys.first; // fontSize 2
+      await pumpSpinnerWithFontSize(2);
 
-        check(debugLineBoxCache.length).equals(16);
-        check(debugLineBoxCache.containsKey(secondKey)).isTrue();
-        // secondKey was re-inserted at the end of LRU cache, so it is no
-        // longer the first key.
-        check(debugLineBoxCache.keys.first).not((it) => it.equals(secondKey));
+      check(debugLineBoxCache.length).equals(16);
+      check(debugLineBoxCache.containsKey(secondKey)).isTrue();
+      // secondKey was re-inserted at the end of LRU cache, so it is no
+      // longer the first key.
+      check(debugLineBoxCache.keys.first).not((it) => it.equals(secondKey));
 
-        debugLineBoxCache.clear();
-      },
-    );
+      debugLineBoxCache.clear();
+    });
   });
 }
