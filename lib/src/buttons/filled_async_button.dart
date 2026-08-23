@@ -89,75 +89,75 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
   final _FilledButtonVariant _variant;
 
   @override
-  Widget build(BuildContext context) {
-    return AsyncButton(
-      onPressed: onPressed,
-      enabled: enabled,
-      controller: controller,
-      loadingBuilder: _resolveLoadingBuilder(context, _loadingSizing),
-      transitionBuilder: transitionBuilder,
-      builder: (context, animatedChild, callback, isLoading) {
-        final longPress = (callback != null && !isLoading) ? onLongPress : null;
-        if (_icon != null) {
-          return switch (_variant) {
-            .primary => FilledButton.icon(
-              onPressed: callback,
-              onLongPress: longPress,
-              onHover: onHover,
-              onFocusChange: onFocusChange,
-              style: style,
-              focusNode: focusNode,
-              autofocus: autofocus,
-              clipBehavior: clipBehavior,
-              statesController: statesController,
-              iconAlignment: _iconAlignment,
-              icon: isLoading ? null : _icon,
-              label: animatedChild,
-            ),
-            .tonal => FilledButton.tonalIcon(
-              onPressed: callback,
-              onLongPress: longPress,
-              onHover: onHover,
-              onFocusChange: onFocusChange,
-              style: style,
-              focusNode: focusNode,
-              autofocus: autofocus,
-              clipBehavior: clipBehavior,
-              statesController: statesController,
-              iconAlignment: _iconAlignment,
-              icon: isLoading ? null : _icon,
-              label: animatedChild,
-            ),
-          };
-        }
-        return switch (_variant) {
-          .primary => FilledButton(
-            onPressed: callback,
-            onLongPress: longPress,
-            onHover: onHover,
-            onFocusChange: onFocusChange,
-            style: style,
-            focusNode: focusNode,
-            autofocus: autofocus,
-            clipBehavior: clipBehavior,
-            statesController: statesController,
-            child: animatedChild,
-          ),
-          .tonal => FilledButton.tonal(
-            onPressed: callback,
-            onLongPress: longPress,
-            onHover: onHover,
-            onFocusChange: onFocusChange,
-            style: style,
-            focusNode: focusNode,
-            autofocus: autofocus,
-            clipBehavior: clipBehavior,
-            statesController: statesController,
-            child: animatedChild,
-          ),
-        };
-      },
-      child: child,
-    );
+  Widget _buildButton({
+    required VoidCallback? onPressed,
+    required VoidCallback? onLongPress,
+    required Widget child,
+  }) {
+    return switch (_variant) {
+      .primary => FilledButton(
+        onPressed: onPressed,
+        onLongPress: onLongPress,
+        onHover: onHover,
+        onFocusChange: onFocusChange,
+        style: style,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        clipBehavior: clipBehavior,
+        statesController: statesController,
+        child: child,
+      ),
+      .tonal => FilledButton.tonal(
+        onPressed: onPressed,
+        onLongPress: onLongPress,
+        onHover: onHover,
+        onFocusChange: onFocusChange,
+        style: style,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        clipBehavior: clipBehavior,
+        statesController: statesController,
+        child: child,
+      ),
+    };
+  }
+
+  @override
+  Widget _buildIconButton({
+    required VoidCallback? onPressed,
+    required VoidCallback? onLongPress,
+    required Widget? icon,
+    required Widget label,
+  }) {
+    return switch (_variant) {
+      .primary => FilledButton.icon(
+        onPressed: onPressed,
+        onLongPress: onLongPress,
+        onHover: onHover,
+        onFocusChange: onFocusChange,
+        style: style,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        clipBehavior: clipBehavior,
+        statesController: statesController,
+        iconAlignment: _iconAlignment,
+        icon: icon,
+        label: label,
+      ),
+      .tonal => FilledButton.tonalIcon(
+        onPressed: onPressed,
+        onLongPress: onLongPress,
+        onHover: onHover,
+        onFocusChange: onFocusChange,
+        style: style,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        clipBehavior: clipBehavior,
+        statesController: statesController,
+        iconAlignment: _iconAlignment,
+        icon: icon,
+        label: label,
+      ),
+    };
   }
 }

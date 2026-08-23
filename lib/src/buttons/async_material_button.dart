@@ -5,9 +5,10 @@ part of '../../material_async_button.dart';
 /// [TextAsyncButton], [IconAsyncButton]).
 ///
 /// Owns the shared async surface — [onPressed], [controller], and the
-/// theme-override knobs. Subclasses implement [build] and forward these fields
-/// to an [AsyncButton]. For custom non-Material buttons reach for [AsyncButton]
-/// directly.
+/// theme-override knobs. Direct subclasses ([IconAsyncButton],
+/// [FloatingActionAsyncButton]) implement [build] and forward these fields to
+/// an [AsyncButton]; [AsyncStandardMaterialButton] provides it. For custom
+/// non-Material buttons reach for [AsyncButton] directly.
 abstract class AsyncMaterialButton extends StatelessWidget {
   /// Subclass-only constructor. Forwards every field to [AsyncButton]. See
   /// [AsyncButton] for the semantics of each parameter.
@@ -62,11 +63,16 @@ abstract class AsyncMaterialButton extends StatelessWidget {
 /// [ButtonStyleButton] surface ([ElevatedAsyncButton], [FilledAsyncButton],
 /// [OutlinedAsyncButton], [TextAsyncButton]). Centralises the common
 /// Material parameters and the `.icon` constructor pieces so each concrete
-/// subclass only has to render its specific button widget.
+/// subclass only has to render its specific button widget via `_buildButton` /
+/// `_buildIconButton`.
 ///
 /// [IconAsyncButton] does not extend this — it carries a different field
 /// set ([IconButton]'s API).
-abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
+///
+/// Sealed: the four concrete buttons are the whole hierarchy and the build
+/// hooks are library-private. To build a custom async button, compose
+/// [AsyncButton] directly.
+sealed class AsyncStandardMaterialButton extends AsyncMaterialButton {
   /// Subclass-only constructor. Adds Material parameters common to
   /// [ElevatedButton]/[FilledButton]/[OutlinedButton]/[TextButton].
   const AsyncStandardMaterialButton({
@@ -122,6 +128,49 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
   /// `max(iconSize, lineBox)`; a plain constructor shows only the label, so it
   /// tracks the label's line box.
   _SpinnerSize get _loadingSizing => _icon != null ? .max : .fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return AsyncButton(
+      onPressed: onPressed,
+      enabled: enabled,
+      controller: controller,
+      loadingBuilder: _resolveLoadingBuilder(context, _loadingSizing),
+      transitionBuilder: transitionBuilder,
+      builder: (context, animatedChild, callback, isLoading) {
+        final longPress = (callback != null && !isLoading) ? onLongPress : null;
+        if (_icon != null) {
+          return _buildIconButton(
+            onPressed: callback,
+            onLongPress: longPress,
+            icon: isLoading ? null : _icon,
+            label: animatedChild,
+          );
+        }
+        return _buildButton(
+          onPressed: callback,
+          onLongPress: longPress,
+          child: animatedChild,
+        );
+      },
+      child: child,
+    );
+  }
+
+  /// Builds the non-icon Material button widget.
+  Widget _buildButton({
+    required VoidCallback? onPressed,
+    required VoidCallback? onLongPress,
+    required Widget child,
+  });
+
+  /// Builds the icon Material button widget.
+  Widget _buildIconButton({
+    required VoidCallback? onPressed,
+    required VoidCallback? onLongPress,
+    required Widget? icon,
+    required Widget label,
+  });
 }
 
 /// How [_DefaultLoadingSpinner] derives its dimension from the ambient theme,
