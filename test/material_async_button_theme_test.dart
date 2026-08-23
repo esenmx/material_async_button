@@ -142,4 +142,48 @@ void main() {
       check(AsyncButtonTheme.empty.transitionBuilder).isNull();
     });
   });
+
+  group('AsyncButtonSpinner line box cache', () {
+    testWidgets(
+      'caps at 16 entries, evicts the least recently used, promotes hits',
+      (tester) async {
+        debugLineBoxCache.clear();
+        addTearDown(debugLineBoxCache.clear);
+
+        Future<void> pumpSpinnerWithFontSize(double fontSize) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: DefaultTextStyle(
+                  style: TextStyle(fontSize: fontSize),
+                  child: const AsyncButtonSpinner(),
+                ),
+              ),
+            ),
+          );
+        }
+
+        // Fill the cache to its capacity of 16 with distinct styles.
+        for (var i = 1; i <= 16; i++) {
+          await pumpSpinnerWithFontSize(i.toDouble());
+        }
+        check(debugLineBoxCache.length).equals(16);
+        final firstKey = debugLineBoxCache.keys.first;
+        check(firstKey.$1.fontSize).equals(1);
+
+        // A 17th style evicts the oldest entry.
+        await pumpSpinnerWithFontSize(17);
+        check(debugLineBoxCache.length).equals(16);
+        check(debugLineBoxCache.containsKey(firstKey)).isFalse();
+
+        // A hit on the now-oldest entry moves it to the MRU end without
+        // growing or evicting.
+        final secondKey = debugLineBoxCache.keys.first;
+        check(secondKey.$1.fontSize).equals(2);
+        await pumpSpinnerWithFontSize(2);
+        check(debugLineBoxCache.length).equals(16);
+        check(debugLineBoxCache.keys.last).equals(secondKey);
+      },
+    );
+  });
 }
