@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
 
-// Two distinct transition builders for theme-field tests.
+// Two distinct no-op transition builders — as with the loading builders
+// below, their separate references are the point.
 Widget _noopTransition(BuildContext context, Widget child, bool isLoading) {
   return child;
 }
@@ -59,29 +60,18 @@ void main() {
         transitionBuilder: _otherTransition,
       );
 
-      final lerpBeforeHalf = from.lerp(to, 0.4);
-      check(lerpBeforeHalf)
-        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingA)
-        ..has(
-          (it) => it.transitionBuilder,
-          'transitionBuilder',
-        ).equals(_noopTransition);
-
-      final lerpAtHalf = from.lerp(to, 0.5);
-      check(lerpAtHalf)
-        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingB)
-        ..has(
-          (it) => it.transitionBuilder,
-          'transitionBuilder',
-        ).equals(_otherTransition);
-
-      final lerpAfterHalf = from.lerp(to, 0.6);
-      check(lerpAfterHalf)
-        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingB)
-        ..has(
-          (it) => it.transitionBuilder,
-          'transitionBuilder',
-        ).equals(_otherTransition);
+      // `t < 0.5` keeps `this`; the boundary itself already takes `other`.
+      for (final (t, expected) in [(0.4, from), (0.5, to), (0.6, to)]) {
+        check(from.lerp(to, t), because: 't=$t')
+          ..has(
+            (it) => it.loadingBuilder,
+            'loadingBuilder',
+          ).equals(expected.loadingBuilder)
+          ..has(
+            (it) => it.transitionBuilder,
+            'transitionBuilder',
+          ).equals(expected.transitionBuilder);
+      }
     });
 
     test('lerp with non-AsyncButtonTheme returns self', () {
