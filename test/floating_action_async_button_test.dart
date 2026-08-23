@@ -41,7 +41,12 @@ void main() {
           ),
         ),
       );
-      check(find.byType(FloatingActionButton).evaluate().length).equals(2);
+      final fabs = find.byType(FloatingActionButton);
+      check(fabs.evaluate().length).equals(2);
+      // Pins the variant -> constructor mapping. `.small` is 40x40 inside a
+      // 48x48 padded tap target (ThemeData default on the test platform).
+      check(tester.getSize(fabs.first)).equals(const Size(48, 48));
+      check(tester.getSize(fabs.last)).equals(const Size(96, 96));
     });
 
     testWidgets(
