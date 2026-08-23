@@ -65,6 +65,14 @@ AsyncButtonController newController() {
   return c;
 }
 
+/// The controller the mounted [AsyncButton] is driving. Reaches into the
+/// private state via `dynamic` — the only handle on an internally owned
+/// controller.
+AsyncButtonController mountedController(WidgetTester tester) {
+  return (tester.state(find.byType(AsyncButton)) as dynamic).controller
+      as AsyncButtonController;
+}
+
 /// Controller pre-attached with `onPressed`, for driving it detached from any
 /// widget. Auto-disposes.
 AsyncButtonController attachedController({AsyncCallback? onPressed}) {
@@ -176,4 +184,16 @@ extension FinderChecks on Subject<Finder> {
 extension AsyncButtonControllerChecks on Subject<AsyncButtonController> {
   void isIdle() => has((c) => c.value, 'isLoading').isFalse();
   void isLoading() => has((c) => c.value, 'isLoading').isTrue();
+
+  void isDisposed() => has(
+    (c) =>
+        () => ChangeNotifier.debugAssertNotDisposed(c),
+    'dispose guard',
+  ).throws<FlutterError>();
+
+  void isNotDisposed() => has(
+    (c) =>
+        () => ChangeNotifier.debugAssertNotDisposed(c),
+    'dispose guard',
+  ).returnsNormally();
 }
