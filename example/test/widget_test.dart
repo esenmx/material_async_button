@@ -35,4 +35,19 @@ void main() {
     await tester.pumpAndSettle();
     check(find.byType(CircularProgressIndicator)).findsNone();
   });
+
+  testWidgets('failing action returns to idle and shows the error SnackBar', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('OutlinedAsyncButton (handles failure)'));
+    await tester.pump();
+    check(find.byType(CircularProgressIndicator)).findsOne();
+
+    await tester.pumpAndSettle();
+    check(find.byType(CircularProgressIndicator)).findsNone();
+    check(find.text('Failed: Exception: simulated failure')).findsOne();
+  });
 }
