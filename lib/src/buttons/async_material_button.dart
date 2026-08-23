@@ -5,9 +5,10 @@ part of '../../material_async_button.dart';
 /// [TextAsyncButton], [IconAsyncButton]).
 ///
 /// Owns the shared async surface — [onPressed], [controller], and the
-/// theme-override knobs. Subclasses implement [build] and forward these fields
-/// to an [AsyncButton]. For custom non-Material buttons reach for [AsyncButton]
-/// directly.
+/// theme-override knobs. Direct subclasses ([IconAsyncButton],
+/// [FloatingActionAsyncButton]) implement [build] and forward these fields to
+/// an [AsyncButton]; [AsyncStandardMaterialButton] provides it. For custom
+/// non-Material buttons reach for [AsyncButton] directly.
 abstract class AsyncMaterialButton extends StatelessWidget {
   /// Subclass-only constructor. Forwards every field to [AsyncButton]. See
   /// [AsyncButton] for the semantics of each parameter.
@@ -62,11 +63,16 @@ abstract class AsyncMaterialButton extends StatelessWidget {
 /// [ButtonStyleButton] surface ([ElevatedAsyncButton], [FilledAsyncButton],
 /// [OutlinedAsyncButton], [TextAsyncButton]). Centralises the common
 /// Material parameters and the `.icon` constructor pieces so each concrete
-/// subclass only has to render its specific button widget.
+/// subclass only has to render its specific button widget via `_buildButton` /
+/// `_buildIconButton`.
 ///
 /// [IconAsyncButton] does not extend this — it carries a different field
 /// set ([IconButton]'s API).
-abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
+///
+/// Sealed: the four concrete buttons are the whole hierarchy and the build
+/// hooks are library-private. To build a custom async button, compose
+/// [AsyncButton] directly.
+sealed class AsyncStandardMaterialButton extends AsyncMaterialButton {
   /// Subclass-only constructor. Adds Material parameters common to
   /// [ElevatedButton]/[FilledButton]/[OutlinedButton]/[TextButton].
   const AsyncStandardMaterialButton({
@@ -134,16 +140,14 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
       builder: (context, animatedChild, callback, isLoading) {
         final longPress = (callback != null && !isLoading) ? onLongPress : null;
         if (_icon != null) {
-          return buildIconButton(
-            context,
+          return _buildIconButton(
             onPressed: callback,
             onLongPress: longPress,
             icon: isLoading ? null : _icon,
             label: animatedChild,
           );
         }
-        return buildButton(
-          context,
+        return _buildButton(
           onPressed: callback,
           onLongPress: longPress,
           child: animatedChild,
@@ -154,18 +158,14 @@ abstract class AsyncStandardMaterialButton extends AsyncMaterialButton {
   }
 
   /// Builds the non-icon Material button widget.
-  @protected
-  Widget buildButton(
-    BuildContext context, {
+  Widget _buildButton({
     required VoidCallback? onPressed,
     required VoidCallback? onLongPress,
     required Widget child,
   });
 
   /// Builds the icon Material button widget.
-  @protected
-  Widget buildIconButton(
-    BuildContext context, {
+  Widget _buildIconButton({
     required VoidCallback? onPressed,
     required VoidCallback? onLongPress,
     required Widget? icon,

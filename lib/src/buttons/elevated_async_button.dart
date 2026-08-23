@@ -44,8 +44,7 @@ class ElevatedAsyncButton extends AsyncStandardMaterialButton {
   }) : super(child: label);
 
   @override
-  Widget buildButton(
-    BuildContext context, {
+  Widget _buildButton({
     required VoidCallback? onPressed,
     required VoidCallback? onLongPress,
     required Widget child,
@@ -65,8 +64,7 @@ class ElevatedAsyncButton extends AsyncStandardMaterialButton {
   }
 
   @override
-  Widget buildIconButton(
-    BuildContext context, {
+  Widget _buildIconButton({
     required VoidCallback? onPressed,
     required VoidCallback? onLongPress,
     required Widget? icon,

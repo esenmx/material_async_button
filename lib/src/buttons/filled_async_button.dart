@@ -89,8 +89,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
   final _FilledButtonVariant _variant;
 
   @override
-  Widget buildButton(
-    BuildContext context, {
+  Widget _buildButton({
     required VoidCallback? onPressed,
     required VoidCallback? onLongPress,
     required Widget child,
@@ -124,8 +123,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
   }
 
   @override
-  Widget buildIconButton(
-    BuildContext context, {
+  Widget _buildIconButton({
     required VoidCallback? onPressed,
     required VoidCallback? onLongPress,
     required Widget? icon,
