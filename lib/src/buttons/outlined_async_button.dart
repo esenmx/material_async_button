@@ -42,45 +42,45 @@ class OutlinedAsyncButton extends AsyncStandardMaterialButton {
   }) : super(child: label);
 
   @override
-  Widget build(BuildContext context) {
-    return AsyncButton(
+  Widget _buildButton({
+    required VoidCallback? onPressed,
+    required VoidCallback? onLongPress,
+    required Widget child,
+  }) {
+    return OutlinedButton(
       onPressed: onPressed,
-      enabled: enabled,
-      controller: controller,
-      loadingBuilder: _resolveLoadingBuilder(context, _loadingSizing),
-      transitionBuilder: transitionBuilder,
-      builder: (context, animatedChild, callback, isLoading) {
-        final longPress = (callback != null && !isLoading) ? onLongPress : null;
-        if (_icon != null) {
-          return OutlinedButton.icon(
-            onPressed: callback,
-            onLongPress: longPress,
-            onHover: onHover,
-            onFocusChange: onFocusChange,
-            style: style,
-            focusNode: focusNode,
-            autofocus: autofocus,
-            clipBehavior: clipBehavior,
-            statesController: statesController,
-            iconAlignment: _iconAlignment,
-            icon: isLoading ? null : _icon,
-            label: animatedChild,
-          );
-        }
-        return OutlinedButton(
-          onPressed: callback,
-          onLongPress: longPress,
-          onHover: onHover,
-          onFocusChange: onFocusChange,
-          style: style,
-          focusNode: focusNode,
-          autofocus: autofocus,
-          clipBehavior: clipBehavior,
-          statesController: statesController,
-          child: animatedChild,
-        );
-      },
+      onLongPress: onLongPress,
+      onHover: onHover,
+      onFocusChange: onFocusChange,
+      style: style,
+      focusNode: focusNode,
+      autofocus: autofocus,
+      clipBehavior: clipBehavior,
+      statesController: statesController,
       child: child,
+    );
+  }
+
+  @override
+  Widget _buildIconButton({
+    required VoidCallback? onPressed,
+    required VoidCallback? onLongPress,
+    required Widget? icon,
+    required Widget label,
+  }) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      onLongPress: onLongPress,
+      onHover: onHover,
+      onFocusChange: onFocusChange,
+      style: style,
+      focusNode: focusNode,
+      autofocus: autofocus,
+      clipBehavior: clipBehavior,
+      statesController: statesController,
+      iconAlignment: _iconAlignment,
+      icon: icon,
+      label: label,
     );
   }
 }
