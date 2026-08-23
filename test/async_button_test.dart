@@ -294,9 +294,11 @@ void main() {
 
         // 1. Pump with internal controller (null)
         await tester.pumpWidget(pumpHost(button(null)));
+        final internalController = mountedController(tester);
 
         // 2. Pump with external controller
         await tester.pumpWidget(pumpHost(button(externalController)));
+        check(internalController).isDisposed();
 
         // The widget now listens to externalController: driving it must show
         // loading.
@@ -364,8 +366,48 @@ void main() {
         aCompleter.complete();
         bCompleter.complete();
         await tester.pumpAndSettle();
+        // Neither caller-owned controller was disposed by the swap.
+        check(a).isNotDisposed();
+        check(b).isNotDisposed();
       },
     );
+
+    testWidgets('disposes internal controller when unmounted', (tester) async {
+      await tester.pumpWidget(
+        pumpHost(
+          AsyncButton(
+            onPressed: () async {},
+            builder: textBuilder,
+            child: const Text('label'),
+          ),
+        ),
+      );
+      final internalController = mountedController(tester);
+
+      await tester.pumpWidget(pumpHost(const SizedBox()));
+
+      check(internalController).isDisposed();
+    });
+
+    testWidgets('does not dispose external controller when unmounted', (
+      tester,
+    ) async {
+      final controller = newController();
+      await tester.pumpWidget(
+        pumpHost(
+          AsyncButton(
+            controller: controller,
+            onPressed: () async {},
+            builder: textBuilder,
+            child: const Text('label'),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(pumpHost(const SizedBox()));
+
+      check(controller).isNotDisposed();
+    });
   });
 
   group('AsyncButton transition builder', () {
