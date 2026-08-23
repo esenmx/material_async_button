@@ -20,26 +20,54 @@ void main() {
       check(find.byType(IconButton)).findsOne();
     });
 
-    testWidgets('filled, filledTonal, outlined variants all render', (
-      tester,
-    ) async {
-      final ctors = <Widget Function()>[
-        () => IconAsyncButton.filled(
-          onPressed: () async {},
-          icon: const Icon(Icons.add),
+    testWidgets('each variant renders its IconButton flavor', (tester) async {
+      final colors = emptyAsyncButtonTheme.colorScheme;
+      // (button, expected Material background, expects an outline side)
+      final cases = <(Widget, Color, bool)>[
+        (
+          IconAsyncButton(onPressed: () async {}, icon: const Icon(Icons.add)),
+          Colors.transparent,
+          false,
         ),
-        () => IconAsyncButton.filledTonal(
-          onPressed: () async {},
-          icon: const Icon(Icons.add),
+        (
+          IconAsyncButton.filled(
+            onPressed: () async {},
+            icon: const Icon(Icons.add),
+          ),
+          colors.primary,
+          false,
         ),
-        () => IconAsyncButton.outlined(
-          onPressed: () async {},
-          icon: const Icon(Icons.add),
+        (
+          IconAsyncButton.filledTonal(
+            onPressed: () async {},
+            icon: const Icon(Icons.add),
+          ),
+          colors.secondaryContainer,
+          false,
+        ),
+        (
+          IconAsyncButton.outlined(
+            onPressed: () async {},
+            icon: const Icon(Icons.add),
+          ),
+          Colors.transparent,
+          true,
         ),
       ];
-      for (final ctor in ctors) {
-        await tester.pumpWidget(pumpHost(ctor()));
-        check(find.byType(IconButton)).findsOne();
+      for (final (button, background, outlined) in cases) {
+        await tester.pumpWidget(pumpHost(button));
+        final material = tester.widget<Material>(
+          find.descendant(
+            of: find.byType(IconButton),
+            matching: find.byType(Material),
+          ),
+        );
+        check(material.color, because: '$button').equals(background);
+        final side = (material.shape as OutlinedBorder?)?.side;
+        check(
+          side != null && side != BorderSide.none,
+          because: '$button',
+        ).equals(outlined);
       }
     });
 
