@@ -294,9 +294,11 @@ void main() {
 
         // 1. Pump with internal controller (null)
         await tester.pumpWidget(pumpHost(button(null)));
+        final internalController = mountedController(tester);
 
         // 2. Pump with external controller
         await tester.pumpWidget(pumpHost(button(externalController)));
+        check(internalController).isDisposed();
 
         // The widget now listens to externalController: driving it must show
         // loading.
@@ -364,6 +366,9 @@ void main() {
         aCompleter.complete();
         bCompleter.complete();
         await tester.pumpAndSettle();
+        // Neither caller-owned controller was disposed by the swap.
+        check(a).isNotDisposed();
+        check(b).isNotDisposed();
       },
     );
 
@@ -377,24 +382,21 @@ void main() {
           ),
         ),
       );
-      final internalController =
-          (tester.state(find.byType(AsyncButton)) as dynamic).controller
-              as AsyncButtonController;
+      final internalController = mountedController(tester);
 
       await tester.pumpWidget(pumpHost(const SizedBox()));
 
-      check(() => internalController.addListener(() {})).throws<FlutterError>();
+      check(internalController).isDisposed();
     });
 
     testWidgets('does not dispose external controller when unmounted', (
       tester,
     ) async {
-      final spyController = _SpyController();
-      addTearDown(spyController.dispose);
+      final controller = newController();
       await tester.pumpWidget(
         pumpHost(
           AsyncButton(
-            controller: spyController,
+            controller: controller,
             onPressed: () async {},
             builder: textBuilder,
             child: const Text('label'),
@@ -404,44 +406,8 @@ void main() {
 
       await tester.pumpWidget(pumpHost(const SizedBox()));
 
-      check(spyController.isDisposed).isFalse();
+      check(controller).isNotDisposed();
     });
-
-    testWidgets(
-      'swapping external controllers does not dispose former external '
-      'controller',
-      (tester) async {
-        final a = _SpyController();
-        final b = _SpyController();
-        addTearDown(a.dispose);
-        addTearDown(b.dispose);
-
-        await tester.pumpWidget(
-          pumpHost(
-            AsyncButton(
-              controller: a,
-              onPressed: () async {},
-              builder: textBuilder,
-              child: const Text('label'),
-            ),
-          ),
-        );
-
-        await tester.pumpWidget(
-          pumpHost(
-            AsyncButton(
-              controller: b,
-              onPressed: () async {},
-              builder: textBuilder,
-              child: const Text('label'),
-            ),
-          ),
-        );
-
-        check(a.isDisposed).isFalse();
-        check(b.isDisposed).isFalse();
-      },
-    );
   });
 
   group('AsyncButton transition builder', () {
@@ -491,14 +457,4 @@ void main() {
       await tester.pumpAndSettle();
     });
   });
-}
-
-class _SpyController extends AsyncButtonController {
-  bool isDisposed = false;
-
-  @override
-  void dispose() {
-    isDisposed = true;
-    super.dispose();
-  }
 }
