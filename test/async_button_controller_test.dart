@@ -56,12 +56,23 @@ void main() {
         onPressed: () async => throw StateError('oops'),
       );
       final states = recordStates(c);
-      check(c.value).isFalse();
       await check(c.trigger()).throws<StateError>();
       check(states).deepEquals([true, false]);
-      check(c.value).isFalse();
       check(c).isIdle();
     });
+
+    test(
+      'synchronously throwing onPressed resets to idle and rethrows',
+      () async {
+        final c = attachedController(
+          onPressed: () => throw StateError('sync oops'),
+        );
+        final states = recordStates(c);
+        await check(c.trigger()).throws<StateError>();
+        check(states).deepEquals([true, false]);
+        check(c).isIdle();
+      },
+    );
   });
 
   group('AsyncButtonController concurrency', () {
