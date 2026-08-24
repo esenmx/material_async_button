@@ -180,9 +180,13 @@ void main() {
         // growing or evicting.
         final secondKey = debugLineBoxCache.keys.first;
         check(secondKey.$1.fontSize).equals(2);
+        final valueBeforePromotion = debugLineBoxCache[secondKey];
         await pumpSpinnerWithFontSize(2);
         check(debugLineBoxCache.length).equals(16);
         check(debugLineBoxCache.keys.last).equals(secondKey);
+        // Promotion must re-insert the cached measurement unchanged — a
+        // structural pass with a corrupted value would go unnoticed otherwise.
+        check(debugLineBoxCache[secondKey]).equals(valueBeforePromotion);
       },
     );
   });
