@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -32,6 +34,51 @@ void main() {
       check(spinnerColor(tester)).equals(theme.colorScheme.primary);
       completer.complete();
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('enabled: false disables the underlying button', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        pumpHost(
+          ElevatedAsyncButton(
+            enabled: false,
+            onPressed: () async {},
+            child: const Text('go'),
+          ),
+        ),
+      );
+      // The wrapper must forward `enabled` into AsyncButton; if it does not,
+      // the underlying button stays tappable with a live onPressed.
+      check(
+        tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+      ).isNull();
+    });
+
+    testWidgets('an external controller drives the loading state', (
+      tester,
+    ) async {
+      final controller = newController();
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          ElevatedAsyncButton(
+            controller: controller,
+            onPressed: onPressed,
+            child: const Text('go'),
+          ),
+        ),
+      );
+      check(find.byType(CircularProgressIndicator)).findsNone();
+      // Trigger from outside the widget: only works if the wrapper forwarded
+      // the external controller into AsyncButton (which attaches onPressed).
+      unawaited(controller.trigger());
+      await tester.pump();
+      check(controller).isLoading();
+      check(find.byType(CircularProgressIndicator)).findsOne();
+      completer.complete();
+      await tester.pumpAndSettle();
+      check(find.byType(CircularProgressIndicator)).findsNone();
     });
 
     testWidgets('onLongPress is gated off while loading', (tester) async {
@@ -97,6 +144,11 @@ void main() {
         pumpHost(
           ElevatedAsyncButton.icon(
             onPressed: onPressed,
+            // Push the resolved icon size above the ~20px label line box so
+            // the icon dominates the row. Must go through the style: an
+            // ambient IconTheme would be overridden by ButtonStyleButton's
+            // resolved iconSize.
+            style: ElevatedButton.styleFrom(iconSize: 32),
             icon: const Icon(Icons.send),
             label: const Text('send'),
           ),
@@ -106,14 +158,13 @@ void main() {
       final iconSize = spinnerIconThemeSize(tester);
       final fontSize = spinnerFontSize(tester);
       final lineBox = spinnerTextLineBox(tester);
-      check(iconSize).isNotNull();
+      check(iconSize).equals(32);
       check(fontSize).isNotNull();
-      // The .icon row height is max(icon, lineBox); the spinner matches it so
-      // the button keeps its height while loading.
-      final expected = iconSize! > lineBox ? iconSize : lineBox;
-      check(loadingSpinnerSize(tester)).equals(expected);
-      // Regression guard: the icon is the taller element, so the spinner must
-      // exceed the font size (the old, shrinking behaviour).
+      // The .icon row height is max(icon, lineBox); with the icon (32) taller
+      // than the line box (~20), the spinner must take the icon's size — a
+      // line-box-sized spinner is the old, shrinking behaviour.
+      check(iconSize!).isGreaterThan(lineBox);
+      check(loadingSpinnerSize(tester)).equals(iconSize);
       check(loadingSpinnerSize(tester)!).isGreaterThan(fontSize!);
       completer.complete();
       await tester.pump();
