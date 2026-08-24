@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## Unreleased
+
+### BREAKING
+
+- `AsyncStandardMaterialButton` is now sealed and can no longer be extended
+  outside the package; compose `AsyncButton` for custom buttons.
+
 ## 2.1.2
 
 ### Improved
