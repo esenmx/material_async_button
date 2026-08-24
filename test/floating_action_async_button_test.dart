@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -111,11 +109,12 @@ void main() {
       // the push this test would pass vacuously even on correct code. Two
       // default-tag FABs sharing the const default tag must trip it, proving
       // the default heroTag actually reaches the Hero wrapper.
-      unawaited(
-        navigatorKey.currentState!.push(
-          MaterialPageRoute<void>(builder: (_) => const Scaffold()),
-        ),
-      );
+      // .ignore(), not unawaited(): pre-3.47 analyzers flag the bare future
+      // (unawaited_futures) while 3.47+ flags unawaited() on the
+      // @awaitNotRequired push (unnecessary_unawaited).
+      navigatorKey.currentState!
+          .push(MaterialPageRoute<void>(builder: (_) => const Scaffold()))
+          .ignore();
       await tester.pump();
       await tester.pump();
       check(tester.takeException()).isA<FlutterError>();
