@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,6 +22,103 @@ void main() {
       );
       check(find.byType(FloatingActionButton)).findsOne();
       check(find.text('go')).findsOne();
+      // Pins the .standard -> FloatingActionButton.new mapping: the standard
+      // FAB is 56x56 (small pads to 48x48, large is 96x96).
+      check(
+        tester.getSize(find.byType(FloatingActionButton)),
+      ).equals(const Size(56, 56));
+    });
+
+    testWidgets('mini is forwarded to the FloatingActionButton', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        pumpHost(
+          FloatingActionAsyncButton(
+            mini: true,
+            onPressed: () async {},
+            child: const Icon(Icons.add),
+          ),
+        ),
+      );
+      // A mini FAB is 40x40 inside a 48x48 padded tap target.
+      check(
+        tester.getSize(find.byType(FloatingActionButton)),
+      ).equals(const Size(48, 48));
+    });
+
+    testWidgets('a custom heroTag is forwarded for every variant', (
+      tester,
+    ) async {
+      final variants = <Widget>[
+        FloatingActionAsyncButton(
+          heroTag: 'custom-tag',
+          onPressed: () async {},
+          child: const Icon(Icons.add),
+        ),
+        FloatingActionAsyncButton.small(
+          heroTag: 'custom-tag',
+          onPressed: () async {},
+          child: const Icon(Icons.add),
+        ),
+        FloatingActionAsyncButton.large(
+          heroTag: 'custom-tag',
+          onPressed: () async {},
+          child: const Icon(Icons.add),
+        ),
+        FloatingActionAsyncButton.extended(
+          heroTag: 'custom-tag',
+          onPressed: () async {},
+          label: const Text('go'),
+        ),
+      ];
+      for (final fab in variants) {
+        await tester.pumpWidget(pumpHost(fab));
+        check(
+          tester
+              .widget<FloatingActionButton>(find.byType(FloatingActionButton))
+              .heroTag,
+          because: '$fab',
+        ).equals('custom-tag');
+      }
+    });
+
+    testWidgets('two default-tag FABs collide in the Hero scan on push', (
+      tester,
+    ) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          theme: emptyAsyncButtonTheme,
+          home: Scaffold(
+            body: Column(
+              children: [
+                FloatingActionAsyncButton(
+                  onPressed: () async {},
+                  child: const Icon(Icons.add),
+                ),
+                FloatingActionAsyncButton(
+                  onPressed: () async {},
+                  child: const Icon(Icons.remove),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      // The duplicate-Hero scan only runs during a route transition — without
+      // the push this test would pass vacuously even on correct code. Two
+      // default-tag FABs sharing the const default tag must trip it, proving
+      // the default heroTag actually reaches the Hero wrapper.
+      unawaited(
+        navigatorKey.currentState!.push(
+          MaterialPageRoute<void>(builder: (_) => const Scaffold()),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      check(tester.takeException()).isA<FlutterError>();
     });
 
     testWidgets('small and large variants render FloatingActionButton', (
