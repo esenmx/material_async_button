@@ -88,6 +88,31 @@ void main() {
       await tester.pumpAndSettle();
       check(find.byIcon(Icons.refresh)).findsOne();
     });
+
+    testWidgets('forwards its parameters to the underlying IconButton', (
+      tester,
+    ) async {
+      // Guards the centralized ~20-parameter forwarding block: a dropped
+      // forward (e.g. tooltip: null) is invisible to the rendering tests.
+      final style = IconButton.styleFrom(backgroundColor: Colors.teal);
+      await tester.pumpWidget(
+        pumpHost(
+          IconAsyncButton(
+            onPressed: () async {},
+            icon: const Icon(Icons.save),
+            tooltip: 'save',
+            isSelected: true,
+            selectedIcon: const Icon(Icons.check),
+            style: style,
+          ),
+        ),
+      );
+      final button = tester.widget<IconButton>(find.byType(IconButton));
+      check(button.tooltip).equals('save');
+      check(button.isSelected).equals(true);
+      check(button.selectedIcon).isNotNull();
+      check(button.style).identicalTo(style);
+    });
   });
 
   group('IconAsyncButton loading foreground', () {
