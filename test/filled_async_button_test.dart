@@ -103,6 +103,28 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('.tonalIcon spinner uses onSecondaryContainer', (tester) async {
+      final (:onPressed, :completer) = pendingPress();
+      final theme = emptyAsyncButtonTheme;
+      await tester.pumpWidget(
+        pumpHost(
+          FilledAsyncButton.tonalIcon(
+            onPressed: onPressed,
+            icon: const Icon(Icons.save),
+            label: const Text('save'),
+          ),
+          theme: theme,
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(FilledButton));
+      // Pins .tonal -> FilledButton.tonalIcon in the icon build: the primary
+      // FilledButton.icon would paint the spinner onPrimary instead.
+      final expected = theme.colorScheme.onSecondaryContainer;
+      check(spinnerColor(tester)).equals(expected);
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('a custom spinner colour overrides the inherited one', (
       tester,
     ) async {
