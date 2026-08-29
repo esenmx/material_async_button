@@ -87,7 +87,7 @@ void main() {
           theme: ThemeData(extensions: const [ext]),
           home: Builder(
             builder: (ctx) {
-              captured = AsyncButtonTheme.of(ctx);
+              captured = .of(ctx);
               return const SizedBox.shrink();
             },
           ),
@@ -107,7 +107,7 @@ void main() {
         MaterialApp(
           home: Builder(
             builder: (ctx) {
-              captured = AsyncButtonTheme.of(ctx);
+              captured = .of(ctx);
               return const SizedBox.shrink();
             },
           ),

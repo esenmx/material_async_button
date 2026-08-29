@@ -169,7 +169,7 @@ double spinnerTextLineBox(WidgetTester tester) {
       .style;
   final painter = TextPainter(
     text: TextSpan(text: '', style: style),
-    textDirection: TextDirection.ltr,
+    textDirection: .ltr,
   )..layout();
   return painter.preferredLineHeight;
 }
