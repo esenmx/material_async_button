@@ -179,7 +179,7 @@ class _HomePageState extends State<HomePage> {
           const _SectionLabel('Form "Done" → controller.trigger()'),
           TextField(
             controller: _textController,
-            textInputAction: TextInputAction.done,
+            textInputAction: .done,
             decoration: const InputDecoration(labelText: 'Name'),
             onSubmitted: (_) => _formController.trigger(),
           ),
