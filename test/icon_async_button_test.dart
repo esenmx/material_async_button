@@ -65,7 +65,7 @@ void main() {
         check(material.color, because: '$button').equals(background);
         final side = (material.shape as OutlinedBorder?)?.side;
         check(
-          side != null && side != BorderSide.none,
+          side != null && side != .none,
           because: '$button',
         ).equals(outlined);
       }
