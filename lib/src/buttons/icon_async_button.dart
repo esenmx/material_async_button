@@ -14,7 +14,7 @@ enum _IconButtonVariant { standard, filled, filledTonal, outlined }
 /// unlabeled button.
 class IconAsyncButton extends AsyncMaterialButton {
   /// Mirrors [IconButton.new].
-  const IconAsyncButton({
+  const new({
     required super.onPressed,
     required this.icon,
     super.enabled,
@@ -46,7 +46,7 @@ class IconAsyncButton extends AsyncMaterialButton {
        super(child: icon);
 
   /// Mirrors [IconButton.filled].
-  const IconAsyncButton.filled({
+  const new filled({
     required super.onPressed,
     required this.icon,
     super.enabled,
@@ -78,7 +78,7 @@ class IconAsyncButton extends AsyncMaterialButton {
        super(child: icon);
 
   /// Mirrors [IconButton.filledTonal].
-  const IconAsyncButton.filledTonal({
+  const new filledTonal({
     required super.onPressed,
     required this.icon,
     super.enabled,
@@ -110,7 +110,7 @@ class IconAsyncButton extends AsyncMaterialButton {
        super(child: icon);
 
   /// Mirrors [IconButton.outlined].
-  const IconAsyncButton.outlined({
+  const new outlined({
     required super.onPressed,
     required this.icon,
     super.enabled,

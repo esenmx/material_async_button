@@ -60,47 +60,39 @@ typedef AsyncButtonTransitionBuilder =
 ///   ),
 /// )
 /// ```
-class AsyncButton extends StatefulWidget {
-  /// Creates an [AsyncButton]. See the class doc for usage.
-  const AsyncButton({
-    required this.child,
-    required this.onPressed,
-    required this.builder,
-    this.enabled = true,
-    this.controller,
-    this.loadingBuilder,
-    this.transitionBuilder,
-    super.key,
-  });
-
+class const AsyncButton({
   /// Idle widget. Replaced by [loadingBuilder] while loading.
-  final Widget child;
+  required final Widget child,
 
   /// Async callback. `null` makes the button appear disabled.
-  final AsyncCallback? onPressed;
+  required final AsyncCallback? onPressed,
+
+  /// Renders the button chrome. See [AsyncButtonWidgetBuilder].
+  required final AsyncButtonWidgetBuilder builder,
 
   /// Whether the button is interactive. When `false` it renders the disabled
   /// look, ignores taps, and no-ops an external [AsyncButtonController.trigger]
   /// — same as `onPressed: null`, but the affirmative form that pairs with a
   /// tear-off `onPressed`. Defaults to `true`.
-  final bool enabled;
-
-  /// Renders the button chrome. See [AsyncButtonWidgetBuilder].
-  final AsyncButtonWidgetBuilder builder;
+  final bool enabled = true,
 
   /// External controller. When null, the widget creates and owns its own.
-  final AsyncButtonController? controller;
+  final AsyncButtonController? controller,
 
   /// Builds the widget shown while loading, with the [AsyncButton]'s own
   /// [BuildContext]. Falls back to [AsyncButtonTheme.loadingBuilder], then to
   /// an [AsyncButtonSpinner]. The spinner inherits the button's foreground
   /// colour automatically — to recolour it, return
   /// `AsyncButtonSpinner(color: ...)`.
-  final WidgetBuilder? loadingBuilder;
+  final WidgetBuilder? loadingBuilder,
 
   /// Per-widget override of [AsyncButtonTheme.transitionBuilder]. The button
   /// performs no animation unless this (or the theme's) builder adds one.
-  final AsyncButtonTransitionBuilder? transitionBuilder;
+  final AsyncButtonTransitionBuilder? transitionBuilder,
+  super.key,
+}) extends StatefulWidget {
+  /// Creates an [AsyncButton]. See the class doc for usage.
+  this;
 
   @override
   State<AsyncButton> createState() => _AsyncButtonState();

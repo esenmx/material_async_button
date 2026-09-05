@@ -7,7 +7,7 @@ enum _FilledButtonVariant { primary, tonal }
 /// [FilledAsyncButton.icon], [FilledAsyncButton.tonalIcon].
 class FilledAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [FilledButton.new].
-  const FilledAsyncButton({
+  const new({
     required super.onPressed,
     required super.child,
     super.onLongPress,
@@ -26,7 +26,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
   }) : _variant = .primary;
 
   /// Mirrors [FilledButton.tonal].
-  const FilledAsyncButton.tonal({
+  const new tonal({
     required super.child,
     required super.onPressed,
     super.onLongPress,
@@ -45,7 +45,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
   }) : _variant = .tonal;
 
   /// Mirrors [FilledButton.icon].
-  const FilledAsyncButton.icon({
+  const new icon({
     required super.onPressed,
     required super.icon,
     required Widget label,
@@ -66,7 +66,7 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
        super(child: label);
 
   /// Mirrors [FilledButton.tonalIcon].
-  const FilledAsyncButton.tonalIcon({
+  const new tonalIcon({
     required super.onPressed,
     required super.icon,
     required Widget label,

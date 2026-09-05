@@ -2,9 +2,7 @@ part of '../../material_async_button.dart';
 
 enum _FloatingActionButtonVariant { standard, small, large, extended }
 
-class _DefaultHeroTag {
-  const _DefaultHeroTag();
-}
+class const _DefaultHeroTag();
 
 const Object _defaultHeroTag = _DefaultHeroTag();
 
@@ -12,7 +10,7 @@ const Object _defaultHeroTag = _DefaultHeroTag();
 /// (or label, for `.extended`) is swapped for the loading widget.
 class FloatingActionAsyncButton extends AsyncMaterialButton {
   /// Mirrors [FloatingActionButton.new].
-  const FloatingActionAsyncButton({
+  const new({
     required super.onPressed,
     Widget? child,
     super.enabled,
@@ -49,7 +47,7 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
        super(child: child ?? const SizedBox.shrink());
 
   /// Mirrors [FloatingActionButton.small].
-  const FloatingActionAsyncButton.small({
+  const new small({
     required super.onPressed,
     Widget? child,
     super.enabled,
@@ -86,7 +84,7 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
        super(child: child ?? const SizedBox.shrink());
 
   /// Mirrors [FloatingActionButton.large].
-  const FloatingActionAsyncButton.large({
+  const new large({
     required super.onPressed,
     Widget? child,
     super.enabled,
@@ -123,10 +121,10 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
        super(child: child ?? const SizedBox.shrink());
 
   /// Mirrors [FloatingActionButton.extended].
-  const FloatingActionAsyncButton.extended({
+  const new extended({
     required super.onPressed,
     required Widget label,
-    Widget? icon,
+    this._icon,
     super.enabled,
     super.controller,
     super.loadingBuilder,
@@ -151,16 +149,12 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
     this.isExtended = true,
     this.heroTag = _defaultHeroTag,
     this.enableFeedback,
-    double? extendedIconLabelSpacing,
-    EdgeInsetsGeometry? extendedPadding,
-    TextStyle? extendedTextStyle,
+    this._extendedIconLabelSpacing,
+    this._extendedPadding,
+    this._extendedTextStyle,
     super.key,
   }) : _variant = .extended,
        mini = false,
-       _icon = icon,
-       _extendedIconLabelSpacing = extendedIconLabelSpacing,
-       _extendedPadding = extendedPadding,
-       _extendedTextStyle = extendedTextStyle,
        super(child: label);
 
   /// Forwarded to the underlying [FloatingActionButton].
