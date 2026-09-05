@@ -22,9 +22,8 @@ void main() {
       check(find.text('go')).findsOne();
       // Pins the .standard -> FloatingActionButton.new mapping: the standard
       // FAB is 56x56 (small pads to 48x48, large is 96x96).
-      check(
-        tester.getSize(find.byType(FloatingActionButton)),
-      ).equals(const Size(56, 56));
+      check(tester.getSize(find.byType(FloatingActionButton)))
+          .equals(const Size(56, 56));
     });
 
     testWidgets('mini is forwarded to the FloatingActionButton', (
@@ -40,9 +39,8 @@ void main() {
         ),
       );
       // A mini FAB is 40x40 inside a 48x48 padded tap target.
-      check(
-        tester.getSize(find.byType(FloatingActionButton)),
-      ).equals(const Size(48, 48));
+      check(tester.getSize(find.byType(FloatingActionButton)))
+          .equals(const Size(48, 48));
     });
 
     testWidgets('a custom heroTag is forwarded for every variant', (

@@ -3,7 +3,7 @@ part of '../../material_async_button.dart';
 /// Async-aware [OutlinedButton].
 class OutlinedAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [OutlinedButton.new].
-  const OutlinedAsyncButton({
+  const new({
     required super.onPressed,
     required super.child,
     super.onLongPress,
@@ -22,7 +22,7 @@ class OutlinedAsyncButton extends AsyncStandardMaterialButton {
   });
 
   /// Mirrors [OutlinedButton.icon].
-  const OutlinedAsyncButton.icon({
+  const new icon({
     required super.onPressed,
     required super.icon,
     required Widget label,

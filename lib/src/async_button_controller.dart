@@ -18,7 +18,7 @@ part of '../material_async_button.dart';
 class AsyncButtonController extends ChangeNotifier
     implements ValueListenable<bool> {
   /// Creates a controller in the idle (not-loading) state.
-  AsyncButtonController();
+  new();
 
   bool _isLoading = false;
 
