@@ -21,22 +21,22 @@ part of '../material_async_button.dart';
 /// )
 /// ```
 @immutable
-class AsyncButtonTheme extends ThemeExtension<AsyncButtonTheme> {
-  /// Builds an [AsyncButtonTheme]. Every field is nullable so callers only
-  /// set the ones they want.
-  const AsyncButtonTheme({this.loadingBuilder, this.transitionBuilder});
-
+class const AsyncButtonTheme({
   /// Builds the widget shown in place of the button's child while the future is
   /// in flight. Falls back to an [AsyncButtonSpinner] when null. The spinner
   /// inherits the button's foreground; return `AsyncButtonSpinner(color: ...)`
   /// to recolour it.
-  final WidgetBuilder? loadingBuilder;
+  final WidgetBuilder? loadingBuilder,
 
   /// Wraps the state widget to animate the idle ⇄ loading swap. `null` by
   /// default — the button performs no animation of its own. See
   /// [AsyncButtonTransitionBuilder] for plugging in an [AnimatedSwitcher] /
   /// [AnimatedSize].
-  final AsyncButtonTransitionBuilder? transitionBuilder;
+  final AsyncButtonTransitionBuilder? transitionBuilder,
+}) extends ThemeExtension<AsyncButtonTheme> {
+  /// Builds an [AsyncButtonTheme]. Every field is nullable so callers only
+  /// set the ones they want.
+  this;
 
   /// An extension with every field left null — also the zero-config fallback
   /// returned by [of] when no extension is registered. Renders the default
@@ -141,27 +141,14 @@ double _ambientTextLineBox(BuildContext context) {
 ///   child: const Text('Save'),
 /// )
 /// ```
-class AsyncButtonSpinner extends StatelessWidget {
-  /// Creates a spinner. [color] defaults to the button's foreground and
-  /// otherwise the primary colour; [strokeWidth] sets the line weight; [size]
-  /// sets the square the indicator occupies — when null it tracks the ambient
-  /// font size so the spinner matches the button's label; [semanticsLabel]
-  /// sets the accessibility label read by screen readers.
-  const AsyncButtonSpinner({
-    this.color,
-    this.strokeWidth = 2,
-    this.size,
-    this.semanticsLabel = 'Loading',
-    super.key,
-  });
-
+class const AsyncButtonSpinner({
   /// Indicator colour. When null, inherits the button's foreground (its
   /// enabled foreground while loading), falling back to [ColorScheme.primary]
   /// outside any button.
-  final Color? color;
+  final Color? color,
 
   /// Stroke width of the [CircularProgressIndicator].
-  final double strokeWidth;
+  final double strokeWidth = 2,
 
   /// Side length of the square the indicator is laid out in. When null it
   /// tracks the ambient label's line-box height (the vertical extent of a
@@ -169,10 +156,18 @@ class AsyncButtonSpinner extends StatelessWidget {
   /// fills the same height the label did and the button doesn't shrink.
   /// [IconThemeData.size] is intentionally not read here — it is typically 24
   /// and would oversize the spinner on text buttons.
-  final double? size;
+  final double? size,
 
   /// Accessibility label read by screen readers. Defaults to `'Loading'`.
-  final String? semanticsLabel;
+  final String? semanticsLabel = 'Loading',
+  super.key,
+}) extends StatelessWidget {
+  /// Creates a spinner. [color] defaults to the button's foreground and
+  /// otherwise the primary colour; [strokeWidth] sets the line weight; [size]
+  /// sets the square the indicator occupies — when null it tracks the ambient
+  /// font size so the spinner matches the button's label; [semanticsLabel]
+  /// sets the accessibility label read by screen readers.
+  this;
 
   @override
   Widget build(BuildContext context) {

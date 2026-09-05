@@ -3,7 +3,7 @@ part of '../../material_async_button.dart';
 /// Async-aware [TextButton].
 class TextAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [TextButton.new].
-  const TextAsyncButton({
+  const new({
     required super.onPressed,
     required super.child,
     super.onLongPress,
@@ -22,7 +22,7 @@ class TextAsyncButton extends AsyncStandardMaterialButton {
   });
 
   /// Mirrors [TextButton.icon].
-  const TextAsyncButton.icon({
+  const new icon({
     required super.onPressed,
     required super.icon,
     required Widget label,

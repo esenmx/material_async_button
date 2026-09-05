@@ -4,7 +4,7 @@ part of '../../material_async_button.dart';
 /// swapped for the loading widget.
 class ElevatedAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [ElevatedButton.new].
-  const ElevatedAsyncButton({
+  const new({
     required super.onPressed,
     required super.child,
     super.onLongPress,
@@ -24,7 +24,7 @@ class ElevatedAsyncButton extends AsyncStandardMaterialButton {
 
   /// Mirrors [ElevatedButton.icon]. The loading widget replaces `label`
   /// while `icon` stays put.
-  const ElevatedAsyncButton.icon({
+  const new icon({
     required super.onPressed,
     required super.icon,
     required Widget label,

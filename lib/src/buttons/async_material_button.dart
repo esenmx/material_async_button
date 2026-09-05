@@ -9,36 +9,29 @@ part of '../../material_async_button.dart';
 /// [FloatingActionAsyncButton]) implement [build] and forward these fields to
 /// an [AsyncButton]; [AsyncStandardMaterialButton] provides it. For custom
 /// non-Material buttons reach for [AsyncButton] directly.
-abstract class AsyncMaterialButton extends StatelessWidget {
-  /// Subclass-only constructor. Forwards every field to [AsyncButton]. See
-  /// [AsyncButton] for the semantics of each parameter.
-  const AsyncMaterialButton({
-    required this.child,
-    required this.onPressed,
-    this.enabled = true,
-    this.controller,
-    this.loadingBuilder,
-    this.transitionBuilder,
-    super.key,
-  });
-
+abstract class const AsyncMaterialButton({
   /// See [AsyncButton.child].
-  final Widget child;
+  required final Widget child,
 
   /// See [AsyncButton.onPressed].
-  final AsyncCallback? onPressed;
+  required final AsyncCallback? onPressed,
 
   /// See [AsyncButton.enabled].
-  final bool enabled;
+  final bool enabled = true,
 
   /// See [AsyncButton.controller].
-  final AsyncButtonController? controller;
+  final AsyncButtonController? controller,
 
   /// See [AsyncButton.loadingBuilder].
-  final WidgetBuilder? loadingBuilder;
+  final WidgetBuilder? loadingBuilder,
 
   /// See [AsyncButton.transitionBuilder].
-  final AsyncButtonTransitionBuilder? transitionBuilder;
+  final AsyncButtonTransitionBuilder? transitionBuilder,
+  super.key,
+}) extends StatelessWidget {
+  /// Subclass-only constructor. Forwards every field to [AsyncButton]. See
+  /// [AsyncButton] for the semantics of each parameter.
+  this;
 
   /// Resolves the loading builder this button hands to its [AsyncButton]: the
   /// per-widget [loadingBuilder] wins, then [AsyncButtonTheme.loadingBuilder],
@@ -72,56 +65,44 @@ abstract class AsyncMaterialButton extends StatelessWidget {
 /// Sealed: the four concrete buttons are the whole hierarchy and the build
 /// hooks are library-private. To build a custom async button, compose
 /// [AsyncButton] directly.
-sealed class AsyncStandardMaterialButton extends AsyncMaterialButton {
+sealed class const AsyncStandardMaterialButton({
+  required super.child,
+  required super.onPressed,
+  super.enabled,
+  super.controller,
+  super.loadingBuilder,
+  super.transitionBuilder,
+
+  /// Forwarded to the underlying Material button.
+  final VoidCallback? onLongPress,
+
+  /// Forwarded to the underlying Material button.
+  final ValueChanged<bool>? onHover,
+
+  /// Forwarded to the underlying Material button.
+  final ValueChanged<bool>? onFocusChange,
+
+  /// Forwarded to the underlying Material button.
+  final ButtonStyle? style,
+
+  /// Forwarded to the underlying Material button.
+  final FocusNode? focusNode,
+
+  /// Forwarded to the underlying Material button.
+  final bool autofocus = false,
+
+  /// Forwarded to the underlying Material button.
+  final Clip clipBehavior = .none,
+
+  /// Forwarded to the underlying Material button.
+  final WidgetStatesController? statesController,
+  final Widget? _icon,
+  final IconAlignment? _iconAlignment,
+  super.key,
+}) extends AsyncMaterialButton {
   /// Subclass-only constructor. Adds Material parameters common to
   /// [ElevatedButton]/[FilledButton]/[OutlinedButton]/[TextButton].
-  const AsyncStandardMaterialButton({
-    required super.child,
-    required super.onPressed,
-    super.enabled,
-    super.controller,
-    super.loadingBuilder,
-    super.transitionBuilder,
-    this.onLongPress,
-    this.onHover,
-    this.onFocusChange,
-    this.style,
-    this.focusNode,
-    this.autofocus = false,
-    this.clipBehavior = .none,
-    this.statesController,
-    Widget? icon,
-    IconAlignment? iconAlignment,
-    super.key,
-  }) : _icon = icon,
-       _iconAlignment = iconAlignment;
-
-  /// Forwarded to the underlying Material button.
-  final VoidCallback? onLongPress;
-
-  /// Forwarded to the underlying Material button.
-  final ValueChanged<bool>? onHover;
-
-  /// Forwarded to the underlying Material button.
-  final ValueChanged<bool>? onFocusChange;
-
-  /// Forwarded to the underlying Material button.
-  final ButtonStyle? style;
-
-  /// Forwarded to the underlying Material button.
-  final FocusNode? focusNode;
-
-  /// Forwarded to the underlying Material button.
-  final bool autofocus;
-
-  /// Forwarded to the underlying Material button.
-  final Clip clipBehavior;
-
-  /// Forwarded to the underlying Material button.
-  final WidgetStatesController? statesController;
-
-  final Widget? _icon;
-  final IconAlignment? _iconAlignment;
+  this;
 
   /// The default spinner sizing for this button's current shape: an `.icon`
   /// constructor lays out an icon beside the label, so its idle row height is
@@ -198,11 +179,8 @@ double? _largest(double? a, double? b) => a == null
 /// [DefaultTextStyle] set by the surrounding Material button (the same scope
 /// [AsyncButtonSpinner] reads for its colour) and sizes the spinner so the
 /// button holds its idle height while loading.
-class _DefaultLoadingSpinner extends StatelessWidget {
-  const _DefaultLoadingSpinner(this.sizing);
-
-  final _SpinnerSize sizing;
-
+class const _DefaultLoadingSpinner(final _SpinnerSize sizing)
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final iconSize = IconTheme.of(context).size;
