@@ -12,7 +12,7 @@ Frontmatter `status` is the plan's lifecycle, one owner per transition: `draft` 
 
 - [x] Phase 1: Loading button keeps its size (P0)
 - [x] Phase 2: Fire-and-forget lint convention
-- [ ] Phase 3: Controller state machine
+- [x] Phase 3: Controller state machine
 - [ ] Phase 4: Variant fixes
 - [ ] Phase 5: Line-box measurement
 - [ ] Phase 6: Parity parameters
@@ -528,6 +528,7 @@ Tracker: `/Users/mehmetesen/pub-dev/SWEEP.md` § Deferred.
 Executor appends one bullet per discovery the plan didn't name: blocking and in-scope → fix + note; else note only, never silently absorbed. A log, not a tracker — it is deleted with the plan: anything left open — skipped check, deferred follow-up, user-only step — also gets a tracker row (`none` → final report); a finding stays open until its check runs.
 
 - Phase 2: 2 of the 11 `unawaited(` hits were a comment in `floating_action_async_button_test.dart` justifying `.ignore()` on `Navigator.push`; replaced with a bare drop per the convention and dropped the comment (oracle `! rg 'unawaited\('`). Lint fallout fixed: `cascade_invocations` in `async_button_controller_test.dart` "reset returns to idle", unused `dart:async` in `elevated_async_button_test.dart`. Closed.
+- Phase 3: `_minLoadingDuration` is declared `final` until Phase 7 assigns it (`prefer_final_fields` under `--fatal-infos`). `attach` dartdoc no longer claims `AsyncButton` calls it. Closed.
 
 ## Execution prompt
 
