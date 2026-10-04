@@ -76,9 +76,10 @@ class AsyncButtonController extends ChangeNotifier
   /// Run the attached `onPressed`. No-op if already loading or if no callback
   /// is attached.
   ///
-  /// If `onPressed` throws, the button returns to idle and the error
-  /// **re-propagates** — a button is not the place to surface errors, so handle
-  /// them in your state management.
+  /// If `onPressed` throws, the button returns to idle and the returned Future
+  /// completes with the error; a tap's error reaches the surrounding zone (else
+  /// `PlatformDispatcher.instance.onError`). A button is not the place to
+  /// surface errors, so handle them in your state management.
   Future<void> trigger() async {
     assert(
       ChangeNotifier.debugAssertNotDisposed(this),
@@ -96,8 +97,8 @@ class AsyncButtonController extends ChangeNotifier
       await pending;
     } finally {
       // Settle whether onPressed completed or threw; a throw propagates
-      // through finally (trigger rethrows) so the error reaches the surrounding
-      // zone / FlutterError.onError.
+      // through finally (trigger rethrows) so the error reaches the caller, or
+      // for a tap the surrounding zone / PlatformDispatcher.instance.onError.
       _settle(run);
     }
   }

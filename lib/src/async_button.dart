@@ -43,15 +43,15 @@ typedef AsyncButtonTransitionBuilder =
 ///
 /// Prefer the named Material wrappers ([ElevatedAsyncButton],
 /// [FilledAsyncButton], [OutlinedAsyncButton], [TextAsyncButton],
-/// [IconAsyncButton]). Reach for [AsyncButton] directly only when you need
-/// to render a non-Material button.
+/// [IconAsyncButton], [FloatingActionAsyncButton]). Reach for [AsyncButton]
+/// directly only when you need to render a non-Material button.
 ///
 /// The builder receives whether the button is loading — switch the chrome on
 /// it:
 ///
 /// ```dart
 /// AsyncButton(
-///   onPressed: () async => doWork(),
+///   onPressed: doWork,
 ///   child: const Text('Go'),
 ///   builder: (context, child, callback, isLoading) => MyCustomButton(
 ///     onTap: callback,

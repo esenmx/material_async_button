@@ -219,7 +219,9 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
   /// Forwarded to the underlying [FloatingActionButton].
   final bool isExtended;
 
-  /// Forwarded to the underlying [FloatingActionButton].
+  /// Forwarded to the underlying [FloatingActionButton]. The default is a
+  /// package sentinel, not Flutter's default tag, so no hero flight runs
+  /// between a plain [FloatingActionButton] and an async one.
   final Object? heroTag;
 
   /// Forwarded to the underlying [FloatingActionButton].

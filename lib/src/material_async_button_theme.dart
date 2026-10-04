@@ -199,7 +199,7 @@ class const AsyncButtonSpinner({
   /// Creates a spinner. [color] defaults to the button's foreground and
   /// otherwise the primary colour; [strokeWidth] sets the line weight; [size]
   /// sets the square the indicator occupies — when null it tracks the ambient
-  /// font size so the spinner matches the button's label; [semanticsLabel]
+  /// label line box so the spinner matches the button's label; [semanticsLabel]
   /// sets the accessibility label read by screen readers.
   this;
 

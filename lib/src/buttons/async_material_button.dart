@@ -2,7 +2,7 @@ part of '../../material_async_button.dart';
 
 /// Abstract base for the Material wrapper widgets shipped with this package
 /// ([ElevatedAsyncButton], [FilledAsyncButton], [OutlinedAsyncButton],
-/// [TextAsyncButton], [IconAsyncButton]).
+/// [TextAsyncButton], [IconAsyncButton], [FloatingActionAsyncButton]).
 ///
 /// Owns the shared async surface — [onPressed], [controller], and the
 /// theme-override knobs. Direct subclasses ([IconAsyncButton],

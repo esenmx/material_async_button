@@ -1,8 +1,11 @@
 # material_async_button
 
+[![pub package](https://img.shields.io/pub/v/material_async_button.svg)](https://pub.dev/packages/material_async_button) [![pub points](https://img.shields.io/pub/points/material_async_button)](https://pub.dev/packages/material_async_button/score) [![CI](https://github.com/esenmx/material_async_button/actions/workflows/ci.yaml/badge.svg)](https://github.com/esenmx/material_async_button/actions/workflows/ci.yaml) [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Drop-in async wrappers for Flutter Material buttons. Adds a **loading** state to
-`ElevatedButton`, `FilledButton`, `OutlinedButton`, `TextButton`, and
-`IconButton` — without forcing you to build a project-wide wrapper widget.
+`ElevatedButton`, `FilledButton`, `OutlinedButton`, `TextButton`, `IconButton`,
+and `FloatingActionButton` — without forcing you to build a project-wide wrapper
+widget.
 
 ```dart
 ElevatedAsyncButton(
@@ -16,12 +19,9 @@ label when it completes.
 
 ## Install
 
-```yaml
-dependencies:
-  material_async_button: ^2.0.0
+```sh
+flutter pub add material_async_button
 ```
-
-Requires Dart `^3.10.0` and Flutter `>=3.38.0`.
 
 ## Why
 
@@ -34,18 +34,22 @@ it up; override per button when you need to.
 
 ## Material wrappers
 
-| Material         | Async counterpart      | Variants                                            |
-| ---------------- | ---------------------- | --------------------------------------------------- |
-| `ElevatedButton` | `ElevatedAsyncButton`  | `.icon`                                             |
-| `FilledButton`   | `FilledAsyncButton`    | `.tonal`, `.icon`, `.tonalIcon`                     |
-| `OutlinedButton` | `OutlinedAsyncButton`  | `.icon`                                             |
-| `TextButton`     | `TextAsyncButton`      | `.icon`                                             |
-| `IconButton`     | `IconAsyncButton`      | `.filled`, `.filledTonal`, `.outlined`              |
+| Material               | Async counterpart           | Variants                               |
+| ---------------------- | --------------------------- | -------------------------------------- |
+| `ElevatedButton`       | `ElevatedAsyncButton`       | `.icon`                                |
+| `FilledButton`         | `FilledAsyncButton`         | `.tonal`, `.icon`, `.tonalIcon`        |
+| `OutlinedButton`       | `OutlinedAsyncButton`       | `.icon`                                |
+| `TextButton`           | `TextAsyncButton`           | `.icon`                                |
+| `IconButton`           | `IconAsyncButton`           | `.filled`, `.filledTonal`, `.outlined` |
+| `FloatingActionButton` | `FloatingActionAsyncButton` | `.small`, `.large`, `.extended`        |
 
 Every Material constructor is mirrored. All Material parameters (`style`,
 `focusNode`, `autofocus`, `clipBehavior`, `statesController`, etc.) are
-forwarded verbatim. `AsyncButtonTheme` complements `ButtonStyle` /
-`ButtonThemeData` — it carries only the loading view, never styling.
+forwarded verbatim, with two FAB exceptions: `onPressed` is required, and the
+default `heroTag` is a package sentinel rather than Flutter's, so no hero flight
+runs between a plain and an async FAB. `AsyncButtonTheme` complements
+`ButtonStyle` / `ButtonThemeData` — it carries only async behaviour, never
+styling.
 
 ## Loading only — by design
 
@@ -54,9 +58,11 @@ no success or error state.
 
 - **No error state.** An in-button error view is a Material anti-pattern, and
   error handling belongs to your state management. When `onPressed` throws, the
-  button returns to idle and **re-throws** — the error reaches
-  `FlutterError.onError` / your `runZonedGuarded` zone, like any other uncaught
-  error. Handle it where it belongs:
+  button returns to idle and **re-throws**: a tap's error reaches the
+  surrounding zone (your `runZonedGuarded`, else
+  `PlatformDispatcher.instance.onError`) like any other uncaught async error,
+  and a `controller.trigger()` caller gets a rejected Future. Handle it where it
+  belongs:
 
   ```dart
   // Typical: your notifier/repository absorbs the failure internally
@@ -95,18 +101,27 @@ ThemeData(
     AsyncButtonTheme(
       loadingBuilder: (_) => const AsyncButtonSpinner(strokeWidth: 3),
       // transitionBuilder: animate every button's swap — see Defaults below.
+      maintainSize: true, // keep the idle footprint while loading
+      minLoadingDuration: const Duration(milliseconds: 300), // anti-flicker
     ),
   ],
 )
 ```
 
+- `maintainSize` (default `false`) overlays the loading view on the invisible
+  idle child, so the button keeps its idle size — no width jump. `.icon`
+  constructors keep their icon visible beside the spinner.
+- `minLoadingDuration` (default `Duration.zero`) holds the loading view at
+  least that long from the tap or `controller.trigger()`, so a fast future
+  doesn't flash a spinner. An error rethrows once the floor has elapsed.
+
+Both are also per-widget parameters on every button and on `AsyncButton`.
+
 With no extension registered, `AsyncButtonTheme.of` falls back to
 `AsyncButtonTheme.empty` — the default spinner and nothing else.
 
-The default spinner sizes itself to the ambient label's line box (the text's
-rendered height), not `IconTheme.size`, so inside an `IconAsyncButton` pass
-`loadingBuilder: (_) => AsyncButtonSpinner(size: ...)` to match the icon's
-footprint.
+`copyWith` can't reset a field to null — build a new `AsyncButtonTheme`
+instead.
 
 ## Custom buttons — `AsyncButton`
 
@@ -145,10 +160,15 @@ ElevatedAsyncButton(
 )
 
 controller.trigger();    // run onPressed from outside (rethrows on failure)
-controller.reset();      // force back to idle
+controller.reset();      // force back to idle, abandoning the in-flight run
 controller.value;        // bool — true while loading (ValueListenable<bool>)
 controller.canTrigger;   // bool — true when trigger() would run (not loading, callback attached)
 ```
+
+`reset()` abandons the in-flight run: the button is idle and re-armed at once
+(an escape hatch for a hung future), and the abandoned run's completion is
+ignored. One controller drives one mounted button — binding it to a second
+fails a debug assertion.
 
 ## Defaults
 
@@ -159,21 +179,22 @@ controller.canTrigger;   // bool — true when trigger() would run (not loading,
 
 The label-button `.icon` constructors (`ElevatedAsyncButton.icon`,
 `FilledAsyncButton.icon`, etc.) drop the icon while loading and show the spinner
-alone. (`IconAsyncButton` has no `.icon` variant — it swaps its sole icon for the
-spinner.)
+alone, unless `maintainSize` is set — then the icon stays. (`IconAsyncButton`
+has no `.icon` variant — it swaps its sole icon for the spinner.)
 
 **Loading never disables the button.** Being loading and being *disabled* are
 different things — the spinner is the indicator, the button keeps its themed
 enabled colours, and taps that can't run are silently swallowed (`onLongPress`
 is gated off while busy). The button shows the disabled look **only** when you
 disable it explicitly — pass `enabled: false` (defaults to `true`) or
-`onPressed: null`. Either path also no-ops an external `controller.trigger()`.
+`onPressed: null` (without an `onLongPress`, as in Flutter). Either path also
+no-ops an external `controller.trigger()`.
 
-**The swap is instant; the button resizes to fit the loading widget.** The
-button does no animation of its own. To smooth the swap — and the size change
-when the spinner differs from the child — pass a `transitionBuilder`. The child
-is already keyed by loading state, so an `AnimatedSwitcher` inside an
-`AnimatedSize` is all it takes:
+**The swap is instant; the button resizes to fit the loading widget.** To keep
+the idle size instead, set `maintainSize: true`. The button does no animation of
+its own. To smooth the swap — and the size change when the spinner differs from
+the child — pass a `transitionBuilder`. The child is already keyed by loading
+state, so an `AnimatedSwitcher` inside an `AnimatedSize` is all it takes:
 
 ```dart
 ElevatedAsyncButton(
@@ -193,13 +214,18 @@ Set `transitionBuilder` on `AsyncButtonTheme` to animate every button at once.
 `AsyncButtonSpinner` is public and inherits the button's foreground — customise
 its `color` / `strokeWidth` / `size` and return it from `loadingBuilder`.
 
-## Claude Code skill
+## Agent skill
 
-A Claude Code skill that teaches Claude to use this package idiomatically
-lives in the GitHub repo at
-[`skills/flutter-material-async-button/SKILL.md`](https://github.com/esenmx/material_async_button/blob/main/skills/flutter-material-async-button/SKILL.md).
-Copy it into `.claude/skills/` in your project.
+This package ships an agent skill in `skills/material-async-button-usage/`. Install it into your project's agent config with:
+
+```sh
+dart run skills@ get --package material_async_button --all
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).

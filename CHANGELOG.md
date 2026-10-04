@@ -23,6 +23,8 @@
   idle and re-armed at once, and the abandoned run's completion is ignored.
 - `onPressed: null` with an `onLongPress` keeps the button enabled for
   long-press, as in Flutter.
+- The agent skill moved to `skills/material-async-button-usage/` for
+  `dart run skills@ get` (was `skills/flutter-material-async-button/`).
 
 ### Fixed
 
