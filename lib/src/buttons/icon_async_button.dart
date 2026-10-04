@@ -211,6 +211,7 @@ class IconAsyncButton extends AsyncMaterialButton {
   Widget _buildIconButton({
     required VoidCallback? onPressed,
     required Widget icon,
+    required bool isLoading,
   }) {
     final builder = switch (_variant) {
       .standard => IconButton.new,
@@ -240,7 +241,7 @@ class IconAsyncButton extends AsyncMaterialButton {
       constraints: constraints,
       style: style,
       isSelected: isSelected,
-      selectedIcon: selectedIcon,
+      selectedIcon: isLoading ? null : selectedIcon,
     );
   }
 
@@ -253,7 +254,11 @@ class IconAsyncButton extends AsyncMaterialButton {
       loadingBuilder: _resolveLoadingBuilder(context, .iconSize),
       transitionBuilder: transitionBuilder,
       builder: (context, child, callback, isLoading) {
-        return _buildIconButton(onPressed: callback, icon: child);
+        return _buildIconButton(
+          onPressed: callback,
+          icon: child,
+          isLoading: isLoading,
+        );
       },
       child: icon,
     );

@@ -119,7 +119,7 @@ sealed class const AsyncStandardMaterialButton({
       loadingBuilder: _resolveLoadingBuilder(context, _loadingSizing),
       transitionBuilder: transitionBuilder,
       builder: (context, animatedChild, callback, isLoading) {
-        final longPress = (callback != null && !isLoading) ? onLongPress : null;
+        final longPress = enabled && !isLoading ? onLongPress : null;
         if (_icon != null) {
           return _buildIconButton(
             onPressed: callback,
