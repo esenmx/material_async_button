@@ -228,7 +228,9 @@ class IconAsyncButton extends AsyncMaterialButton {
   /// Forwarded to the underlying [IconButton].
   final ValueChanged<bool>? onHover;
 
-  /// Forwarded to the underlying [IconButton]. Dropped while loading.
+  /// Forwarded to the underlying [IconButton]. Dropped while loading. Like
+  /// [IconButton], a disabled button (`onPressed: null` or `enabled: false`)
+  /// ignores it.
   final VoidCallback? onLongPress;
 
   /// Forwarded to the underlying [IconButton].
