@@ -1,8 +1,19 @@
-# CHANGELOG
+# Changelog
+
+## Unreleased
+
+### Changed
+
+- Requires Dart 3.13 / Flutter 3.47 (was Dart 3.10 / Flutter 3.38).
+
+### Fixed
+
+- Loading buttons no longer grow to fill their parent (every non-FAB wrapper
+  since 2.0.0, and custom `loadingBuilder`s returning `AsyncButtonSpinner`).
 
 ## 3.0.0
 
-### BREAKING
+### Breaking
 
 - `AsyncStandardMaterialButton` is now sealed and can no longer be extended
   outside the package; compose `AsyncButton` for custom buttons.
