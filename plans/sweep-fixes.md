@@ -1,7 +1,7 @@
 ---
-status: approved
+status: in-progress
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Plan: material_async_button 3.1.0 — sweep fixes, parity params, maintainSize + minLoadingDuration
@@ -10,7 +10,7 @@ Frontmatter `status` is the plan's lifecycle, one owner per transition: `draft` 
 
 ## Progress
 
-- [ ] Phase 1: Loading button keeps its size (P0)
+- [x] Phase 1: Loading button keeps its size (P0)
 - [ ] Phase 2: Fire-and-forget lint convention
 - [ ] Phase 3: Controller state machine
 - [ ] Phase 4: Variant fixes
