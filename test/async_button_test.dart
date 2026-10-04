@@ -13,6 +13,15 @@ typedef _Button = Widget Function(
   AsyncCallback onPressed,
 );
 
+/// A multi-child parent: it inflates a new keyed child before it deactivates
+/// the old one, unlike the single-child [pumpHost].
+Widget _columnOf(List<Widget> children) => MaterialApp(
+  theme: emptyAsyncButtonTheme,
+  home: Scaffold(
+    body: Column(mainAxisSize: .min, children: children),
+  ),
+);
+
 void main() {
   group('AsyncButton rendering', () {
     testWidgets('shows child in idle state', (tester) async {
@@ -783,5 +792,119 @@ void main() {
         check(ran).deepEquals(['new']);
       });
     }
+
+    for (final (name, before, after) in <(String, _Button, _Button)>[
+      (
+        'keyed swap in a Column',
+        (c, f) => ElevatedAsyncButton(
+          key: const ValueKey(1),
+          controller: c,
+          onPressed: f,
+          child: const Text('Go'),
+        ),
+        (c, f) => ElevatedAsyncButton(
+          key: const ValueKey(2),
+          controller: c,
+          onPressed: f,
+          child: const Text('Go'),
+        ),
+      ),
+      (
+        'same-key type swap in a Column',
+        (c, f) => ElevatedAsyncButton(
+          key: const ValueKey('k'),
+          controller: c,
+          onPressed: f,
+          child: const Text('Go'),
+        ),
+        (c, f) => TextAsyncButton(
+          key: const ValueKey('k'),
+          controller: c,
+          onPressed: f,
+          child: const Text('Go'),
+        ),
+      ),
+    ]) {
+      testWidgets('$name rebinds the controller to the new button', (
+        tester,
+      ) async {
+        final c = newController();
+        final ran = <String>[];
+        await tester.pumpWidget(
+          _columnOf([before(c, () async => ran.add('old'))]),
+        );
+        await tester.pumpWidget(
+          _columnOf([after(c, () async => ran.add('new'))]),
+        );
+        check(tester.takeException()).isNull();
+        check(c.canTrigger).isTrue();
+        await c.trigger();
+        check(ran).deepEquals(['new']);
+      });
+    }
+
+    testWidgets('two buttons exchanging controllers keep both bindings', (
+      tester,
+    ) async {
+      final a = newController();
+      final b = newController();
+      final ran = <String>[];
+      Widget host(AsyncButtonController first, AsyncButtonController second) {
+        return _columnOf([
+          TextAsyncButton(
+            controller: first,
+            onPressed: () async => ran.add('first'),
+            child: const Text('1'),
+          ),
+          TextAsyncButton(
+            controller: second,
+            onPressed: () async => ran.add('second'),
+            child: const Text('2'),
+          ),
+        ]);
+      }
+
+      await tester.pumpWidget(host(a, b));
+      await tester.pumpWidget(host(b, a));
+      check(tester.takeException()).isNull();
+      await b.trigger();
+      await a.trigger();
+      check(
+        because: 'the outgoing unbind must not clear the incoming binding',
+        ran,
+      ).deepEquals(['first', 'second']);
+    });
+
+    testWidgets('adopting a run notifies outside listeners after the frame', (
+      tester,
+    ) async {
+      final ext = newController();
+      final (:onPressed, :completer) = pendingPress();
+      Widget host(AsyncButtonController? c) => _columnOf([
+        ValueListenableBuilder<bool>(
+          valueListenable: ext,
+          builder: (_, busy, _) => Text('busy=$busy'),
+        ),
+        TextAsyncButton(
+          controller: c,
+          onPressed: onPressed,
+          child: const Text('Go'),
+        ),
+      ]);
+
+      await tester.pumpWidget(host(null));
+      await tester.tap(find.byType(TextButton));
+      await tester.pump();
+      await tester.pumpWidget(host(ext));
+      check(tester.takeException()).isNull();
+      check(ext).isLoading();
+      check(find.byType(CircularProgressIndicator)).findsOne();
+      await tester.pump();
+      check(find.text('busy=true')).findsOne();
+
+      completer.complete();
+      await tester.pump();
+      check(find.text('busy=false')).findsOne();
+    });
   });
 }
