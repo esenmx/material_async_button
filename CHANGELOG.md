@@ -9,6 +9,8 @@
   assertion (release builds keep last-binder-wins).
 - `AsyncButtonController.reset()` abandons the in-flight run: the button is
   idle and re-armed at once, and the abandoned run's completion is ignored.
+- `onPressed: null` with an `onLongPress` keeps the button enabled for
+  long-press, as in Flutter.
 
 ### Fixed
 
@@ -21,6 +23,11 @@
 - An external controller detaches when its button unmounts or is swapped out:
   `canTrigger` is `false` and `trigger()` is a no-op.
 - `trigger()` after `dispose()` never runs `onPressed`.
+- A selected `IconAsyncButton` (`isSelected: true` with a `selectedIcon`) shows
+  the spinner while loading.
+- A collapsed extended FAB (`FloatingActionAsyncButton.extended` with
+  `isExtended: false`) shows the spinner while loading.
+- Every `.icon` / `.tonalIcon` constructor accepts `enabled`.
 
 ## 3.0.0
 

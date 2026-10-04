@@ -13,7 +13,7 @@ Frontmatter `status` is the plan's lifecycle, one owner per transition: `draft` 
 - [x] Phase 1: Loading button keeps its size (P0)
 - [x] Phase 2: Fire-and-forget lint convention
 - [x] Phase 3: Controller state machine
-- [ ] Phase 4: Variant fixes
+- [x] Phase 4: Variant fixes
 - [ ] Phase 5: Line-box measurement
 - [ ] Phase 6: Parity parameters
 - [ ] Phase 7: maintainSize + minLoadingDuration

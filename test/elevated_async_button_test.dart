@@ -105,6 +105,28 @@ void main() {
       completer.complete();
       await tester.pumpAndSettle();
     });
+
+    testWidgets('onPressed: null + onLongPress keeps the button enabled', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        pumpHost(
+          ElevatedAsyncButton(
+            onPressed: null,
+            onLongPress: () {},
+            child: const Text('Hold'),
+          ),
+        ),
+      );
+      final plain = ElevatedButton(
+        onPressed: null,
+        onLongPress: () {},
+        child: const Text('x'),
+      );
+      check(because: 'Flutter baseline', plain.enabled).isTrue();
+      check(tester.widget<ElevatedButton>(find.byType(ElevatedButton)).enabled)
+          .isTrue();
+    });
   });
 
   group('ElevatedAsyncButton.icon', () {

@@ -214,6 +214,30 @@ void main() {
       completer.complete();
       await tester.pump();
     });
+
+    testWidgets('collapsed (isExtended: false) shows the spinner', (
+      tester,
+    ) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          FloatingActionAsyncButton.extended(
+            onPressed: onPressed,
+            isExtended: false,
+            icon: const Icon(Icons.add),
+            label: const Text('Create'),
+          ),
+        ),
+      );
+      check(find.byIcon(Icons.add)).findsOne();
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pump();
+      check(find.byType(CircularProgressIndicator)).findsOne();
+      check(find.byIcon(Icons.add)).findsNone();
+      completer.complete();
+      await tester.pumpAndSettle();
+      check(find.byIcon(Icons.add)).findsOne();
+    });
   });
 
   group('AsyncButtonSpinner', () {
