@@ -12,9 +12,9 @@ typedef _Host = Widget Function(Widget child, {ThemeData? theme});
 const _label = Text('Save');
 const _icon = Icon(Icons.save);
 
-final _standard = find.bySubtype<ButtonStyleButton>();
-final _iconButton = find.byType(IconButton);
-final _fab = find.byType(FloatingActionButton);
+final Finder _standard = find.bySubtype<ButtonStyleButton>();
+final Finder _iconButton = find.byType(IconButton);
+final Finder _fab = find.byType(FloatingActionButton);
 
 /// Every wrapper constructor, keyed by name, with the finder for the Material
 /// button it renders. The Material button is measured — never the spinner.

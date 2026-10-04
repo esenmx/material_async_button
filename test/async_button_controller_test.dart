@@ -31,8 +31,8 @@ void main() {
 
     test('reset returns to idle', () async {
       final completer = Completer<void>();
-      final c = attachedController(onPressed: () => completer.future);
-      unawaited(c.trigger());
+      final c = attachedController(onPressed: () => completer.future)
+        ..trigger();
       check(c).isLoading();
       c.reset();
       check(c).isIdle();
@@ -120,7 +120,7 @@ void main() {
       );
       check(find.text('idle')).findsOne();
 
-      unawaited(c.trigger());
+      c.trigger();
       await tester.pump();
       check(find.text('loading')).findsOne();
 
