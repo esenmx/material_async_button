@@ -168,7 +168,7 @@ void main() {
         var button = tester.widget<IconButton>(find.byType(IconButton));
         check(because: name, button.onHover).identicalTo(onHover);
         check(because: name, button.statesController).identicalTo(states);
-        check(because: name, button.onLongPress).isNotNull();
+        check(because: name, button.onLongPress).identicalTo(onLongPress);
 
         await tester.tap(find.byType(IconButton));
         await tester.pump();

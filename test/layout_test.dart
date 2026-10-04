@@ -100,6 +100,17 @@ final Map<String, (_Build, Finder)> _cases = {
 
 final Map<String, _Host> _hosts = {'Center': pumpHost, 'Column': columnHost};
 
+/// The cases whose idle content is the icon alone — there is no label to hide.
+const _iconOnly = {
+  'IconAsyncButton.new',
+  'IconAsyncButton.filled',
+  'IconAsyncButton.filledTonal',
+  'IconAsyncButton.outlined',
+  'FloatingActionAsyncButton.new',
+  'FloatingActionAsyncButton.small',
+  'FloatingActionAsyncButton.large',
+};
+
 Future<({Size idle, Size loading})> _idleVsLoading(
   WidgetTester tester,
   Widget button,
@@ -179,7 +190,13 @@ void main() {
             pump,
             theme: theme,
           );
-          check(find.text('Save').hitTestable()).findsNone();
+          final hidden = _iconOnly.contains(name)
+              ? find.byIcon(Icons.save)
+              : find.text('Save');
+          // Kept in the tree for its footprint, but not interactive.
+          check(hidden).findsOne();
+          check(hidden.hitTestable()).findsNone();
+          check(find.byType(CircularProgressIndicator)).findsOne();
           completer.complete();
           await tester.pump();
           check(loading).equals(idle);
