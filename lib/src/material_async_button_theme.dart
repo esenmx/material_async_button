@@ -177,6 +177,8 @@ class const AsyncButtonSpinner({
         Theme.of(context).colorScheme.primary;
     final dimension = size ?? _ambientTextLineBox(context);
     return Center(
+      widthFactor: 1,
+      heightFactor: 1,
       child: SizedBox.square(
         dimension: dimension,
         child: CircularProgressIndicator(
