@@ -45,12 +45,15 @@ class AsyncButtonController extends ChangeNotifier
   Object? _owner;
   Duration _minLoadingDuration = Duration.zero;
 
-  // Last binder wins. A multi-child parent inflates a replacement button
-  // before it deactivates the old one, so a double mount is only detectable
-  // once the frame settles — AsyncButton checks it then (debug only).
-  void _bind(Object owner, {required AsyncCallback? onPressed}) {
+  // Last binder wins; returns the owner it displaced, if any. A multi-child
+  // parent inflates a replacement button before it deactivates the old one,
+  // so a double mount is only detectable once the frame settles — AsyncButton
+  // checks the displaced owner then (debug only).
+  Object? _bind(Object owner, {required AsyncCallback? onPressed}) {
+    final displaced = identical(_owner, owner) ? null : _owner;
     _owner = owner;
     _onPressed = onPressed;
+    return displaced;
   }
 
   void _unbind(Object owner) {
