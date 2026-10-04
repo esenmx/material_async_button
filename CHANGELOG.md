@@ -28,6 +28,9 @@
 - A collapsed extended FAB (`FloatingActionAsyncButton.extended` with
   `isExtended: false`) shows the spinner while loading.
 - Every `.icon` / `.tonalIcon` constructor accepts `enabled`.
+- The default spinner no longer leaks a `TextPainter` per line-box cache miss.
+- The default spinner re-measures after fonts load (e.g. google_fonts): the
+  line-box cache is cleared on every system font change.
 
 ## 3.0.0
 
