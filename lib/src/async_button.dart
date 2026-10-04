@@ -110,6 +110,11 @@ class const AsyncButton({
 class _AsyncButtonState extends State<AsyncButton> {
   late AsyncButtonController controller;
 
+  // The run this button last rendered as loading. A controller swap adopts
+  // only this run: in the same rebuild an earlier sibling may already have
+  // moved another button's run into the controller this button is leaving.
+  Future<void>? _shownRun;
+
   /// The widget's `onPressed` once [AsyncButton.enabled] is applied — `null`
   /// (disabled) when `enabled: false` or `onPressed == null`. Both disable
   /// paths collapse here, so the controller and the builder callback stay in
@@ -164,7 +169,9 @@ class _AsyncButtonState extends State<AsyncButton> {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
       final previous = controller;
-      final inFlight = previous._inFlight;
+      final inFlight = identical(previous._inFlight, _shownRun)
+          ? _shownRun
+          : null;
       previous
         ..removeListener(listener)
         .._unbind(this);
@@ -229,6 +236,7 @@ class _AsyncButtonState extends State<AsyncButton> {
         widget.minLoadingDuration ?? theme.minLoadingDuration ?? Duration.zero;
 
     final isLoading = controller.value;
+    _shownRun = isLoading ? controller._inFlight : null;
     // Without maintainSize the idle child is replaced outright and the button
     // may resize to fit the loading view; with it the loading view overlays
     // the invisible child.
