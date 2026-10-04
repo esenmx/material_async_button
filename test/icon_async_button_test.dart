@@ -113,6 +113,30 @@ void main() {
       check(button.selectedIcon).isNotNull();
       check(button.style).identicalTo(style);
     });
+
+    testWidgets('a selected button shows the spinner, not selectedIcon', (
+      tester,
+    ) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          IconAsyncButton(
+            onPressed: onPressed,
+            isSelected: true,
+            icon: const Icon(Icons.favorite_border),
+            selectedIcon: const Icon(Icons.favorite),
+          ),
+        ),
+      );
+      check(find.byIcon(Icons.favorite)).findsOne();
+      await tester.tap(find.byType(IconButton));
+      await tester.pump();
+      check(find.byType(CircularProgressIndicator)).findsOne();
+      check(find.byIcon(Icons.favorite)).findsNone();
+      completer.complete();
+      await tester.pumpAndSettle();
+      check(find.byIcon(Icons.favorite)).findsOne();
+    });
   });
 
   group('IconAsyncButton loading foreground', () {
