@@ -113,6 +113,22 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 8),
           Row(
+            mainAxisAlignment: .center,
+            children: [
+              ElevatedAsyncButton(
+                onPressed: _simulateWork,
+                child: const Text('Intrinsic'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedAsyncButton(
+                onPressed: _simulateWork,
+                maintainSize: true,
+                child: const Text('maintainSize'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
             mainAxisAlignment: .spaceEvenly,
             children: [
               IconAsyncButton(
