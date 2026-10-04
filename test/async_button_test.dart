@@ -22,6 +22,20 @@ Widget _columnOf(List<Widget> children) => MaterialApp(
   ),
 );
 
+/// Multi-child parents that reuse unkeyed children by index.
+final Map<String, Widget Function(List<Widget>)> _parents = {
+  'Column': (children) => Column(mainAxisSize: .min, children: children),
+  'Row': (children) => Row(mainAxisSize: .min, children: children),
+  'ListView': (children) => ListView(children: children),
+  'Stack': (children) => Stack(children: children),
+};
+
+Widget _hostIn(Widget Function(List<Widget>) parent, List<Widget> children) =>
+    MaterialApp(
+      theme: emptyAsyncButtonTheme,
+      home: Scaffold(body: parent(children)),
+    );
+
 void main() {
   group('AsyncButton rendering', () {
     testWidgets('shows child in idle state', (tester) async {
@@ -903,6 +917,146 @@ void main() {
       check(c).isIdle();
       check(c.canTrigger).isTrue();
     });
+
+    testWidgets('a button swapped onto a controller another button just '
+        'adopted into does not adopt that run', (tester) async {
+      final c1 = newController();
+      final c2 = newController();
+      final c3 = newController();
+      var bRan = 0;
+      final (:onPressed, :completer) = pendingPress();
+      Widget a(AsyncButtonController c) => TextAsyncButton(
+        controller: c,
+        onPressed: onPressed,
+        child: const Text('a'),
+      );
+      Widget b(AsyncButtonController c) => TextAsyncButton(
+        controller: c,
+        onPressed: () async => bRan++,
+        child: const Text('b'),
+      );
+
+      await tester.pumpWidget(_columnOf([a(c1), b(c2)]));
+      c1.trigger();
+      await tester.pump();
+      await tester.pumpWidget(_columnOf([a(c2), b(c3)]));
+      await tester.pump();
+      check(tester.takeException()).isNull();
+      check(because: 'a keeps showing its run', c2).isLoading();
+      check(because: 'b showed no run', c3).isIdle();
+      check(find.byType(CircularProgressIndicator)).findsOne();
+      await c3.trigger();
+      check(bRan).equals(1);
+
+      completer.complete();
+      await tester.pump();
+      check(c2).isIdle();
+    });
+
+    for (final MapEntry(key: name, value: parent) in _parents.entries) {
+      testWidgets('a 3-way controller rotation in a $name moves only the '
+          'shown run', (tester) async {
+        final cs = [newController(), newController(), newController()];
+        final ran = <int>[];
+        final (:onPressed, :completer) = pendingPress();
+        Widget buttons(int shift) => _hostIn(parent, [
+          for (var i = 0; i < 3; i++)
+            TextAsyncButton(
+              controller: cs[(i + shift) % 3],
+              onPressed: i == 0 ? onPressed : () async => ran.add(i),
+              child: Text('$i'),
+            ),
+        ]);
+
+        await tester.pumpWidget(buttons(0));
+        cs[0].trigger();
+        await tester.pump();
+        await tester.pumpWidget(buttons(1));
+        await tester.pump();
+        check(tester.takeException()).isNull();
+        check(because: 'button 0 keeps showing its run', cs[1]).isLoading();
+        check(because: 'button 1 showed no run', cs[2]).isIdle();
+        check(find.text('1')).findsOne();
+        await cs[2].trigger();
+        check(ran).deepEquals([1]);
+
+        completer.complete();
+        await tester.pump();
+        check(cs[0]).isIdle();
+        check(cs[1]).isIdle();
+      });
+    }
+
+    testWidgets('removing the loading first row of an unkeyed list leaves '
+        'the other rows idle', (tester) async {
+      final cs = [for (var i = 0; i < 5; i++) newController()];
+      final (:onPressed, :completer) = pendingPress();
+      Widget rows(int from) => _columnOf([
+        for (var i = from; i < 5; i++)
+          TextAsyncButton(
+            controller: cs[i],
+            onPressed: i == 0 ? onPressed : () async {},
+            child: Text('$i'),
+          ),
+      ]);
+
+      await tester.pumpWidget(rows(0));
+      cs[0].trigger();
+      await tester.pump();
+      await tester.pumpWidget(rows(1));
+      await tester.pump();
+      check(tester.takeException()).isNull();
+      // Unkeyed rows: the first element was showing row 0's run, so it keeps
+      // showing it under row 1's controller (a mid-flight controller swap);
+      // no other element was showing a run.
+      check([for (var i = 1; i < 5; i++) cs[i].value])
+          .deepEquals([true, false, false, false]);
+
+      completer.complete();
+      await tester.pump();
+      check(cs[1]).isIdle();
+    });
+
+    for (final loadingFirst in [true, false]) {
+      testWidgets('exchanging controllers mid-flight keeps the run with its '
+          'button (loading ${loadingFirst ? 'first' : 'second'})', (
+        tester,
+      ) async {
+        final x = newController();
+        final y = newController();
+        final (:onPressed, :completer) = pendingPress();
+        Widget host(AsyncButtonController first, AsyncButtonController second) {
+          return _columnOf([
+            TextAsyncButton(
+              controller: first,
+              onPressed: loadingFirst ? onPressed : () async {},
+              child: const Text('1'),
+            ),
+            TextAsyncButton(
+              controller: second,
+              onPressed: loadingFirst ? () async {} : onPressed,
+              child: const Text('2'),
+            ),
+          ]);
+        }
+
+        await tester.pumpWidget(host(x, y));
+        (loadingFirst ? x : y).trigger();
+        await tester.pump();
+        await tester.pumpWidget(host(y, x));
+        await tester.pump();
+        check(tester.takeException()).isNull();
+        check(
+          because: 'the loading button now drives the other controller',
+          loadingFirst ? y : x,
+        ).isLoading();
+
+        completer.complete();
+        await tester.pump();
+        check(x).isIdle();
+        check(y).isIdle();
+      });
+    }
 
     testWidgets('two buttons exchanging controllers keep both bindings', (
       tester,
