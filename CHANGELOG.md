@@ -32,8 +32,8 @@
   since 2.0.0, and custom `loadingBuilder`s returning `AsyncButtonSpinner`).
 - `reset()` mid-flight no longer lets the stale run clear a new run's loading
   state.
-- Swapping controllers mid-flight keeps the loading state: the incoming
-  controller adopts the in-flight run.
+- Swapping a button's controller mid-flight keeps its loading state: the
+  incoming controller adopts the run that button is showing.
 - An external controller detaches when its button unmounts or is swapped out:
   `canTrigger` is `false` and `trigger()` is a no-op.
 - `trigger()` after `dispose()` never runs `onPressed`.
