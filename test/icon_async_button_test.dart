@@ -5,6 +5,11 @@ import 'package:material_async_button/material_async_button.dart';
 
 import '_helpers.dart';
 
+typedef _IconBuild = IconAsyncButton Function(
+  Future<void> Function() onPressed,
+  WidgetStatesController states,
+);
+
 void main() {
   group('IconAsyncButton', () {
     testWidgets('renders IconButton with the icon', (tester) async {
@@ -112,6 +117,66 @@ void main() {
       check(button.isSelected).equals(true);
       check(button.selectedIcon).isNotNull();
       check(button.style).identicalTo(style);
+    });
+
+    testWidgets('every constructor forwards onHover, onLongPress and '
+        'statesController; onLongPress is dropped while loading', (
+      tester,
+    ) async {
+      final hovers = <bool>[];
+      final onHover = hovers.add;
+      void onLongPress() {}
+      final constructors = <String, _IconBuild>{
+        'new': (onPressed, states) => IconAsyncButton(
+          onPressed: onPressed,
+          onHover: onHover,
+          onLongPress: onLongPress,
+          statesController: states,
+          icon: const Icon(Icons.add),
+        ),
+        'filled': (onPressed, states) => IconAsyncButton.filled(
+          onPressed: onPressed,
+          onHover: onHover,
+          onLongPress: onLongPress,
+          statesController: states,
+          icon: const Icon(Icons.add),
+        ),
+        'filledTonal': (onPressed, states) => IconAsyncButton.filledTonal(
+          onPressed: onPressed,
+          onHover: onHover,
+          onLongPress: onLongPress,
+          statesController: states,
+          icon: const Icon(Icons.add),
+        ),
+        'outlined': (onPressed, states) => IconAsyncButton.outlined(
+          onPressed: onPressed,
+          onHover: onHover,
+          onLongPress: onLongPress,
+          statesController: states,
+          icon: const Icon(Icons.add),
+        ),
+      };
+      for (final MapEntry(key: name, value: build) in constructors.entries) {
+        final states = WidgetStatesController();
+        addTearDown(states.dispose);
+        final (:onPressed, :completer) = pendingPress();
+        await tester.pumpWidget(
+          pumpHost(
+            KeyedSubtree(key: ValueKey(name), child: build(onPressed, states)),
+          ),
+        );
+        var button = tester.widget<IconButton>(find.byType(IconButton));
+        check(because: name, button.onHover).identicalTo(onHover);
+        check(because: name, button.statesController).identicalTo(states);
+        check(because: name, button.onLongPress).isNotNull();
+
+        await tester.tap(find.byType(IconButton));
+        await tester.pump();
+        button = tester.widget<IconButton>(find.byType(IconButton));
+        check(because: name, button.onLongPress).isNull();
+        completer.complete();
+        await tester.pumpAndSettle();
+      }
     });
 
     testWidgets('a selected button shows the spinner, not selectedIcon', (

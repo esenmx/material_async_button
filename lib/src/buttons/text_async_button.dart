@@ -18,6 +18,7 @@ class TextAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    this.isSemanticButton = true,
     super.key,
   });
 
@@ -40,7 +41,12 @@ class TextAsyncButton extends AsyncStandardMaterialButton {
     super.loadingBuilder,
     super.transitionBuilder,
     super.key,
-  }) : super(child: label);
+  }) : isSemanticButton = true,
+       super(child: label);
+
+  /// Forwarded to [TextButton.isSemanticButton]. Ignored by
+  /// [TextAsyncButton.icon] — [TextButton.icon] has none.
+  final bool? isSemanticButton;
 
   @override
   Widget _buildButton({
@@ -58,6 +64,7 @@ class TextAsyncButton extends AsyncStandardMaterialButton {
       autofocus: autofocus,
       clipBehavior: clipBehavior,
       statesController: statesController,
+      isSemanticButton: isSemanticButton,
       child: child,
     );
   }

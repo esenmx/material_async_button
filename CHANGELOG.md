@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- `IconAsyncButton` (all four constructors) forwards `onHover`, `onLongPress`
+  (dropped while loading) and `statesController` to its `IconButton`.
+- `TextAsyncButton.isSemanticButton`, forwarded to `TextButton`.
+
 ### Changed
 
 - Requires Dart 3.13 / Flutter 3.47 (was Dart 3.10 / Flutter 3.38).
