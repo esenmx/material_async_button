@@ -17,7 +17,7 @@ Frontmatter `status` is the plan's lifecycle, one owner per transition: `draft` 
 - [x] Phase 5: Line-box measurement
 - [x] Phase 6: Parity parameters
 - [x] Phase 7: maintainSize + minLoadingDuration
-- [ ] Phase 8: Repo meta, packaging, CI
+- [x] Phase 8: Repo meta, packaging, CI
 - [ ] Phase 9: Docs, skill, example
 - [ ] Phase 10: Release prep, push, CI
 
@@ -532,6 +532,7 @@ Executor appends one bullet per discovery the plan didn't name: blocking and in-
 - Phase 5: lint fallout `avoid_redundant_argument_values` on the repro's `AsyncButtonSpinner(size: null)` → `AsyncButtonSpinner()`. The local SDK has `material_fonts/Roboto-Regular.ttf`, so the `fontsChange` fallback was not needed (CI unverified until the Phase 10 run). Closed.
 - Phase 6: lint fallout `avoid_positional_boolean_parameters` on a local `void onHover(bool _) {}` in the new test → a `List<bool>.add` tear-off (identity-stable). Closed.
 - Phase 7: added a "theme value applies when the widget sets none" `minLoadingDuration` test beside the listed "widget beats theme" one, so theme → widget resolution is pinned both ways. Lint fallout `omit_local_variable_types` → `var content = switch …`. Closed.
+- Phase 8: the oracle's `yq` expression carries `\"` escapes inside single quotes (yq would see literal backslashes); ran it with plain `"` quotes. The dry-run's only warning was the expected dirty-tree one (`pubspec.yaml` modified). Closed.
 
 ## Execution prompt
 
