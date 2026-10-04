@@ -19,6 +19,8 @@ class ElevatedAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     super.key,
   });
 
@@ -41,6 +43,8 @@ class ElevatedAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     super.key,
   }) : super(child: label);
 
