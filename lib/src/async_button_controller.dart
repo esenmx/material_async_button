@@ -37,14 +37,37 @@ class AsyncButtonController extends ChangeNotifier
 
   bool _isDisposed = false;
 
-  /// Binds the host widget's current `onPressed` to the controller.
+  // Run token: a run settles the loading state only while it is still the
+  // latest — reset() and adoption bump it, so an abandoned run's completion
+  // is ignored.
+  int _run = 0;
+  Future<void>? _inFlight;
+  Object? _owner;
+  final Duration _minLoadingDuration = Duration.zero;
+
+  void _bind(Object owner, {required AsyncCallback? onPressed}) {
+    assert(
+      _owner == null || identical(_owner, owner),
+      'An AsyncButtonController can drive only one mounted AsyncButton.',
+    );
+    _owner = owner;
+    _onPressed = onPressed;
+  }
+
+  void _unbind(Object owner) {
+    if (identical(_owner, owner)) {
+      _owner = null;
+      _onPressed = null;
+    }
+  }
+
+  /// Sets the `onPressed` that [trigger] runs, with no owning button.
   ///
-  /// [AsyncButton] calls this on every update via same-library access; it is
-  /// exposed only so tests can drive a detached controller. Not part of the
+  /// Exposed only so tests can drive a detached controller; [AsyncButton]
+  /// binds through a library-private, owner-checked hook. Not part of the
   /// consumer-facing API.
   @visibleForTesting
-  // A named binding hook, not a property setter — the widget refreshes it on
-  // every rebuild, so this stays a method.
+  // A named binding hook, not a property setter.
   // ignore: use_setters_to_change_properties
   void attach({required AsyncCallback? onPressed}) {
     _onPressed = onPressed;
@@ -57,22 +80,69 @@ class AsyncButtonController extends ChangeNotifier
   /// **re-propagates** — a button is not the place to surface errors, so handle
   /// them in your state management.
   Future<void> trigger() async {
-    if (!canTrigger) {
+    assert(
+      ChangeNotifier.debugAssertNotDisposed(this),
+      'trigger() after dispose()',
+    );
+    final onPressed = _onPressed;
+    if (_isLoading || onPressed == null) {
       return;
     }
+    final run = ++_run;
     _setLoading(true);
+    final pending = _withFloor(onPressed, _minLoadingDuration);
+    _inFlight = pending;
     try {
-      await _onPressed!();
+      await pending;
     } finally {
-      // Reset the UI whether onPressed completed or threw; a throw propagates
+      // Settle whether onPressed completed or threw; a throw propagates
       // through finally (trigger rethrows) so the error reaches the surrounding
       // zone / FlutterError.onError.
+      _settle(run);
+    }
+  }
+
+  // onPressed runs inside the try so a synchronous throw still awaits the
+  // floor and settles.
+  static Future<void> _withFloor(
+    AsyncCallback onPressed,
+    Duration floor,
+  ) async {
+    final minimum = floor > Duration.zero ? Future<void>.delayed(floor) : null;
+    try {
+      await onPressed();
+    } finally {
+      if (minimum != null) {
+        await minimum;
+      }
+    }
+  }
+
+  void _adopt(Future<void> pending) {
+    final run = ++_run;
+    _inFlight = pending;
+    _setLoading(true);
+    pending.then<void>(
+      (_) => _settle(run),
+      onError: (Object _) => _settle(run),
+    );
+  }
+
+  void _settle(int run) {
+    if (run == _run) {
+      _inFlight = null;
       _setLoading(false);
     }
   }
 
-  /// Force the button back to idle.
+  /// Force the button back to idle and abandon the in-flight run.
+  ///
+  /// The button re-arms at once — an escape hatch for a hung future. The
+  /// abandoned run's completion no longer touches the loading state, and a tap
+  /// after [reset] is a deliberate new run.
   void reset() {
+    _run++;
+    _inFlight = null;
     _setLoading(false);
   }
 
@@ -89,6 +159,8 @@ class AsyncButtonController extends ChangeNotifier
   @override
   void dispose() {
     _isDisposed = true;
+    _onPressed = null;
+    _owner = null;
     super.dispose();
   }
 }

@@ -5,11 +5,22 @@
 ### Changed
 
 - Requires Dart 3.13 / Flutter 3.47 (was Dart 3.10 / Flutter 3.38).
+- One `AsyncButtonController` bound to two mounted buttons now fails a debug
+  assertion (release builds keep last-binder-wins).
+- `AsyncButtonController.reset()` abandons the in-flight run: the button is
+  idle and re-armed at once, and the abandoned run's completion is ignored.
 
 ### Fixed
 
 - Loading buttons no longer grow to fill their parent (every non-FAB wrapper
   since 2.0.0, and custom `loadingBuilder`s returning `AsyncButtonSpinner`).
+- `reset()` mid-flight no longer lets the stale run clear a new run's loading
+  state.
+- Swapping controllers mid-flight keeps the loading state: the incoming
+  controller adopts the in-flight run.
+- An external controller detaches when its button unmounts or is swapped out:
+  `canTrigger` is `false` and `trigger()` is a no-op.
+- `trigger()` after `dispose()` never runs `onPressed`.
 
 ## 3.0.0
 
