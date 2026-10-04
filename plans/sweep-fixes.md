@@ -15,7 +15,7 @@ Frontmatter `status` is the plan's lifecycle, one owner per transition: `draft` 
 - [x] Phase 3: Controller state machine
 - [x] Phase 4: Variant fixes
 - [x] Phase 5: Line-box measurement
-- [ ] Phase 6: Parity parameters
+- [x] Phase 6: Parity parameters
 - [ ] Phase 7: maintainSize + minLoadingDuration
 - [ ] Phase 8: Repo meta, packaging, CI
 - [ ] Phase 9: Docs, skill, example
@@ -530,6 +530,7 @@ Executor appends one bullet per discovery the plan didn't name: blocking and in-
 - Phase 2: 2 of the 11 `unawaited(` hits were a comment in `floating_action_async_button_test.dart` justifying `.ignore()` on `Navigator.push`; replaced with a bare drop per the convention and dropped the comment (oracle `! rg 'unawaited\('`). Lint fallout fixed: `cascade_invocations` in `async_button_controller_test.dart` "reset returns to idle", unused `dart:async` in `elevated_async_button_test.dart`. Closed.
 - Phase 3: `_minLoadingDuration` is declared `final` until Phase 7 assigns it (`prefer_final_fields` under `--fatal-infos`). `attach` dartdoc no longer claims `AsyncButton` calls it. Closed.
 - Phase 5: lint fallout `avoid_redundant_argument_values` on the repro's `AsyncButtonSpinner(size: null)` → `AsyncButtonSpinner()`. The local SDK has `material_fonts/Roboto-Regular.ttf`, so the `fontsChange` fallback was not needed (CI unverified until the Phase 10 run). Closed.
+- Phase 6: lint fallout `avoid_positional_boolean_parameters` on a local `void onHover(bool _) {}` in the new test → a `List<bool>.add` tear-off (identity-stable). Closed.
 
 ## Execution prompt
 

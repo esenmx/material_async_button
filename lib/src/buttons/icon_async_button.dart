@@ -41,6 +41,9 @@ class IconAsyncButton extends AsyncMaterialButton {
     this.style,
     this.isSelected,
     this.selectedIcon,
+    this.onHover,
+    this.onLongPress,
+    this.statesController,
     super.key,
   }) : _variant = .standard,
        super(child: icon);
@@ -73,6 +76,9 @@ class IconAsyncButton extends AsyncMaterialButton {
     this.style,
     this.isSelected,
     this.selectedIcon,
+    this.onHover,
+    this.onLongPress,
+    this.statesController,
     super.key,
   }) : _variant = .filled,
        super(child: icon);
@@ -105,6 +111,9 @@ class IconAsyncButton extends AsyncMaterialButton {
     this.style,
     this.isSelected,
     this.selectedIcon,
+    this.onHover,
+    this.onLongPress,
+    this.statesController,
     super.key,
   }) : _variant = .filledTonal,
        super(child: icon);
@@ -137,6 +146,9 @@ class IconAsyncButton extends AsyncMaterialButton {
     this.style,
     this.isSelected,
     this.selectedIcon,
+    this.onHover,
+    this.onLongPress,
+    this.statesController,
     super.key,
   }) : _variant = .outlined,
        super(child: icon);
@@ -206,6 +218,15 @@ class IconAsyncButton extends AsyncMaterialButton {
   /// Forwarded to the underlying [IconButton].
   final Widget? selectedIcon;
 
+  /// Forwarded to the underlying [IconButton].
+  final ValueChanged<bool>? onHover;
+
+  /// Forwarded to the underlying [IconButton]. Dropped while loading.
+  final VoidCallback? onLongPress;
+
+  /// Forwarded to the underlying [IconButton].
+  final WidgetStatesController? statesController;
+
   final _IconButtonVariant _variant;
 
   Widget _buildIconButton({
@@ -242,6 +263,9 @@ class IconAsyncButton extends AsyncMaterialButton {
       style: style,
       isSelected: isSelected,
       selectedIcon: isLoading ? null : selectedIcon,
+      onHover: onHover,
+      onLongPress: isLoading ? null : onLongPress,
+      statesController: statesController,
     );
   }
 

@@ -16,6 +16,20 @@ void main() {
       check(find.byType(TextButton)).findsOne();
     });
 
+    testWidgets('forwards isSemanticButton to TextButton', (tester) async {
+      await tester.pumpWidget(
+        pumpHost(
+          TextAsyncButton(
+            onPressed: () async {},
+            isSemanticButton: false,
+            child: const Text('go'),
+          ),
+        ),
+      );
+      final button = tester.widget<TextButton>(find.byType(TextButton));
+      check(button.isSemanticButton).equals(false);
+    });
+
     testWidgets('.icon renders with icon + label', (tester) async {
       await tester.pumpWidget(
         pumpHost(
