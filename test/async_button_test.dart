@@ -494,6 +494,98 @@ void main() {
     });
   });
 
+  group('minLoadingDuration', () {
+    const floor = Duration(milliseconds: 300);
+    const ms = Duration(milliseconds: 1);
+
+    Widget button(
+      AsyncButtonController c, {
+      AsyncCallback? onPressed,
+      Duration? minLoadingDuration = floor,
+    }) {
+      return AsyncButton(
+        controller: c,
+        onPressed: onPressed ?? () async {},
+        minLoadingDuration: minLoadingDuration,
+        builder: textBuilder,
+        child: const Text('label'),
+      );
+    }
+
+    testWidgets('holds loading until the floor elapses from the tap', (
+      tester,
+    ) async {
+      final c = newController();
+      await tester.pumpWidget(pumpHost(button(c)));
+      await tester.tap(find.byType(TextButton));
+      await tester.pump(ms * 299);
+      check(c).isLoading();
+      await tester.pump(ms);
+      check(c).isIdle();
+    });
+
+    testWidgets('reset() during the floor ends loading once', (tester) async {
+      final c = newController();
+      final trace = <bool>[];
+      c.addListener(() => trace.add(c.value));
+      await tester.pumpWidget(pumpHost(button(c)));
+      await tester.tap(find.byType(TextButton));
+      await tester.pump(ms * 100);
+      c.reset();
+      await tester.pump(ms * 200);
+      check(trace).deepEquals([true, false]);
+    });
+
+    testWidgets('a throwing onPressed rethrows after the floor', (
+      tester,
+    ) async {
+      final c = newController();
+      Object? error;
+      await tester.pumpWidget(
+        pumpHost(button(c, onPressed: () async => throw StateError('boom'))),
+      );
+      c.trigger().then<void>((_) {}, onError: (Object e) => error = e);
+      await tester.pump(ms * 100);
+      check(c).isLoading();
+      check(error).isNull();
+      await tester.pump(ms * 200);
+      check(c).isIdle();
+      check(error).isA<StateError>();
+    });
+
+    testWidgets('widget value beats the theme', (tester) async {
+      final c = newController();
+      await tester.pumpWidget(
+        pumpHost(
+          button(c, minLoadingDuration: ms * 100),
+          theme: asyncButtonTheme(minLoadingDuration: floor),
+        ),
+      );
+      await tester.tap(find.byType(TextButton));
+      await tester.pump(ms * 99);
+      check(c).isLoading();
+      await tester.pump(ms);
+      check(c).isIdle();
+    });
+
+    testWidgets('theme value applies when the widget sets none', (
+      tester,
+    ) async {
+      final c = newController();
+      await tester.pumpWidget(
+        pumpHost(
+          button(c, minLoadingDuration: null),
+          theme: asyncButtonTheme(minLoadingDuration: floor),
+        ),
+      );
+      await tester.tap(find.byType(TextButton));
+      await tester.pump(ms * 299);
+      check(c).isLoading();
+      await tester.pump(ms);
+      check(c).isIdle();
+    });
+  });
+
   group('AsyncButton controller ownership', () {
     testWidgets('reset() mid-flight abandons the run; a new tap starts one', (
       tester,

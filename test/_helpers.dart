@@ -37,12 +37,16 @@ final ThemeData emptyAsyncButtonTheme = ThemeData(
 ThemeData asyncButtonTheme({
   WidgetBuilder? loadingBuilder,
   AsyncButtonTransitionBuilder? transitionBuilder,
+  bool? maintainSize,
+  Duration? minLoadingDuration,
 }) {
   return ThemeData(
     extensions: [
       AsyncButtonTheme(
         loadingBuilder: loadingBuilder,
         transitionBuilder: transitionBuilder,
+        maintainSize: maintainSize,
+        minLoadingDuration: minLoadingDuration,
       ),
     ],
   );

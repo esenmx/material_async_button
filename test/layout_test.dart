@@ -164,4 +164,45 @@ void main() {
       check(loading.height).equals(idle.height);
     });
   });
+
+  group('maintainSize keeps the idle footprint and hides the child', () {
+    final theme = asyncButtonTheme(maintainSize: true);
+    for (final MapEntry(key: host, value: pump) in _hosts.entries) {
+      for (final MapEntry(key: name, value: (build, finder))
+          in _cases.entries) {
+        testWidgets('$name in $host', (tester) async {
+          final (:onPressed, :completer) = pendingPress();
+          final (:idle, :loading) = await _idleVsLoading(
+            tester,
+            build(onPressed),
+            finder,
+            pump,
+            theme: theme,
+          );
+          check(find.text('Save').hitTestable()).findsNone();
+          completer.complete();
+          await tester.pump();
+          check(loading).equals(idle);
+        });
+      }
+    }
+
+    testWidgets('widget maintainSize: false beats the theme', (tester) async {
+      final (:onPressed, :completer) = pendingPress();
+      final (:idle, :loading) = await _idleVsLoading(
+        tester,
+        ElevatedAsyncButton(
+          onPressed: onPressed,
+          maintainSize: false,
+          child: _label,
+        ),
+        _standard,
+        pumpHost,
+        theme: theme,
+      );
+      completer.complete();
+      await tester.pump();
+      check(loading.width).isLessThan(idle.width);
+    });
+  });
 }

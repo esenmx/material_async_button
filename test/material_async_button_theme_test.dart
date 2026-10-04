@@ -19,12 +19,17 @@ Widget _otherTransition(BuildContext context, Widget child, bool isLoading) {
 Widget _loadingA(BuildContext _) => const SizedBox.shrink();
 Widget _loadingB(BuildContext _) => const SizedBox.shrink();
 
+const _short = Duration(milliseconds: 100);
+const _long = Duration(milliseconds: 300);
+
 void main() {
   group('AsyncButtonTheme', () {
     test('copyWith with no arguments returns an identical theme', () {
       const base = AsyncButtonTheme(
         loadingBuilder: _loadingA,
         transitionBuilder: _noopTransition,
+        maintainSize: true,
+        minLoadingDuration: _short,
       );
       check(base.copyWith()).equals(base);
     });
@@ -33,6 +38,8 @@ void main() {
       const base = AsyncButtonTheme(
         loadingBuilder: _loadingA,
         transitionBuilder: _noopTransition,
+        maintainSize: true,
+        minLoadingDuration: _short,
       );
       final overridden = base.copyWith(loadingBuilder: _loadingB);
       check(overridden)
@@ -40,17 +47,33 @@ void main() {
         ..has(
           (it) => it.transitionBuilder,
           'transitionBuilder',
-        ).equals(_noopTransition);
+        ).equals(_noopTransition)
+        ..has((it) => it.maintainSize, 'maintainSize').equals(true)
+        ..has(
+          (it) => it.minLoadingDuration,
+          'minLoadingDuration',
+        ).equals(_short);
+      check(base.copyWith(maintainSize: false, minLoadingDuration: _long))
+        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingA)
+        ..has((it) => it.maintainSize, 'maintainSize').equals(false)
+        ..has(
+          (it) => it.minLoadingDuration,
+          'minLoadingDuration',
+        ).equals(_long);
     });
 
     test('lerp snaps fields at the halfway point', () {
       const from = AsyncButtonTheme(
         loadingBuilder: _loadingA,
         transitionBuilder: _noopTransition,
+        maintainSize: false,
+        minLoadingDuration: _short,
       );
       const to = AsyncButtonTheme(
         loadingBuilder: _loadingB,
         transitionBuilder: _otherTransition,
+        maintainSize: true,
+        minLoadingDuration: _long,
       );
 
       // `t < 0.5` keeps `this`; the boundary itself already takes `other`.
@@ -63,7 +86,15 @@ void main() {
           ..has(
             (it) => it.transitionBuilder,
             'transitionBuilder',
-          ).equals(expected.transitionBuilder);
+          ).equals(expected.transitionBuilder)
+          ..has(
+            (it) => it.maintainSize,
+            'maintainSize',
+          ).equals(expected.maintainSize)
+          ..has(
+            (it) => it.minLoadingDuration,
+            'minLoadingDuration',
+          ).equals(expected.minLoadingDuration);
       }
     });
 
@@ -115,13 +146,19 @@ void main() {
       const a = AsyncButtonTheme(
         loadingBuilder: _loadingA,
         transitionBuilder: _noopTransition,
+        maintainSize: true,
+        minLoadingDuration: _short,
       );
-      const b = AsyncButtonTheme(
+      final b = AsyncButtonTheme(
         loadingBuilder: _loadingA,
         transitionBuilder: _noopTransition,
+        maintainSize: true,
+        minLoadingDuration: Duration(milliseconds: _short.inMilliseconds),
       );
       check(a).equals(b);
       check(a.hashCode).equals(b.hashCode);
+      check(a).not((it) => it.equals(a.copyWith(maintainSize: false)));
+      check(a).not((it) => it.equals(a.copyWith(minLoadingDuration: _long)));
     });
 
     test('empty leaves every field at its default', () {
@@ -133,6 +170,8 @@ void main() {
       check(AsyncButtonTheme.empty).equals(b);
       check(AsyncButtonTheme.empty.loadingBuilder).isNull();
       check(AsyncButtonTheme.empty.transitionBuilder).isNull();
+      check(AsyncButtonTheme.empty.maintainSize).isNull();
+      check(AsyncButtonTheme.empty.minLoadingDuration).isNull();
     });
   });
 

@@ -2,8 +2,8 @@ part of '../material_async_button.dart';
 
 /// App-wide defaults for `material_async_button` widgets, attached as a
 /// [ThemeExtension] on [ThemeData]. Complements [ButtonStyle] / `ButtonThemeData`
-/// — it carries only async behaviour (the loading view and its transition),
-/// never styling knobs.
+/// — it carries only async behaviour (the loading view, its transition, its
+/// footprint and minimum duration), never styling knobs.
 ///
 /// Resolution order for any field: per-widget value, then theme value, then
 /// the hard-coded fallback. With no extension registered the zero-config
@@ -33,6 +33,16 @@ class const AsyncButtonTheme({
   /// [AsyncButtonTransitionBuilder] for plugging in an [AnimatedSwitcher] /
   /// [AnimatedSize].
   final AsyncButtonTransitionBuilder? transitionBuilder,
+
+  /// Whether the loading view overlays the invisible idle child instead of
+  /// replacing it, so the button keeps its idle footprint (no width jump).
+  /// Defaults to `false`.
+  final bool? maintainSize,
+
+  /// The shortest time a run shows the loading view, measured from the tap or
+  /// [AsyncButtonController.trigger] — an anti-flicker floor for fast futures.
+  /// An error rethrows once the floor has elapsed. Defaults to [Duration.zero].
+  final Duration? minLoadingDuration,
 }) extends ThemeExtension<AsyncButtonTheme> {
   /// Builds an [AsyncButtonTheme]. Every field is nullable so callers only
   /// set the ones they want.
@@ -55,10 +65,14 @@ class const AsyncButtonTheme({
   AsyncButtonTheme copyWith({
     WidgetBuilder? loadingBuilder,
     AsyncButtonTransitionBuilder? transitionBuilder,
+    bool? maintainSize,
+    Duration? minLoadingDuration,
   }) {
     return AsyncButtonTheme(
       loadingBuilder: loadingBuilder ?? this.loadingBuilder,
       transitionBuilder: transitionBuilder ?? this.transitionBuilder,
+      maintainSize: maintainSize ?? this.maintainSize,
+      minLoadingDuration: minLoadingDuration ?? this.minLoadingDuration,
     );
   }
 
@@ -67,11 +81,14 @@ class const AsyncButtonTheme({
     if (other == null) {
       return this;
     }
-    // Widgets and callbacks don't lerp; snap at the halfway point.
+    // Widgets, callbacks and behaviour flags don't lerp; snap at the halfway
+    // point.
     final snap = t < 0.5;
     return AsyncButtonTheme(
       loadingBuilder: snap ? loadingBuilder : other.loadingBuilder,
       transitionBuilder: snap ? transitionBuilder : other.transitionBuilder,
+      maintainSize: snap ? maintainSize : other.maintainSize,
+      minLoadingDuration: snap ? minLoadingDuration : other.minLoadingDuration,
     );
   }
 
@@ -80,12 +97,19 @@ class const AsyncButtonTheme({
     return identical(this, other) ||
         other is AsyncButtonTheme &&
             loadingBuilder == other.loadingBuilder &&
-            transitionBuilder == other.transitionBuilder;
+            transitionBuilder == other.transitionBuilder &&
+            maintainSize == other.maintainSize &&
+            minLoadingDuration == other.minLoadingDuration;
   }
 
   @override
   int get hashCode {
-    return Object.hash(loadingBuilder, transitionBuilder);
+    return Object.hash(
+      loadingBuilder,
+      transitionBuilder,
+      maintainSize,
+      minLoadingDuration,
+    );
   }
 }
 
