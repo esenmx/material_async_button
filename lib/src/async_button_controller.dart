@@ -45,11 +45,10 @@ class AsyncButtonController extends ChangeNotifier
   Object? _owner;
   Duration _minLoadingDuration = Duration.zero;
 
+  // Last binder wins. A multi-child parent inflates a replacement button
+  // before it deactivates the old one, so a double mount is only detectable
+  // once the frame settles — AsyncButton checks it then (debug only).
   void _bind(Object owner, {required AsyncCallback? onPressed}) {
-    assert(
-      _owner == null || identical(_owner, owner),
-      'An AsyncButtonController can drive only one mounted AsyncButton.',
-    );
     _owner = owner;
     _onPressed = onPressed;
   }
@@ -119,10 +118,19 @@ class AsyncButtonController extends ChangeNotifier
     }
   }
 
+  // Runs in didUpdateWidget, i.e. during build: notifying now would rebuild
+  // listeners outside the adopting button mid-build. The adopting button reads
+  // value in its own build; everyone else hears after the frame, unless the
+  // run settled or was reset first (those notify on their own).
   void _adopt(Future<void> pending) {
     final run = ++_run;
     _inFlight = pending;
-    _setLoading(true);
+    _isLoading = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isDisposed && run == _run && _isLoading) {
+        notifyListeners();
+      }
+    });
     pending.then<void>(
       (_) => _settle(run),
       onError: (Object _) => _settle(run),
@@ -147,8 +155,9 @@ class AsyncButtonController extends ChangeNotifier
     _setLoading(false);
   }
 
-  /// Single mutation point. Dedupes (like the former [ValueNotifier]) so
-  /// listeners fire only on a real change, and never notifies after [dispose].
+  /// Notifying mutation point (only [_adopt] writes silently). Dedupes (like
+  /// the former [ValueNotifier]) so listeners fire only on a real change, and
+  /// never notifies after [dispose].
   void _setLoading(bool value) {
     if (_isDisposed || _isLoading == value) {
       return;

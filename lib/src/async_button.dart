@@ -126,12 +126,29 @@ class _AsyncButtonState extends State<AsyncButton> {
 
   void _bind() => controller._bind(this, onPressed: effectiveOnPressed);
 
+  // Binding is last-binder-wins (see AsyncButtonController._bind); a second
+  // mounted button on the same controller is reported once the frame settles.
+  void _debugCheckSoleOwnerAfterFrame() {
+    assert(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        assert(
+          !mounted ||
+              controller._owner == null ||
+              identical(controller._owner, this),
+          'An AsyncButtonController can drive only one mounted AsyncButton.',
+        );
+      });
+      return true;
+    }(), 'schedules the debug-only double-mount check');
+  }
+
   @override
   void initState() {
     super.initState();
     controller = (widget.controller ?? AsyncButtonController())
       ..addListener(listener);
     _bind();
+    _debugCheckSoleOwnerAfterFrame();
   }
 
   @override
@@ -153,18 +170,22 @@ class _AsyncButtonState extends State<AsyncButton> {
       if (inFlight != null && !controller.value) {
         controller._adopt(inFlight);
       }
+      _debugCheckSoleOwnerAfterFrame();
     }
     // onPressed (and enabled) can change on every parent rebuild — keep the
     // controller's copy current.
     _bind();
   }
 
-  // Unbind on deactivate, not dispose: on a same-slot swap the new element's
-  // initState runs after the old deactivate but before the old dispose.
+  // Unbind on deactivate, not dispose, and only if still the owner: a
+  // replacement button may already have bound (a multi-child parent inflates
+  // it before deactivating the old child), and the old dispose runs later
+  // still.
   @override
   void activate() {
     super.activate();
     _bind();
+    _debugCheckSoleOwnerAfterFrame();
   }
 
   @override
