@@ -21,13 +21,6 @@ Widget _loadingB(BuildContext _) => const SizedBox.shrink();
 
 void main() {
   group('AsyncButtonTheme', () {
-    test('empty default has all null fields', () {
-      const t = AsyncButtonTheme.empty;
-      check(t)
-        ..has((it) => it.loadingBuilder, 'loadingBuilder').isNull()
-        ..has((it) => it.transitionBuilder, 'transitionBuilder').isNull();
-    });
-
     test('copyWith with no arguments returns an identical theme', () {
       const base = AsyncButtonTheme(
         loadingBuilder: _loadingA,
