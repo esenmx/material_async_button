@@ -843,6 +843,67 @@ void main() {
       });
     }
 
+    testWidgets('an AnimatedSwitcher cross-fade of keyed buttons on one '
+        'controller fails an assert', (tester) async {
+      final c = newController();
+      Widget host(int k) => pumpHost(
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: ElevatedAsyncButton(
+            key: ValueKey(k),
+            controller: c,
+            onPressed: () async {},
+            child: Text('$k'),
+          ),
+        ),
+      );
+      await tester.pumpWidget(host(1));
+      await tester.pumpWidget(host(2));
+      check(
+        because: 'both buttons are mounted mid-transition',
+        find.byType(ElevatedButton).evaluate(),
+      ).length.equals(2);
+      check(tester.takeException()).isA<AssertionError>();
+
+      await tester.pumpAndSettle();
+      check(tester.takeException()).isNull();
+      check(find.byType(ElevatedButton)).findsOne();
+      check(c.canTrigger).isTrue();
+    });
+
+    testWidgets('a GlobalKey move between two parents mid-flight keeps the '
+        'binding and the run', (tester) async {
+      final c = newController();
+      final key = GlobalKey();
+      final (:onPressed, :completer) = pendingPress();
+      Widget host({required bool left}) {
+        final button = ElevatedAsyncButton(
+          key: key,
+          controller: c,
+          onPressed: onPressed,
+          child: const Text('Go'),
+        );
+        return _columnOf([
+          SizedBox(child: left ? button : null),
+          SizedBox(child: left ? null : button),
+        ]);
+      }
+
+      await tester.pumpWidget(host(left: true));
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      for (final left in [false, true]) {
+        await tester.pumpWidget(host(left: left));
+        check(because: 'left: $left', tester.takeException()).isNull();
+        check(because: 'the run survives the move', c).isLoading();
+      }
+
+      completer.complete();
+      await tester.pump();
+      check(c).isIdle();
+      check(c.canTrigger).isTrue();
+    });
+
     testWidgets('two buttons exchanging controllers keep both bindings', (
       tester,
     ) async {

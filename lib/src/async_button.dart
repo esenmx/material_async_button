@@ -124,20 +124,29 @@ class _AsyncButtonState extends State<AsyncButton> {
   AsyncCallback? get callback =>
       effectiveOnPressed == null ? null : controller.trigger;
 
-  void _bind() => controller._bind(this, onPressed: effectiveOnPressed);
+  // Per-rebuild refresh of the bound onPressed / enabled.
+  void _bind() {
+    controller._bind(this, onPressed: effectiveOnPressed);
+  }
 
-  // Binding is last-binder-wins (see AsyncButtonController._bind); a second
-  // mounted button on the same controller is reported once the frame settles.
-  void _debugCheckSoleOwnerAfterFrame() {
+  // Binding is last-binder-wins (see AsyncButtonController._bind). When this
+  // button takes the controller from another one, it checks once the frame
+  // settles that the displaced button is gone or drives another controller;
+  // otherwise two mounted buttons share it. Only the displacing side checks,
+  // so a double mount is reported once.
+  void _bindAndCheck() {
+    final displaced = controller._bind(this, onPressed: effectiveOnPressed);
     assert(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        assert(
-          !mounted ||
-              controller._owner == null ||
-              identical(controller._owner, this),
-          'An AsyncButtonController can drive only one mounted AsyncButton.',
-        );
-      });
+      if (displaced is _AsyncButtonState) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          assert(
+            !(mounted &&
+                displaced.mounted &&
+                identical(displaced.controller, controller)),
+            'An AsyncButtonController can drive only one mounted AsyncButton.',
+          );
+        });
+      }
       return true;
     }(), 'schedules the debug-only double-mount check');
   }
@@ -147,8 +156,7 @@ class _AsyncButtonState extends State<AsyncButton> {
     super.initState();
     controller = (widget.controller ?? AsyncButtonController())
       ..addListener(listener);
-    _bind();
-    _debugCheckSoleOwnerAfterFrame();
+    _bindAndCheck();
   }
 
   @override
@@ -170,11 +178,12 @@ class _AsyncButtonState extends State<AsyncButton> {
       if (inFlight != null && !controller.value) {
         controller._adopt(inFlight);
       }
-      _debugCheckSoleOwnerAfterFrame();
+      _bindAndCheck();
+    } else {
+      // onPressed (and enabled) can change on every parent rebuild — keep the
+      // controller's copy current.
+      _bind();
     }
-    // onPressed (and enabled) can change on every parent rebuild — keep the
-    // controller's copy current.
-    _bind();
   }
 
   // Unbind on deactivate, not dispose, and only if still the owner: a
@@ -184,8 +193,7 @@ class _AsyncButtonState extends State<AsyncButton> {
   @override
   void activate() {
     super.activate();
-    _bind();
-    _debugCheckSoleOwnerAfterFrame();
+    _bindAndCheck();
   }
 
   @override
