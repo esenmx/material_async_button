@@ -29,6 +29,18 @@ void main() {
       check(c).isIdle();
     });
 
+    test('trigger() after dispose() never runs onPressed', () async {
+      var ran = 0;
+      Object? err;
+      final c = AsyncButtonController()
+        ..attach(onPressed: () async => ran++)
+        ..dispose();
+      check(c.canTrigger).isFalse();
+      await c.trigger().then<void>((_) {}, onError: (Object e) => err = e);
+      check(ran).equals(0);
+      check(err).isA<Error>();
+    });
+
     test('reset returns to idle', () async {
       final completer = Completer<void>();
       final c = attachedController(onPressed: () => completer.future)
