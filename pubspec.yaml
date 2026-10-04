@@ -1,6 +1,6 @@
 name: material_async_button
 description: Drop-in loading state for Elevated, Filled, Outlined, Text, Icon and FloatingAction Material buttons — spinner while onPressed runs, AsyncButtonTheme, AsyncButtonController.
-version: 3.0.0
+version: 3.1.0
 repository: https://github.com/esenmx/material_async_button
 issue_tracker: https://github.com/esenmx/material_async_button/issues
 
