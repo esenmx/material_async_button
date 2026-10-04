@@ -17,6 +17,15 @@ Widget pumpHost(Widget child, {ThemeData? theme}) {
   );
 }
 
+/// Wraps a widget in a body-level [Column] — bounded, loose width constraints,
+/// where a loading view that expands would stretch the button full-width.
+Widget columnHost(Widget child, {ThemeData? theme}) {
+  return MaterialApp(
+    theme: theme ?? emptyAsyncButtonTheme,
+    home: Scaffold(body: Column(children: [child])),
+  );
+}
+
 /// A [ThemeData] whose only extension is [AsyncButtonTheme.empty] — the
 /// zero-config baseline, used to assert the per-widget / hard-coded fallbacks.
 final ThemeData emptyAsyncButtonTheme = ThemeData(
