@@ -107,12 +107,9 @@ void main() {
       // the push this test would pass vacuously even on correct code. Two
       // default-tag FABs sharing the const default tag must trip it, proving
       // the default heroTag actually reaches the Hero wrapper.
-      // .ignore(), not unawaited(): pre-3.47 analyzers flag the bare future
-      // (unawaited_futures) while 3.47+ flags unawaited() on the
-      // @awaitNotRequired push (unnecessary_unawaited).
-      navigatorKey.currentState!
-          .push(MaterialPageRoute<void>(builder: (_) => const Scaffold()))
-          .ignore();
+      navigatorKey.currentState!.push(
+        MaterialPageRoute<void>(builder: (_) => const Scaffold()),
+      );
       await tester.pump();
       await tester.pump();
       check(tester.takeException()).isA<FlutterError>();
