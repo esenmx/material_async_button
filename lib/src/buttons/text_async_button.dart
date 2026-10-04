@@ -34,6 +34,7 @@ class TextAsyncButton extends AsyncStandardMaterialButton {
     super.autofocus,
     super.clipBehavior,
     super.statesController,
+    super.enabled,
     super.iconAlignment,
     super.controller,
     super.loadingBuilder,
