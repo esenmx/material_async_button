@@ -27,6 +27,12 @@ abstract class const AsyncMaterialButton({
 
   /// See [AsyncButton.transitionBuilder].
   final AsyncButtonTransitionBuilder? transitionBuilder,
+
+  /// See [AsyncButton.maintainSize].
+  final bool? maintainSize,
+
+  /// See [AsyncButton.minLoadingDuration].
+  final Duration? minLoadingDuration,
   super.key,
 }) extends StatelessWidget {
   /// Subclass-only constructor. Forwards every field to [AsyncButton]. See
@@ -50,6 +56,9 @@ abstract class const AsyncMaterialButton({
         AsyncButtonTheme.of(context).loadingBuilder ??
         (context) => _DefaultLoadingSpinner(sizing);
   }
+
+  bool _resolveMaintainSize(BuildContext context) =>
+      maintainSize ?? AsyncButtonTheme.of(context).maintainSize ?? false;
 }
 
 /// Sub-base for the four [AsyncMaterialButton]s that share the standard
@@ -72,6 +81,8 @@ sealed class const AsyncStandardMaterialButton({
   super.controller,
   super.loadingBuilder,
   super.transitionBuilder,
+  super.maintainSize,
+  super.minLoadingDuration,
 
   /// Forwarded to the underlying Material button.
   final VoidCallback? onLongPress,
@@ -104,27 +115,30 @@ sealed class const AsyncStandardMaterialButton({
   /// [ElevatedButton]/[FilledButton]/[OutlinedButton]/[TextButton].
   this;
 
-  /// The default spinner sizing for this button's current shape: an `.icon`
-  /// constructor lays out an icon beside the label, so its idle row height is
-  /// `max(iconSize, lineBox)`; a plain constructor shows only the label, so it
-  /// tracks the label's line box.
-  _SpinnerSize get _loadingSizing => _icon != null ? .max : .fontSize;
-
   @override
   Widget build(BuildContext context) {
+    final keepFootprint = _resolveMaintainSize(context);
     return AsyncButton(
       onPressed: onPressed,
       enabled: enabled,
       controller: controller,
-      loadingBuilder: _resolveLoadingBuilder(context, _loadingSizing),
+      // An `.icon` constructor that drops its icon while loading sizes the
+      // spinner to the idle row, max(iconSize, lineBox); with maintainSize
+      // the icon stays and the spinner overlays only the label's line box.
+      loadingBuilder: _resolveLoadingBuilder(
+        context,
+        _icon != null && !keepFootprint ? .max : .fontSize,
+      ),
       transitionBuilder: transitionBuilder,
+      maintainSize: keepFootprint,
+      minLoadingDuration: minLoadingDuration,
       builder: (context, animatedChild, callback, isLoading) {
         final longPress = enabled && !isLoading ? onLongPress : null;
         if (_icon != null) {
           return _buildIconButton(
             onPressed: callback,
             onLongPress: longPress,
-            icon: isLoading ? null : _icon,
+            icon: isLoading && !keepFootprint ? null : _icon,
             label: animatedChild,
           );
         }

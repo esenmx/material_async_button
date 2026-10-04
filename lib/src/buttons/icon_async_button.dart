@@ -21,6 +21,8 @@ class IconAsyncButton extends AsyncMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     this.iconSize,
     this.visualDensity,
     this.padding,
@@ -56,6 +58,8 @@ class IconAsyncButton extends AsyncMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     this.iconSize,
     this.visualDensity,
     this.padding,
@@ -91,6 +95,8 @@ class IconAsyncButton extends AsyncMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     this.iconSize,
     this.visualDensity,
     this.padding,
@@ -126,6 +132,8 @@ class IconAsyncButton extends AsyncMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     this.iconSize,
     this.visualDensity,
     this.padding,
@@ -271,12 +279,15 @@ class IconAsyncButton extends AsyncMaterialButton {
 
   @override
   Widget build(BuildContext context) {
+    final keepFootprint = _resolveMaintainSize(context);
     return AsyncButton(
       onPressed: onPressed,
       enabled: enabled,
       controller: controller,
       loadingBuilder: _resolveLoadingBuilder(context, .iconSize),
       transitionBuilder: transitionBuilder,
+      maintainSize: keepFootprint,
+      minLoadingDuration: minLoadingDuration,
       builder: (context, child, callback, isLoading) {
         return _buildIconButton(
           onPressed: callback,

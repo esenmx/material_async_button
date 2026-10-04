@@ -7,6 +7,12 @@
 - `IconAsyncButton` (all four constructors) forwards `onHover`, `onLongPress`
   (dropped while loading) and `statesController` to its `IconButton`.
 - `TextAsyncButton.isSemanticButton`, forwarded to `TextButton`.
+- `maintainSize` on `AsyncButtonTheme`, `AsyncButton` and every wrapper: the
+  loading view overlays the invisible idle child, so the button keeps its idle
+  footprint while loading (`.icon` constructors keep their icon).
+- `minLoadingDuration` on `AsyncButtonTheme`, `AsyncButton` and every wrapper:
+  an anti-flicker floor that holds the loading view at least that long; an
+  error rethrows once the floor has elapsed.
 
 ### Changed
 

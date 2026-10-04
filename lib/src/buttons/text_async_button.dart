@@ -18,6 +18,8 @@ class TextAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     this.isSemanticButton = true,
     super.key,
   });
@@ -40,6 +42,8 @@ class TextAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     super.key,
   }) : isSemanticButton = true,
        super(child: label);

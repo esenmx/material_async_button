@@ -22,6 +22,8 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     super.key,
   }) : _variant = .primary;
 
@@ -41,6 +43,8 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     super.key,
   }) : _variant = .tonal;
 
@@ -62,6 +66,8 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     super.key,
   }) : _variant = .primary,
        super(child: label);
@@ -84,6 +90,8 @@ class FilledAsyncButton extends AsyncStandardMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     super.key,
   }) : _variant = .tonal,
        super(child: label);

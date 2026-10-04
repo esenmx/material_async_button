@@ -43,7 +43,7 @@ class AsyncButtonController extends ChangeNotifier
   int _run = 0;
   Future<void>? _inFlight;
   Object? _owner;
-  final Duration _minLoadingDuration = Duration.zero;
+  Duration _minLoadingDuration = Duration.zero;
 
   void _bind(Object owner, {required AsyncCallback? onPressed}) {
     assert(
