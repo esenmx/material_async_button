@@ -547,6 +547,20 @@ void main() {
       check(c).isIdle();
     });
 
+    testWidgets('the floor counts from the tap, not from completion', (
+      tester,
+    ) async {
+      final c = newController();
+      await tester.pumpWidget(
+        pumpHost(button(c, onPressed: () => Future<void>.delayed(ms * 200))),
+      );
+      await tester.tap(find.byType(TextButton));
+      await tester.pump(ms * 299);
+      check(c).isLoading();
+      await tester.pump(ms);
+      check(because: 'idle at +300 ms, not +500 ms', c).isIdle();
+    });
+
     testWidgets('reset() during the floor ends loading once', (tester) async {
       final c = newController();
       final trace = <bool>[];
