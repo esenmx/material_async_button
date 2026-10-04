@@ -89,6 +89,15 @@ class const AsyncButton({
   /// Per-widget override of [AsyncButtonTheme.transitionBuilder]. The button
   /// performs no animation unless this (or the theme's) builder adds one.
   final AsyncButtonTransitionBuilder? transitionBuilder,
+
+  /// Per-widget override of [AsyncButtonTheme.maintainSize]. When `true` the
+  /// loading view overlays the invisible [child], so the button keeps its idle
+  /// footprint (the larger of the two). Defaults to `false`.
+  final bool? maintainSize,
+
+  /// Per-widget override of [AsyncButtonTheme.minLoadingDuration]: the
+  /// shortest time a run shows the loading view. Defaults to [Duration.zero].
+  final Duration? minLoadingDuration,
   super.key,
 }) extends StatefulWidget {
   /// Creates an [AsyncButton]. See the class doc for usage.
@@ -187,12 +196,33 @@ class _AsyncButtonState extends State<AsyncButton> {
         widget.loadingBuilder ?? theme.loadingBuilder ?? _defaultLoadingBuilder;
     final transitionBuilder =
         widget.transitionBuilder ?? theme.transitionBuilder;
+    controller._minLoadingDuration =
+        widget.minLoadingDuration ?? theme.minLoadingDuration ?? Duration.zero;
 
     final isLoading = controller.value;
-    // The idle child is replaced outright by the loading widget; the button
-    // may resize to fit it (wrap a transitionBuilder in AnimatedSize to smooth
-    // that).
-    var content = isLoading ? loadingBuilder(context) : widget.child;
+    // Without maintainSize the idle child is replaced outright and the button
+    // may resize to fit the loading view; with it the loading view overlays
+    // the invisible child.
+    final keepFootprint = widget.maintainSize ?? theme.maintainSize ?? false;
+    var content = switch ((isLoading, keepFootprint)) {
+      (false, _) => widget.child,
+      (true, false) => loadingBuilder(context),
+      (true, true) => Stack(
+        alignment: .center,
+        children: [
+          // maintainSemantics stays false: screen readers hear only the
+          // loading view.
+          Visibility(
+            visible: false,
+            maintainState: true,
+            maintainAnimation: true,
+            maintainSize: true,
+            child: widget.child,
+          ),
+          loadingBuilder(context),
+        ],
+      ),
+    };
 
     // Keyed by loading state so a user-supplied transitionBuilder can animate
     // the swap (e.g. via AnimatedSwitcher / AnimatedSize). With no builder it

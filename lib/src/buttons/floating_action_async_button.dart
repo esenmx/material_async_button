@@ -17,6 +17,8 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     this.tooltip,
     this.foregroundColor,
     this.backgroundColor,
@@ -54,6 +56,8 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     this.tooltip,
     this.foregroundColor,
     this.backgroundColor,
@@ -91,6 +95,8 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     this.tooltip,
     this.foregroundColor,
     this.backgroundColor,
@@ -129,6 +135,8 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
     super.controller,
     super.loadingBuilder,
     super.transitionBuilder,
+    super.maintainSize,
+    super.minLoadingDuration,
     this.tooltip,
     this.foregroundColor,
     this.backgroundColor,
@@ -232,15 +240,20 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
     // A collapsed extended FAB renders only its icon, so the loading view must
     // replace the icon rather than the hidden label.
     final collapsedIcon = _variant == .extended && !isExtended ? _icon : null;
+    final keepFootprint = _resolveMaintainSize(context);
     return AsyncButton(
       onPressed: onPressed,
       enabled: enabled,
       controller: controller,
       loadingBuilder: _resolveLoadingBuilder(
         context,
-        _variant == .extended && collapsedIcon == null ? .max : .iconSize,
+        _variant != .extended || collapsedIcon != null
+            ? .iconSize
+            : (keepFootprint && _icon != null ? .fontSize : .max),
       ),
       transitionBuilder: transitionBuilder,
+      maintainSize: keepFootprint,
+      minLoadingDuration: minLoadingDuration,
       builder: (context, animatedChild, callback, isLoading) =>
           switch (_variant) {
             .standard => _buildStandard(callback, animatedChild),
@@ -250,6 +263,7 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
               animatedChild,
               isLoading: isLoading,
               collapsed: collapsedIcon != null,
+              keepFootprint: keepFootprint,
             ),
           },
       child: collapsedIcon ?? child,
@@ -319,11 +333,14 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
     Widget animatedChild, {
     required bool isLoading,
     required bool collapsed,
+    required bool keepFootprint,
   }) {
     return FloatingActionButton.extended(
       onPressed: callback,
       label: collapsed ? child : animatedChild,
-      icon: collapsed ? animatedChild : (isLoading ? null : _icon),
+      icon: collapsed
+          ? animatedChild
+          : (isLoading && !keepFootprint ? null : _icon),
       tooltip: tooltip,
       foregroundColor: foregroundColor,
       backgroundColor: backgroundColor,

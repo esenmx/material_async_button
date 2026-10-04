@@ -16,7 +16,7 @@ Frontmatter `status` is the plan's lifecycle, one owner per transition: `draft` 
 - [x] Phase 4: Variant fixes
 - [x] Phase 5: Line-box measurement
 - [x] Phase 6: Parity parameters
-- [ ] Phase 7: maintainSize + minLoadingDuration
+- [x] Phase 7: maintainSize + minLoadingDuration
 - [ ] Phase 8: Repo meta, packaging, CI
 - [ ] Phase 9: Docs, skill, example
 - [ ] Phase 10: Release prep, push, CI
@@ -531,6 +531,7 @@ Executor appends one bullet per discovery the plan didn't name: blocking and in-
 - Phase 3: `_minLoadingDuration` is declared `final` until Phase 7 assigns it (`prefer_final_fields` under `--fatal-infos`). `attach` dartdoc no longer claims `AsyncButton` calls it. Closed.
 - Phase 5: lint fallout `avoid_redundant_argument_values` on the repro's `AsyncButtonSpinner(size: null)` → `AsyncButtonSpinner()`. The local SDK has `material_fonts/Roboto-Regular.ttf`, so the `fontsChange` fallback was not needed (CI unverified until the Phase 10 run). Closed.
 - Phase 6: lint fallout `avoid_positional_boolean_parameters` on a local `void onHover(bool _) {}` in the new test → a `List<bool>.add` tear-off (identity-stable). Closed.
+- Phase 7: added a "theme value applies when the widget sets none" `minLoadingDuration` test beside the listed "widget beats theme" one, so theme → widget resolution is pinned both ways. Lint fallout `omit_local_variable_types` → `var content = switch …`. Closed.
 
 ## Execution prompt
 
