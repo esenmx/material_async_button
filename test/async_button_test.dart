@@ -246,7 +246,7 @@ void main() {
       // Idle: interactive.
       check(tester.widget<TextButton>(textButton).onPressed).isNotNull();
 
-      unawaited(controller.trigger());
+      controller.trigger();
       await tester.pump();
       // Loading: spinner shows and the button keeps its enabled look.
       check(find.byType(CircularProgressIndicator)).findsOne();
@@ -270,7 +270,7 @@ void main() {
           ),
         ),
       );
-      unawaited(controller.trigger());
+      controller.trigger();
       await tester.pump();
       check(find.byType(CircularProgressIndicator)).findsOne();
       controller.reset();
@@ -302,7 +302,7 @@ void main() {
 
         // The widget now listens to externalController: driving it must show
         // loading.
-        unawaited(externalController.trigger());
+        externalController.trigger();
         await tester.pump();
         check(find.byType(CircularProgressIndicator)).findsOne();
 
@@ -331,7 +331,7 @@ void main() {
 
       // Driving externalController should NOT show loading because it's
       // detached.
-      unawaited(externalController.trigger());
+      externalController.trigger();
       await tester.pump();
       check(find.byType(CircularProgressIndicator)).findsNone();
 
@@ -356,11 +356,11 @@ void main() {
         await tester.pumpWidget(pumpHost(button(a, aCompleter)));
         await tester.pumpWidget(pumpHost(button(b, bCompleter)));
         // The widget now listens to b: driving a must not show loading.
-        unawaited(a.trigger());
+        a.trigger();
         await tester.pump();
         check(find.byType(CircularProgressIndicator)).findsNone();
         // Driving b does.
-        unawaited(b.trigger());
+        b.trigger();
         await tester.pump();
         check(find.byType(CircularProgressIndicator)).findsOne();
         aCompleter.complete();

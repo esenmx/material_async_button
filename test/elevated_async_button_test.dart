@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -72,7 +70,7 @@ void main() {
       check(find.byType(CircularProgressIndicator)).findsNone();
       // Trigger from outside the widget: only works if the wrapper forwarded
       // the external controller into AsyncButton (which attaches onPressed).
-      unawaited(controller.trigger());
+      controller.trigger();
       await tester.pump();
       check(controller).isLoading();
       check(find.byType(CircularProgressIndicator)).findsOne();
