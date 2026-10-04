@@ -94,6 +94,10 @@ class const AsyncButtonTheme({
 typedef _LineBoxKey = (TextStyle, TextDirection, TextScaler);
 final _lineBoxCache = <_LineBoxKey, double>{};
 
+// A font that loads after a style was measured (google_fonts, FontLoader)
+// changes its line box; the cache is cleared on every system font change.
+var _lineBoxCacheListensToFonts = false;
+
 /// The bounded line-box cache. Exposed only so tests can assert its capacity
 /// and LRU eviction. Not part of the consumer-facing API.
 @visibleForTesting
@@ -106,6 +110,10 @@ Map<(TextStyle, TextDirection, TextScaler), double> get debugLineBoxCache =>
 /// `fontSize`) so the button keeps its idle height while loading instead of
 /// shrinking. Honours the ambient [TextScaler], matching how the label scales.
 double _ambientTextLineBox(BuildContext context) {
+  if (!_lineBoxCacheListensToFonts) {
+    _lineBoxCacheListensToFonts = true;
+    PaintingBinding.instance.systemFonts.addListener(_lineBoxCache.clear);
+  }
   final style = DefaultTextStyle.of(context).style;
   final textDirection = Directionality.of(context);
   final textScaler = MediaQuery.textScalerOf(context);
@@ -126,8 +134,10 @@ double _ambientTextLineBox(BuildContext context) {
     textDirection: textDirection,
     textScaler: textScaler,
   )..layout();
+  final lineBox = painter.preferredLineHeight;
+  painter.dispose();
 
-  return _lineBoxCache[key] = painter.preferredLineHeight;
+  return _lineBoxCache[key] = lineBox;
 }
 
 /// The default loading indicator — a sized, indeterminate

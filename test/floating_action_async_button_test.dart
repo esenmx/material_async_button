@@ -207,8 +207,8 @@ void main() {
           ),
         ),
       );
+      final lineBox = tester.getSize(find.text('send')).height;
       await tapIntoLoading(tester, find.byType(FloatingActionButton));
-      final lineBox = spinnerTextLineBox(tester);
       final expected = 32.0 > lineBox ? 32.0 : lineBox;
       check(loadingSpinnerSize(tester)).equals(expected);
       completer.complete();

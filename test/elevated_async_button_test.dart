@@ -174,10 +174,10 @@ void main() {
           ),
         ),
       );
+      final lineBox = tester.getSize(find.text('send')).height;
       await tapIntoLoading(tester, find.byType(ElevatedButton));
       final iconSize = spinnerIconThemeSize(tester);
       final fontSize = spinnerFontSize(tester);
-      final lineBox = spinnerTextLineBox(tester);
       check(iconSize).equals(32);
       check(fontSize).isNotNull();
       // The .icon row height is max(icon, lineBox); with the icon (32) taller
