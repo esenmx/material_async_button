@@ -115,31 +115,53 @@ class _AsyncButtonState extends State<AsyncButton> {
   AsyncCallback? get callback =>
       effectiveOnPressed == null ? null : controller.trigger;
 
+  void _bind() => controller._bind(this, onPressed: effectiveOnPressed);
+
   @override
   void initState() {
     super.initState();
-    controller = widget.controller ?? AsyncButtonController();
-    controller
-      ..addListener(listener)
-      ..attach(onPressed: effectiveOnPressed);
+    controller = (widget.controller ?? AsyncButtonController())
+      ..addListener(listener);
+    _bind();
   }
 
   @override
   void didUpdateWidget(covariant AsyncButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
-      controller.removeListener(listener);
+      final previous = controller;
+      final inFlight = previous._inFlight;
+      previous
+        ..removeListener(listener)
+        .._unbind(this);
       // Dispose only a controller we created ourselves — never one the caller
       // owns.
       if (oldWidget.controller == null) {
-        controller.dispose();
+        previous.dispose();
       }
-      controller = widget.controller ?? AsyncButtonController();
-      controller.addListener(listener);
+      controller = (widget.controller ?? AsyncButtonController())
+        ..addListener(listener);
+      if (inFlight != null && !controller.value) {
+        controller._adopt(inFlight);
+      }
     }
     // onPressed (and enabled) can change on every parent rebuild — keep the
     // controller's copy current.
-    controller.attach(onPressed: effectiveOnPressed);
+    _bind();
+  }
+
+  // Unbind on deactivate, not dispose: on a same-slot swap the new element's
+  // initState runs after the old deactivate but before the old dispose.
+  @override
+  void activate() {
+    super.activate();
+    _bind();
+  }
+
+  @override
+  void deactivate() {
+    controller._unbind(this);
+    super.deactivate();
   }
 
   @override

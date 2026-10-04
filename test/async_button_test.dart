@@ -1,11 +1,17 @@
 import 'dart:async';
 
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
 
 import '_helpers.dart';
+
+typedef _Button = Widget Function(
+  AsyncButtonController c,
+  AsyncCallback onPressed,
+);
 
 void main() {
   group('AsyncButton rendering', () {
@@ -316,24 +322,40 @@ void main() {
     ) async {
       final externalController = newController();
       final completer = Completer<void>();
-      AsyncButton button(AsyncButtonController? c) => AsyncButton(
-        controller: c,
-        onPressed: () => completer.future,
-        builder: textBuilder,
-        child: const Text('child'),
-      );
+      var externalCalls = 0;
+      var internalCalls = 0;
+      AsyncButton button(AsyncButtonController? c, VoidCallback count) =>
+          AsyncButton(
+            controller: c,
+            onPressed: () {
+              count();
+              return completer.future;
+            },
+            builder: textBuilder,
+            child: const Text('child'),
+          );
 
       // 1. Pump with external controller
-      await tester.pumpWidget(pumpHost(button(externalController)));
+      await tester.pumpWidget(
+        pumpHost(button(externalController, () => externalCalls++)),
+      );
 
       // 2. Pump with internal controller (null)
-      await tester.pumpWidget(pumpHost(button(null)));
+      await tester.pumpWidget(pumpHost(button(null, () => internalCalls++)));
 
       // Driving externalController should NOT show loading because it's
       // detached.
       externalController.trigger();
       await tester.pump();
       check(find.byType(CircularProgressIndicator)).findsNone();
+      check(
+        because: 'a detached controller runs nothing',
+        externalCalls,
+      ).equals(0);
+
+      await tester.tap(find.byType(TextButton));
+      await tester.pump();
+      check(internalCalls).equals(1);
 
       completer.complete();
       await tester.pumpAndSettle();
@@ -346,23 +368,37 @@ void main() {
         final b = newController();
         final aCompleter = Completer<void>();
         final bCompleter = Completer<void>();
-        AsyncButton button(AsyncButtonController c, Completer<void> done) =>
-            AsyncButton(
-              controller: c,
-              onPressed: () => done.future,
-              builder: textBuilder,
-              child: const Text('child'),
-            );
-        await tester.pumpWidget(pumpHost(button(a, aCompleter)));
-        await tester.pumpWidget(pumpHost(button(b, bCompleter)));
+        var aCalls = 0;
+        var bCalls = 0;
+        AsyncButton button(
+          AsyncButtonController c,
+          Completer<void> done,
+          VoidCallback count,
+        ) => AsyncButton(
+          controller: c,
+          onPressed: () {
+            count();
+            return done.future;
+          },
+          builder: textBuilder,
+          child: const Text('child'),
+        );
+        await tester.pumpWidget(
+          pumpHost(button(a, aCompleter, () => aCalls++)),
+        );
+        await tester.pumpWidget(
+          pumpHost(button(b, bCompleter, () => bCalls++)),
+        );
         // The widget now listens to b: driving a must not show loading.
         a.trigger();
         await tester.pump();
         check(find.byType(CircularProgressIndicator)).findsNone();
+        check(because: 'a detached controller runs nothing', aCalls).equals(0);
         // Driving b does.
         b.trigger();
         await tester.pump();
         check(find.byType(CircularProgressIndicator)).findsOne();
+        check(bCalls).equals(1);
         aCompleter.complete();
         bCompleter.complete();
         await tester.pumpAndSettle();
@@ -456,5 +492,204 @@ void main() {
       completer.complete();
       await tester.pumpAndSettle();
     });
+  });
+
+  group('AsyncButton controller ownership', () {
+    testWidgets('reset() mid-flight abandons the run; a new tap starts one', (
+      tester,
+    ) async {
+      final c = newController();
+      var calls = 0;
+      final runs = <Completer<void>>[];
+      await tester.pumpWidget(
+        pumpHost(
+          ElevatedAsyncButton(
+            controller: c,
+            onPressed: () {
+              calls++;
+              final run = Completer<void>();
+              runs.add(run);
+              return run.future;
+            },
+            child: const Text('Pay'),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      c.reset();
+      await tester.pump();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+
+      runs.first.complete();
+      await tester.pump();
+      check(calls).equals(2);
+      check(
+        because: 'the abandoned run must not clear the new one',
+        c,
+      ).isLoading();
+
+      runs.last.complete();
+      await tester.pump();
+      check(c).isIdle();
+    });
+
+    testWidgets('a controller swapped in mid-flight adopts the run', (
+      tester,
+    ) async {
+      final ext = newController();
+      var calls = 0;
+      final (:onPressed, :completer) = pendingPress();
+      Future<void> counted() {
+        calls++;
+        return onPressed();
+      }
+
+      await tester.pumpWidget(
+        pumpHost(TextAsyncButton(onPressed: counted, child: const Text('Go'))),
+      );
+      await tester.tap(find.byType(TextButton));
+      await tester.pump();
+
+      await tester.pumpWidget(
+        pumpHost(
+          TextAsyncButton(
+            controller: ext,
+            onPressed: counted,
+            child: const Text('Go'),
+          ),
+        ),
+      );
+      check(ext).isLoading();
+      await tester.tap(find.byType(TextButton));
+      await tester.pump();
+      check(calls).equals(1);
+
+      completer.complete();
+      await tester.pump();
+      check(ext).isIdle();
+    });
+
+    testWidgets('one controller on two mounted buttons fails an assert', (
+      tester,
+    ) async {
+      final c = newController();
+      Widget button(String label) => SizedBox(
+        width: 100,
+        height: 48,
+        child: TextAsyncButton(
+          controller: c,
+          onPressed: () async {},
+          child: Text(label),
+        ),
+      );
+      await tester.pumpWidget(
+        pumpHost(Row(mainAxisSize: .min, children: [button('A'), button('B')])),
+      );
+      check(tester.takeException()).isA<AssertionError>();
+    });
+
+    testWidgets('external controller detaches when its button unmounts', (
+      tester,
+    ) async {
+      final c = newController();
+      var ran = 0;
+      await tester.pumpWidget(
+        pumpHost(
+          ElevatedAsyncButton(
+            controller: c,
+            onPressed: () async => ran++,
+            child: const Text('Go'),
+          ),
+        ),
+      );
+      await tester.pumpWidget(pumpHost(const SizedBox()));
+      check(because: 'no button is attached any more', c.canTrigger).isFalse();
+      await c.trigger();
+      check(because: 'unmounted button callback must not run', ran).equals(0);
+    });
+
+    testWidgets('swapped-out external controller no longer runs onPressed', (
+      tester,
+    ) async {
+      final a = newController();
+      final b = newController();
+      var ran = 0;
+      Widget button(AsyncButtonController c) => ElevatedAsyncButton(
+        controller: c,
+        onPressed: () async => ran++,
+        child: const Text('Go'),
+      );
+      await tester.pumpWidget(pumpHost(button(a)));
+      await tester.pumpWidget(pumpHost(button(b)));
+      await a.trigger();
+      check(because: 'a is detached from the button', ran).equals(0);
+    });
+
+    final reparentKey = GlobalKey();
+    for (final (name, before, after) in <(String, _Button, _Button)>[
+      (
+        'same-slot type swap',
+        (c, f) => ElevatedAsyncButton(
+          controller: c,
+          onPressed: f,
+          child: const Text('Go'),
+        ),
+        (c, f) => TextAsyncButton(
+          controller: c,
+          onPressed: f,
+          child: const Text('Go'),
+        ),
+      ),
+      (
+        'same-slot key swap',
+        (c, f) => ElevatedAsyncButton(
+          key: const ValueKey(1),
+          controller: c,
+          onPressed: f,
+          child: const Text('Go'),
+        ),
+        (c, f) => ElevatedAsyncButton(
+          key: const ValueKey(2),
+          controller: c,
+          onPressed: f,
+          child: const Text('Go'),
+        ),
+      ),
+      (
+        'GlobalKey reparent into a Padding',
+        (c, f) => ElevatedAsyncButton(
+          key: reparentKey,
+          controller: c,
+          onPressed: f,
+          child: const Text('Go'),
+        ),
+        (c, f) => Padding(
+          padding: const EdgeInsets.all(8),
+          child: ElevatedAsyncButton(
+            key: reparentKey,
+            controller: c,
+            onPressed: f,
+            child: const Text('Go'),
+          ),
+        ),
+      ),
+    ]) {
+      testWidgets('$name rebinds the controller to the new button', (
+        tester,
+      ) async {
+        final c = newController();
+        final ran = <String>[];
+        await tester.pumpWidget(
+          pumpHost(before(c, () async => ran.add('old'))),
+        );
+        await tester.pumpWidget(pumpHost(after(c, () async => ran.add('new'))));
+        check(tester.takeException()).isNull();
+        check(c.canTrigger).isTrue();
+        await c.trigger();
+        check(ran).deepEquals(['new']);
+      });
+    }
   });
 }
