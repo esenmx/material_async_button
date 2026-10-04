@@ -18,7 +18,7 @@ Frontmatter `status` is the plan's lifecycle, one owner per transition: `draft` 
 - [x] Phase 6: Parity parameters
 - [x] Phase 7: maintainSize + minLoadingDuration
 - [x] Phase 8: Repo meta, packaging, CI
-- [ ] Phase 9: Docs, skill, example
+- [x] Phase 9: Docs, skill, example
 - [ ] Phase 10: Release prep, push, CI
 
 ## Problem
@@ -533,6 +533,7 @@ Executor appends one bullet per discovery the plan didn't name: blocking and in-
 - Phase 6: lint fallout `avoid_positional_boolean_parameters` on a local `void onHover(bool _) {}` in the new test → a `List<bool>.add` tear-off (identity-stable). Closed.
 - Phase 7: added a "theme value applies when the widget sets none" `minLoadingDuration` test beside the listed "widget beats theme" one, so theme → widget resolution is pinned both ways. Lint fallout `omit_local_variable_types` → `var content = switch …`. Closed.
 - Phase 8: the oracle's `yq` expression carries `\"` escapes inside single quotes (yq would see literal backslashes); ran it with plain `"` quotes. The dry-run's only warning was the expected dirty-tree one (`pubspec.yaml` modified). Closed.
+- Phase 9: doc-snippet scratch — dropped the repro's `readmeIconAdvice` (its README text is deleted per MAB-I3) and added a wrapper `maintainSize`/`minLoadingDuration` snippet; scaffolding moved to `const new(...)` (`unnecessary_type_name_in_constructor`), stale `ignore_for_file` entries removed, and `lines_longer_than_80_chars` + `cascade_invocations` ignored for the verbatim README controller block (aligned comments, one call per line). No API drift found. `dart run skills@ get` resolved online and installed `material-async-button-usage` (no fallback needed). Closed.
 
 ## Execution prompt
 

@@ -24,8 +24,8 @@ class ElevatedAsyncButton extends AsyncStandardMaterialButton {
     super.key,
   });
 
-  /// Mirrors [ElevatedButton.icon]. The loading widget replaces `label`
-  /// while `icon` stays put.
+  /// Mirrors [ElevatedButton.icon]. The loading widget replaces `label` and
+  /// drops `icon`, unless `maintainSize` is set — then `icon` stays.
   const new icon({
     required super.onPressed,
     required super.icon,
