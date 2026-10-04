@@ -187,7 +187,9 @@ different things — the spinner is the indicator, the button keeps its themed
 enabled colours, and taps that can't run are silently swallowed (`onLongPress`
 is gated off while busy). The button shows the disabled look **only** when you
 disable it explicitly — pass `enabled: false` (defaults to `true`) or
-`onPressed: null` (without an `onLongPress`, as in Flutter). Either path also
+`onPressed: null`. As in Flutter, a label button with `onPressed: null` and an
+`onLongPress` stays enabled for long-press; `IconAsyncButton`, like
+`IconButton`, ignores `onLongPress` without `onPressed`. Either path also
 no-ops an external `controller.trigger()`.
 
 **The swap is instant; the button resizes to fit the loading widget.** To keep

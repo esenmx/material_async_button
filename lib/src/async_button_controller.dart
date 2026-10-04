@@ -66,7 +66,8 @@ class AsyncButtonController extends ChangeNotifier
   /// Sets the `onPressed` that [trigger] runs, with no owning button.
   ///
   /// Exposed only so tests can drive a detached controller; [AsyncButton]
-  /// binds through a library-private, owner-checked hook. Not part of the
+  /// binds through a library-private hook (the last button to bind wins, and
+  /// a button unbinds only while it is still the owner). Not part of the
   /// consumer-facing API.
   @visibleForTesting
   // A named binding hook, not a property setter.

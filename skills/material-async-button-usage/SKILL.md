@@ -24,7 +24,9 @@ ElevatedAsyncButton(onPressed: notifier.save, child: const Text('Save'))
 ```
 
 Loading-only — no success/error state. Loading never disables the button;
-`enabled: false` or `onPressed: null` does. A throw rethrows: a tap's error
+`enabled: false` or `onPressed: null` does (a label button with an
+`onLongPress` stays enabled for long-press, as in Flutter; `IconAsyncButton`
+does not). A throw rethrows: a tap's error
 reaches your zone / `PlatformDispatcher.instance.onError`, and
 `controller.trigger()` callers get a rejected Future — handle failures in your
 state management, not the button.
