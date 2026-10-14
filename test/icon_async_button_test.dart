@@ -1,7 +1,7 @@
 import 'package:checks/checks.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '_helpers.dart';
 
@@ -201,6 +201,40 @@ void main() {
       completer.complete();
       await tester.pumpAndSettle();
       check(find.byIcon(Icons.favorite)).findsOne();
+    });
+  });
+
+  group('IconAsyncButton selection under Material 2', () {
+    testWidgets('a selected button shows icon, like IconButton', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        pumpHost(
+          Row(
+            mainAxisSize: .min,
+            children: [
+              IconAsyncButton(
+                onPressed: () async {},
+                isSelected: true,
+                icon: const Icon(Icons.star_border),
+                selectedIcon: const Icon(Icons.star),
+              ),
+              IconButton(
+                onPressed: () {},
+                isSelected: true,
+                icon: const Icon(Icons.star_border),
+                selectedIcon: const Icon(Icons.star),
+              ),
+            ],
+          ),
+          theme: ThemeData(
+            useMaterial3: false,
+            extensions: const [AsyncButtonTheme.empty],
+          ),
+        ),
+      );
+      check(find.byIcon(Icons.star_border).evaluate()).length.equals(2);
+      check(find.byIcon(Icons.star)).findsNone();
     });
   });
 

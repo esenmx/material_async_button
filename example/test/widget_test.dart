@@ -1,8 +1,8 @@
 import 'package:checks/checks.dart';
 import 'package:example/main.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
+import 'package:material_ui/material_ui.dart';
 
 extension on Subject<Finder> {
   void findsOne() => has((f) => f.evaluate().length, 'matches').equals(1);
