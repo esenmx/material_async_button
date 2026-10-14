@@ -1,5 +1,62 @@
 # Changelog
 
+## Unreleased
+
+## 4.0.0 - 2026-10-14
+
+### Breaking
+
+- Migrated from `package:flutter/material.dart` to
+  `package:material_ui/material_ui.dart` (`^1.6.0`). All Material types in the
+  public API (`ButtonStyle`, `ThemeExtension`, `IconAlignment`,
+  `WidgetStatesController`, `VisualDensity`, `MaterialTapTargetSize`, etc.) now
+  come from `package:material_ui/material_ui.dart`. Your app must also import
+  `package:material_ui/material_ui.dart` (`dart fix --apply --code=migrate_design_widgets`);
+  with `package:flutter/material.dart`, the buttons read `material_ui`'s default
+  `Theme` and ignore your app's `ThemeData`.
+- Changing a button's `controller` mid-run no longer moves the run: it stays
+  with the controller that started it, which stays loading until the run
+  settles, and the button shows its new controller's state. In 3.1.0 the
+  incoming controller adopted the run, so a button swapped from no controller
+  to one mid-run now shows idle and a tap starts a new run.
+- Unmounting a button no longer cancels its external controller's
+  `minLoadingDuration` floor: the run and its floor belong to the controller,
+  which stays loading until the floor elapses or you `reset()` or `dispose()`
+  it.
+- `AsyncButtonController.trigger()`, `reset()` and `attach()` throw a
+  `StateError` after `dispose()` in every build mode (3.1.0: a debug
+  assertion, and a silent no-op in release).
+- `AsyncButtonController.trigger()` throws a `StateError` when no
+  `AsyncButton` is bound — the controller was never passed to one, or its
+  button unmounted or switched to another controller. In 3.1.0 it silently did
+  nothing. A bound but disabled button (`enabled: false` or `onPressed: null`)
+  still makes `trigger()` a no-op.
+- `AsyncButtonController.trigger()` while a run is in flight returns that
+  run's Future instead of an already-completed one: `await trigger()` waits
+  for the run (and its `minLoadingDuration`) and sees its error, so
+  `await controller.trigger(); Navigator.pop(context);` no longer pops while
+  the save is still running. It still never starts a second run.
+- One `AsyncButtonController` bound to two mounted buttons throws a
+  `StateError` once the frame settles, in every build mode. In 3.1.0 this was a
+  debug assertion, and release builds kept last-binder-wins, so tapping one
+  button ran the other's `onPressed`.
+
+### Fixed
+
+- `minLoadingDuration` now uses a cancellable `Timer` instead of
+  `Future.delayed`, so `reset()`, `dispose()`, or unmounting a button that owns
+  its controller (no `controller` passed) mid-floor cancels the timer
+  immediately without leaving pending timers or blocking `trigger()` callers.
+- `IconAsyncButton` with `maintainSize: true` and `isSelected: true` now
+  overlays `selectedIcon` (when provided) instead of `icon` so the button keeps
+  its selected footprint while loading. Like `IconButton`, only Material 3
+  shows `selectedIcon`; under Material 2 a selected button shows `icon`.
+- `FloatingActionAsyncButton.extended` with `isExtended: false` and no `icon`
+  now renders the loading spinner in the icon slot instead of the collapsed
+  zero-width label slot.
+- Detaching a button resets the controller's `minLoadingDuration` to
+  `Duration.zero`.
+
 ## 3.1.0 - 2026-10-04
 
 ### Added

@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '_helpers.dart';
 
@@ -197,6 +197,33 @@ void main() {
       // The button is back to its idle child — there is no error view.
       check(find.text('label')).findsOne();
     });
+
+    testWidgets('taps while loading join the run without reporting its error '
+        'again', (tester) async {
+      // The gate's future must live in the guarded zone: errors never cross
+      // error-zone boundaries.
+      late final Completer<void> gate;
+      await tester.pumpWidget(
+        pumpHost(
+          AsyncButton(
+            onPressed: () => gate.future,
+            builder: textBuilder,
+            child: const Text('label'),
+          ),
+        ),
+      );
+      final tap = tester.widget<TextButton>(find.byType(TextButton)).onPressed;
+      final errors = <Object>[];
+      runZonedGuarded(() {
+        gate = Completer<void>();
+        tap?.call();
+        tap?.call();
+        tap?.call();
+      }, (e, _) => errors.add(e));
+      gate.completeError(StateError('boom'));
+      await tester.pump();
+      check(errors).length.equals(1);
+    });
   });
 
   group('AsyncButton callbacks', () {
@@ -366,9 +393,9 @@ void main() {
       // 2. Pump with internal controller (null)
       await tester.pumpWidget(pumpHost(button(null, () => internalCalls++)));
 
-      // Driving externalController should NOT show loading because it's
-      // detached.
-      externalController.trigger();
+      // The detached externalController has no button bound: trigger()
+      // throws and runs nothing.
+      await check(externalController.trigger()).throws<StateError>();
       await tester.pump();
       check(find.byType(CircularProgressIndicator)).findsNone();
       check(
@@ -412,8 +439,9 @@ void main() {
         await tester.pumpWidget(
           pumpHost(button(b, bCompleter, () => bCalls++)),
         );
-        // The widget now listens to b: driving a must not show loading.
-        a.trigger();
+        // The widget now listens to b: a has no button bound, so trigger()
+        // throws and nothing loads.
+        await check(a.trigger()).throws<StateError>();
         await tester.pump();
         check(find.byType(CircularProgressIndicator)).findsNone();
         check(because: 'a detached controller runs nothing', aCalls).equals(0);
@@ -621,6 +649,74 @@ void main() {
       await tester.pump(ms);
       check(c).isIdle();
     });
+
+    testWidgets('unmounting mid-floor leaves an external controller loading '
+        'until its floor elapses', (tester) async {
+      final c = newController();
+      await tester.pumpWidget(pumpHost(button(c)));
+      await tester.tap(find.byType(TextButton));
+      await tester.pump(ms * 100);
+      await tester.pumpWidget(pumpHost(const SizedBox()));
+      await tester.pump(ms);
+      check(
+        because: 'the run and its floor belong to the controller',
+        c,
+      ).isLoading();
+      await tester.pump(ms * 200);
+      check(c).isIdle();
+    });
+
+    testWidgets('unmounting before the floor elapses leaves no pending timer', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        pumpHost(
+          AsyncButton(
+            onPressed: () async {},
+            minLoadingDuration: floor,
+            builder: textBuilder,
+            child: const Text('label'),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(TextButton));
+      await tester.pump(ms * 100);
+      await tester.pumpWidget(pumpHost(const SizedBox()));
+    });
+
+    testWidgets(
+      'reset() during the floor resolves trigger() immediately with no '
+      'pending timer',
+      (tester) async {
+        final c = newController();
+        await tester.pumpWidget(pumpHost(button(c)));
+        var settled = false;
+        c.trigger().then((_) => settled = true);
+        await tester.pump(ms * 100);
+        check(settled).isFalse();
+        c.reset();
+        await tester.pump();
+        check(settled).isTrue();
+      },
+    );
+
+    testWidgets(
+      'unmounting resets controller minLoadingDuration for subsequent attach()',
+      (tester) async {
+        final c = newController();
+        await tester.pumpWidget(pumpHost(button(c)));
+        await tester.pumpWidget(pumpHost(const SizedBox()));
+        c.attach(onPressed: () async {});
+        var settled = false;
+        c.trigger().then((_) => settled = true);
+        await tester.pump();
+        check(
+          because: 'detached from the 300ms-floor widget, so no floor applies',
+          settled,
+        ).isTrue();
+        check(c).isIdle();
+      },
+    );
   });
 
   group('AsyncButton controller ownership', () {
@@ -664,7 +760,7 @@ void main() {
       check(c).isIdle();
     });
 
-    testWidgets('a controller swapped in mid-flight adopts the run', (
+    testWidgets('a controller swapped in mid-flight shows its own idle state', (
       tester,
     ) async {
       final ext = newController();
@@ -675,32 +771,45 @@ void main() {
         return onPressed();
       }
 
-      await tester.pumpWidget(
-        pumpHost(TextAsyncButton(onPressed: counted, child: const Text('Go'))),
-      );
+      Widget host(AsyncButtonController? c) => _columnOf([
+        ValueListenableBuilder<bool>(
+          valueListenable: ext,
+          builder: (_, busy, _) => Text('busy=$busy'),
+        ),
+        TextAsyncButton(
+          controller: c,
+          onPressed: counted,
+          child: const Text('Go'),
+        ),
+      ]);
+
+      await tester.pumpWidget(host(null));
       await tester.tap(find.byType(TextButton));
       await tester.pump();
 
-      await tester.pumpWidget(
-        pumpHost(
-          TextAsyncButton(
-            controller: ext,
-            onPressed: counted,
-            child: const Text('Go'),
-          ),
-        ),
-      );
-      check(ext).isLoading();
+      await tester.pumpWidget(host(ext));
+      check(tester.takeException()).isNull();
+      check(
+        because: 'the run stays with the internal controller it started on',
+        ext,
+      ).isIdle();
+      check(find.byType(CircularProgressIndicator)).findsNone();
+      check(find.text('busy=false')).findsOne();
+
       await tester.tap(find.byType(TextButton));
       await tester.pump();
-      check(calls).equals(1);
+      check(
+        because: 'a tap starts a run on the new controller',
+        calls,
+      ).equals(2);
+      check(find.text('busy=true')).findsOne();
 
       completer.complete();
       await tester.pump();
       check(ext).isIdle();
     });
 
-    testWidgets('one controller on two mounted buttons fails an assert', (
+    testWidgets('one controller on two mounted buttons throws StateError', (
       tester,
     ) async {
       final c = newController();
@@ -716,7 +825,7 @@ void main() {
       await tester.pumpWidget(
         pumpHost(Row(mainAxisSize: .min, children: [button('A'), button('B')])),
       );
-      check(tester.takeException()).isA<AssertionError>();
+      check(tester.takeException()).isA<StateError>();
     });
 
     testWidgets('external controller detaches when its button unmounts', (
@@ -735,7 +844,7 @@ void main() {
       );
       await tester.pumpWidget(pumpHost(const SizedBox()));
       check(because: 'no button is attached any more', c.canTrigger).isFalse();
-      await c.trigger();
+      await check(c.trigger()).throws<StateError>();
       check(because: 'unmounted button callback must not run', ran).equals(0);
     });
 
@@ -752,7 +861,7 @@ void main() {
       );
       await tester.pumpWidget(pumpHost(button(a)));
       await tester.pumpWidget(pumpHost(button(b)));
-      await a.trigger();
+      await check(a.trigger()).throws<StateError>();
       check(because: 'a is detached from the button', ran).equals(0);
     });
 
@@ -869,10 +978,76 @@ void main() {
         await c.trigger();
         check(ran).deepEquals(['new']);
       });
+
+      testWidgets(
+        '$name mid-run keeps the in-flight run and prevents double submit',
+        (tester) async {
+          final c = newController();
+          var runs = 0;
+          final completer = Completer<void>();
+          Future<void> work() {
+            runs++;
+            return completer.future;
+          }
+
+          await tester.pumpWidget(_columnOf([before(c, work)]));
+          await tester.tap(find.byType(ElevatedButton));
+          await tester.pump();
+          check(c).isLoading();
+          check(runs).equals(1);
+
+          await tester.pumpWidget(_columnOf([after(c, work)]));
+          check(tester.takeException()).isNull();
+          check(c).isLoading();
+          check(find.byType(CircularProgressIndicator)).findsOne();
+
+          await tester.tap(find.byType(CircularProgressIndicator));
+          await tester.pump();
+          check(runs).equals(1);
+
+          completer.complete();
+          await tester.pump();
+          check(c).isIdle();
+        },
+      );
     }
 
+    testWidgets(
+      'swapping controllers twice mid-floor leaves the run and its floor on '
+      'the first controller',
+      (tester) async {
+        final c1 = newController();
+        final c2 = newController();
+        final c3 = newController();
+        Widget host(AsyncButtonController c) => pumpHost(
+          ElevatedAsyncButton(
+            controller: c,
+            minLoadingDuration: const Duration(seconds: 5),
+            onPressed: () async {},
+            child: const Text('Go'),
+          ),
+        );
+
+        await tester.pumpWidget(host(c1));
+        await tester.tap(find.byType(ElevatedButton));
+        await tester.pump();
+        check(c1).isLoading();
+
+        for (final next in [c2, c3]) {
+          await tester.pumpWidget(host(next));
+          await tester.pump();
+          check(c1).isLoading();
+          check(next).isIdle();
+          check(find.byType(CircularProgressIndicator)).findsNone();
+        }
+
+        await tester.pump(const Duration(seconds: 5));
+        check(because: 'the floor elapsed on its own controller', c1).isIdle();
+      },
+    );
+
     testWidgets('an AnimatedSwitcher cross-fade of keyed buttons on one '
-        'controller fails an assert', (tester) async {
+        'controller throws StateError', (tester) async {
       final c = newController();
       Widget host(int k) => pumpHost(
         AnimatedSwitcher(
@@ -891,7 +1066,7 @@ void main() {
         because: 'both buttons are mounted mid-transition',
         find.byType(ElevatedButton).evaluate(),
       ).length.equals(2);
-      check(tester.takeException()).isA<AssertionError>();
+      check(tester.takeException()).isA<StateError>();
 
       await tester.pumpAndSettle();
       check(tester.takeException()).isNull();
@@ -932,8 +1107,8 @@ void main() {
       check(c.canTrigger).isTrue();
     });
 
-    testWidgets('a button swapped onto a controller another button just '
-        'adopted into does not adopt that run', (tester) async {
+    testWidgets('shifting controllers along a row mid-flight leaves the run '
+        'on its controller', (tester) async {
       final c1 = newController();
       final c2 = newController();
       final c3 = newController();
@@ -956,20 +1131,24 @@ void main() {
       await tester.pumpWidget(_columnOf([a(c2), b(c3)]));
       await tester.pump();
       check(tester.takeException()).isNull();
-      check(because: 'a keeps showing its run', c2).isLoading();
-      check(because: 'b showed no run', c3).isIdle();
-      check(find.byType(CircularProgressIndicator)).findsOne();
+      check(
+        because: 'no button drives c1, but its run is in flight',
+        c1,
+      ).isLoading();
+      check(c2).isIdle();
+      check(c3).isIdle();
+      check(find.byType(CircularProgressIndicator)).findsNone();
       await c3.trigger();
       check(bRan).equals(1);
 
       completer.complete();
       await tester.pump();
-      check(c2).isIdle();
+      check(c1).isIdle();
     });
 
     for (final MapEntry(key: name, value: parent) in _parents.entries) {
-      testWidgets('a 3-way controller rotation in a $name moves only the '
-          'shown run', (tester) async {
+      testWidgets('a 3-way controller rotation in a $name leaves each run on '
+          'its controller', (tester) async {
         final cs = [newController(), newController(), newController()];
         final ran = <int>[];
         final (:onPressed, :completer) = pendingPress();
@@ -988,21 +1167,32 @@ void main() {
         await tester.pumpWidget(buttons(1));
         await tester.pump();
         check(tester.takeException()).isNull();
-        check(because: 'button 0 keeps showing its run', cs[1]).isLoading();
-        check(because: 'button 1 showed no run', cs[2]).isIdle();
+        check(cs[0]).isLoading();
+        check(cs[1]).isIdle();
+        check(cs[2]).isIdle();
+        check(
+          because: 'button 2 now drives cs[0] and shows its run',
+          find.byType(CircularProgressIndicator),
+        ).findsOne();
+        check(find.text('0')).findsOne();
         check(find.text('1')).findsOne();
+        check(find.text('2')).findsNone();
+        var joinedDone = false;
+        final joined = cs[0].trigger().then((_) => joinedDone = true);
         await cs[2].trigger();
-        check(ran).deepEquals([1]);
+        check(because: 'busy cs[0] joins its run', ran).deepEquals([1]);
+        await tester.pump();
+        check(joinedDone).isFalse();
 
         completer.complete();
         await tester.pump();
+        await joined;
         check(cs[0]).isIdle();
-        check(cs[1]).isIdle();
       });
     }
 
-    testWidgets('removing the loading first row of an unkeyed list leaves '
-        'the other rows idle', (tester) async {
+    testWidgets('removing the loading first row of an unkeyed list keeps its '
+        'run on its controller and leaves the other rows idle', (tester) async {
       final cs = [for (var i = 0; i < 5; i++) newController()];
       final (:onPressed, :completer) = pendingPress();
       Widget rows(int from) => _columnOf([
@@ -1020,20 +1210,18 @@ void main() {
       await tester.pumpWidget(rows(1));
       await tester.pump();
       check(tester.takeException()).isNull();
-      // Unkeyed rows: the first element was showing row 0's run, so it keeps
-      // showing it under row 1's controller (a mid-flight controller swap);
-      // no other element was showing a run.
-      check([for (var i = 1; i < 5; i++) cs[i].value])
-          .deepEquals([true, false, false, false]);
+      check([for (var i = 0; i < 5; i++) cs[i].value])
+          .deepEquals([true, false, false, false, false]);
+      check(find.byType(CircularProgressIndicator)).findsNone();
 
       completer.complete();
       await tester.pump();
-      check(cs[1]).isIdle();
+      check(cs[0]).isIdle();
     });
 
     for (final loadingFirst in [true, false]) {
-      testWidgets('exchanging controllers mid-flight keeps the run with its '
-          'button (loading ${loadingFirst ? 'first' : 'second'})', (
+      testWidgets('exchanging controllers mid-flight leaves the run on its '
+          'controller (loading ${loadingFirst ? 'first' : 'second'})', (
         tester,
       ) async {
         final x = newController();
@@ -1061,9 +1249,16 @@ void main() {
         await tester.pump();
         check(tester.takeException()).isNull();
         check(
-          because: 'the loading button now drives the other controller',
-          loadingFirst ? y : x,
+          because: 'the run stays on the controller that started it',
+          loadingFirst ? x : y,
         ).isLoading();
+        check(loadingFirst ? y : x).isIdle();
+        check(
+          because: 'the button now driving the busy controller shows the run',
+          find.text(loadingFirst ? '2' : '1'),
+        ).findsNone();
+        check(find.text(loadingFirst ? '1' : '2')).findsOne();
+        check(find.byType(CircularProgressIndicator)).findsOne();
 
         completer.complete();
         await tester.pump();
@@ -1071,6 +1266,151 @@ void main() {
         check(y).isIdle();
       });
     }
+
+    testWidgets('removing an unkeyed sibling above a loading button keeps the '
+        'run on its controller', (tester) async {
+      final b = newController();
+      var runs = 0;
+      final completer = Completer<void>();
+      Future<void> save() {
+        runs++;
+        return completer.future;
+      }
+
+      Widget host({required bool show}) => _columnOf([
+        if (show)
+          TextAsyncButton(onPressed: () async {}, child: const Text('other')),
+        TextAsyncButton(
+          controller: b,
+          onPressed: save,
+          child: const Text('save'),
+        ),
+      ]);
+
+      await tester.pumpWidget(host(show: true));
+      await tester.tap(find.text('save'));
+      await tester.pump();
+      check(b).isLoading();
+
+      await tester.pumpWidget(host(show: false));
+      check(tester.takeException()).isNull();
+      check(because: 'save is still in flight', b).isLoading();
+      check(b.canTrigger).isFalse();
+      check(find.byType(CircularProgressIndicator)).findsOne();
+
+      await tester.tap(find.byType(TextButton));
+      await tester.pump();
+      check(because: 'a tap while loading is swallowed', runs).equals(1);
+
+      completer.complete();
+      await tester.pump();
+      check(b).isIdle();
+    });
+
+    testWidgets('reordering unkeyed buttons mid-flight keeps the run on its '
+        'controller', (tester) async {
+      final b = newController();
+      var runs = 0;
+      final completer = Completer<void>();
+      Future<void> save() {
+        runs++;
+        return completer.future;
+      }
+
+      Widget host({required bool swapped}) {
+        final other = TextAsyncButton(
+          onPressed: () async {},
+          child: const Text('other'),
+        );
+        final saveButton = TextAsyncButton(
+          controller: b,
+          onPressed: save,
+          child: const Text('save'),
+        );
+        return _columnOf(swapped ? [saveButton, other] : [other, saveButton]);
+      }
+
+      await tester.pumpWidget(host(swapped: false));
+      await tester.tap(find.text('save'));
+      await tester.pump();
+
+      await tester.pumpWidget(host(swapped: true));
+      check(tester.takeException()).isNull();
+      check(because: 'save is still in flight', b).isLoading();
+      check(find.text('other')).findsOne();
+      check(find.text('save')).findsNone();
+      check(
+        because: 'the spinner sits in the first slot, where save now is',
+        tester.getCenter(find.byType(CircularProgressIndicator)).dy,
+      ).isLessThan(tester.getCenter(find.text('other')).dy);
+
+      var joinedDone = false;
+      final joined = b.trigger().then((_) => joinedDone = true);
+      await tester.pump();
+      check(because: 'a trigger while loading joins the run', runs).equals(1);
+      check(joinedDone).isFalse();
+
+      completer.complete();
+      await tester.pump();
+      await joined;
+      check(b).isIdle();
+    });
+
+    Widget floorPair(
+      AsyncButtonController first,
+      AsyncButtonController second,
+    ) {
+      return _columnOf([
+        TextAsyncButton(
+          controller: first,
+          minLoadingDuration: const Duration(seconds: 2),
+          onPressed: () async {},
+          child: const Text('x'),
+        ),
+        TextAsyncButton(
+          controller: second,
+          minLoadingDuration: const Duration(milliseconds: 100),
+          onPressed: () async {},
+          child: const Text('y'),
+        ),
+      ]);
+    }
+
+    testWidgets('exchanging controllers mid-floor keeps each run on its own '
+        'controller and floor', (tester) async {
+      final a = newController();
+      final b = newController();
+      await tester.pumpWidget(floorPair(a, b));
+      await tester.tap(find.text('x'));
+      await tester.tap(find.text('y'));
+      await tester.pump();
+
+      await tester.pumpWidget(floorPair(b, a));
+      await tester.pump(const Duration(milliseconds: 300));
+      check(because: "y's 100 ms floor has elapsed on b", b).isIdle();
+      check(because: "x's 2 s floor still holds a", a).isLoading();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(a).isIdle();
+    });
+
+    testWidgets('resetting both controllers after a mid-floor exchange leaves '
+        'no pending timer', (tester) async {
+      final a = newController();
+      final b = newController();
+      await tester.pumpWidget(floorPair(a, b));
+      await tester.tap(find.text('x'));
+      await tester.tap(find.text('y'));
+      await tester.pump();
+
+      await tester.pumpWidget(floorPair(b, a));
+      a.reset();
+      b.reset();
+      await tester.pump();
+      check(a).isIdle();
+      check(b).isIdle();
+      await tester.pumpWidget(const SizedBox());
+    });
 
     testWidgets('two buttons exchanging controllers keep both bindings', (
       tester,
@@ -1104,36 +1444,45 @@ void main() {
       ).deepEquals(['first', 'second']);
     });
 
-    testWidgets('adopting a run notifies outside listeners after the frame', (
-      tester,
-    ) async {
-      final ext = newController();
-      final (:onPressed, :completer) = pendingPress();
-      Widget host(AsyncButtonController? c) => _columnOf([
-        ValueListenableBuilder<bool>(
-          valueListenable: ext,
-          builder: (_, busy, _) => Text('busy=$busy'),
-        ),
-        TextAsyncButton(
-          controller: c,
-          onPressed: onPressed,
-          child: const Text('Go'),
-        ),
-      ]);
+    testWidgets(
+      'an external controller swapped out mid-flight stays busy for outside '
+      'listeners',
+      (tester) async {
+        final ext = newController();
+        final (:onPressed, :completer) = pendingPress();
+        Widget host(AsyncButtonController? c) => _columnOf([
+          ValueListenableBuilder<bool>(
+            valueListenable: ext,
+            builder: (_, busy, _) => Text('busy=$busy'),
+          ),
+          TextAsyncButton(
+            controller: c,
+            onPressed: onPressed,
+            child: const Text('Go'),
+          ),
+        ]);
 
-      await tester.pumpWidget(host(null));
-      await tester.tap(find.byType(TextButton));
-      await tester.pump();
-      await tester.pumpWidget(host(ext));
-      check(tester.takeException()).isNull();
-      check(ext).isLoading();
-      check(find.byType(CircularProgressIndicator)).findsOne();
-      await tester.pump();
-      check(find.text('busy=true')).findsOne();
+        await tester.pumpWidget(host(ext));
+        ext.trigger();
+        await tester.pump();
+        check(find.text('busy=true')).findsOne();
 
-      completer.complete();
-      await tester.pump();
-      check(find.text('busy=false')).findsOne();
-    });
+        await tester.pumpWidget(host(null));
+        check(tester.takeException()).isNull();
+        check(because: 'its run is still in flight', ext).isLoading();
+        check(
+          because: 'the button now shows its new internal controller',
+          find.byType(CircularProgressIndicator),
+        ).findsNone();
+        await tester.pump();
+        check(find.text('busy=true')).findsOne();
+
+        completer.complete();
+        await tester.pump();
+        check(ext).isIdle();
+        await tester.pump();
+        check(find.text('busy=false')).findsOne();
+      },
+    );
   });
 }

@@ -38,17 +38,18 @@ class AsyncButtonController extends ChangeNotifier
   bool _isDisposed = false;
 
   // Run token: a run settles the loading state only while it is still the
-  // latest — reset() and adoption bump it, so an abandoned run's completion
-  // is ignored.
+  // latest — reset() bumps it, so an abandoned run's completion is ignored.
   int _run = 0;
-  Future<void>? _inFlight;
+  _Run? _inFlight;
   Object? _owner;
   Duration _minLoadingDuration = Duration.zero;
+
+  void _cancelFloor() => _inFlight?.cancelFloor();
 
   // Last binder wins; returns the owner it displaced, if any. A multi-child
   // parent inflates a replacement button before it deactivates the old one,
   // so a double mount is only detectable once the frame settles — AsyncButton
-  // checks the displaced owner then (debug only).
+  // checks the displaced owner then.
   Object? _bind(Object owner, {required AsyncCallback? onPressed}) {
     final displaced = identical(_owner, owner) ? null : _owner;
     _owner = owner;
@@ -60,6 +61,7 @@ class AsyncButtonController extends ChangeNotifier
     if (identical(_owner, owner)) {
       _owner = null;
       _onPressed = null;
+      _minLoadingDuration = Duration.zero;
     }
   }
 
@@ -68,77 +70,64 @@ class AsyncButtonController extends ChangeNotifier
   /// Exposed only so tests can drive a detached controller; [AsyncButton]
   /// binds through a library-private hook (the last button to bind wins, and
   /// a button unbinds only while it is still the owner). Not part of the
-  /// consumer-facing API.
+  /// consumer-facing API. Throws a [StateError] after [dispose].
   @visibleForTesting
-  // A named binding hook, not a property setter.
-  // ignore: use_setters_to_change_properties
   void attach({required AsyncCallback? onPressed}) {
+    _checkNotDisposed('attach');
     _onPressed = onPressed;
   }
 
-  /// Run the attached `onPressed`. No-op if already loading or if no callback
-  /// is attached.
+  /// Run the attached `onPressed`.
+  ///
+  /// While a run is in flight, starts nothing and returns that run's Future:
+  /// awaiting it waits for the run (including its `minLoadingDuration`) and
+  /// sees its error, and a dropped tap Future reports nothing extra. A run
+  /// abandoned by [reset] stays the joiner's Future. While idle and the bound
+  /// button is disabled (`enabled: false` or `onPressed: null`), returns a
+  /// completed Future without running anything; [canTrigger] reports both.
+  ///
+  /// Completes with a [StateError] after [dispose], or when no [AsyncButton]
+  /// is bound (never passed to one, or its button unmounted or switched to
+  /// another controller).
   ///
   /// If `onPressed` throws, the button returns to idle and the returned Future
   /// completes with the error; a tap's error reaches the surrounding zone (else
   /// `PlatformDispatcher.instance.onError`). A button is not the place to
   /// surface errors, so handle them in your state management.
-  Future<void> trigger() async {
-    assert(
-      ChangeNotifier.debugAssertNotDisposed(this),
-      'trigger() after dispose()',
-    );
-    final onPressed = _onPressed;
-    if (_isLoading || onPressed == null) {
-      return;
+  Future<void> trigger() {
+    if (_isDisposed) {
+      return Future.error(_disposedError('trigger'));
     }
+    final onPressed = _onPressed;
+    if (_owner == null && onPressed == null) {
+      return Future.error(
+        StateError(
+          'AsyncButtonController.trigger() called with no AsyncButton bound.',
+        ),
+      );
+    }
+    if (_inFlight case final inFlight?) {
+      return inFlight.future;
+    }
+    if (_isLoading || onPressed == null) {
+      return Future.value();
+    }
+    return _start(onPressed);
+  }
+
+  Future<void> _start(AsyncCallback onPressed) async {
     final run = ++_run;
     _setLoading(true);
-    final pending = _withFloor(onPressed, _minLoadingDuration);
-    _inFlight = pending;
+    final inFlight = _Run(onPressed, _minLoadingDuration);
+    _inFlight = inFlight;
     try {
-      await pending;
+      await inFlight.future;
     } finally {
       // Settle whether onPressed completed or threw; a throw propagates
       // through finally (trigger rethrows) so the error reaches the caller, or
       // for a tap the surrounding zone / PlatformDispatcher.instance.onError.
       _settle(run);
     }
-  }
-
-  // onPressed runs inside the try so a synchronous throw still awaits the
-  // floor and settles.
-  static Future<void> _withFloor(
-    AsyncCallback onPressed,
-    Duration floor,
-  ) async {
-    final minimum = floor > Duration.zero ? Future<void>.delayed(floor) : null;
-    try {
-      await onPressed();
-    } finally {
-      if (minimum != null) {
-        await minimum;
-      }
-    }
-  }
-
-  // Runs in didUpdateWidget, i.e. during build: notifying now would rebuild
-  // listeners outside the adopting button mid-build. The adopting button reads
-  // value in its own build; everyone else hears after the frame, unless the
-  // run settled or was reset first (those notify on their own).
-  void _adopt(Future<void> pending) {
-    final run = ++_run;
-    _inFlight = pending;
-    _isLoading = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_isDisposed && run == _run && _isLoading) {
-        notifyListeners();
-      }
-    });
-    pending.then<void>(
-      (_) => _settle(run),
-      onError: (Object _) => _settle(run),
-    );
   }
 
   void _settle(int run) {
@@ -152,16 +141,28 @@ class AsyncButtonController extends ChangeNotifier
   ///
   /// The button re-arms at once — an escape hatch for a hung future. The
   /// abandoned run's completion no longer touches the loading state, and a tap
-  /// after [reset] is a deliberate new run.
+  /// after [reset] is a deliberate new run. Throws a [StateError] after
+  /// [dispose].
   void reset() {
+    _checkNotDisposed('reset');
     _run++;
+    _cancelFloor();
     _inFlight = null;
     _setLoading(false);
   }
 
-  /// Notifying mutation point (only [_adopt] writes silently). Dedupes (like
-  /// the former [ValueNotifier]) so listeners fire only on a real change, and
-  /// never notifies after [dispose].
+  void _checkNotDisposed(String method) {
+    if (_isDisposed) {
+      throw _disposedError(method);
+    }
+  }
+
+  StateError _disposedError(String method) =>
+      StateError('AsyncButtonController.$method() called after dispose().');
+
+  /// The only mutation point of [value]. Dedupes (like the former
+  /// [ValueNotifier]) so listeners fire only on a real change, and never
+  /// notifies after [dispose].
   void _setLoading(bool value) {
     if (_isDisposed || _isLoading == value) {
       return;
@@ -173,8 +174,55 @@ class AsyncButtonController extends ChangeNotifier
   @override
   void dispose() {
     _isDisposed = true;
+    _cancelFloor();
     _onPressed = null;
     _owner = null;
     super.dispose();
+  }
+}
+
+// An in-flight onPressed and its minLoadingDuration floor, owned by the
+// controller that started it.
+final class _Run {
+  // The floor timer starts before onPressed runs: the floor counts from the
+  // tap. onPressed runs inside the try so a synchronous throw still awaits the
+  // floor.
+  factory(AsyncCallback onPressed, Duration floor) {
+    if (floor <= Duration.zero) {
+      return _Run._(_guard(onPressed, null), null, null);
+    }
+    final completer = Completer<void>();
+    final timer = Timer(floor, () {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    });
+    return _Run._(_guard(onPressed, completer.future), timer, completer);
+  }
+
+  new _(this.future, this._floorTimer, this._floor);
+
+  final Future<void> future;
+  final Timer? _floorTimer;
+  final Completer<void>? _floor;
+
+  void cancelFloor() {
+    _floorTimer?.cancel();
+    if (_floor case final floor? when !floor.isCompleted) {
+      floor.complete();
+    }
+  }
+
+  static Future<void> _guard(
+    AsyncCallback onPressed,
+    Future<void>? floor,
+  ) async {
+    try {
+      await onPressed();
+    } finally {
+      if (floor != null) {
+        await floor;
+      }
+    }
   }
 }

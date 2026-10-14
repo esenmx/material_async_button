@@ -239,9 +239,9 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
 
   @override
   Widget build(BuildContext context) {
-    // A collapsed extended FAB renders only its icon, so the loading view must
-    // replace the icon rather than the hidden label.
-    final collapsedIcon = _variant == .extended && !isExtended ? _icon : null;
+    // A collapsed extended FAB renders only its icon slot, so the loading view
+    // must occupy the icon slot rather than the hidden label.
+    final collapsed = _variant == .extended && !isExtended;
     final keepFootprint = _resolveMaintainSize(context);
     return AsyncButton(
       onPressed: onPressed,
@@ -249,7 +249,7 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
       controller: controller,
       loadingBuilder: _resolveLoadingBuilder(
         context,
-        _variant != .extended || collapsedIcon != null
+        _variant != .extended || collapsed
             ? .iconSize
             : (keepFootprint && _icon != null ? .fontSize : .max),
       ),
@@ -264,11 +264,11 @@ class FloatingActionAsyncButton extends AsyncMaterialButton {
               callback,
               animatedChild,
               isLoading: isLoading,
-              collapsed: collapsedIcon != null,
+              collapsed: collapsed,
               keepFootprint: keepFootprint,
             ),
           },
-      child: collapsedIcon ?? child,
+      child: collapsed ? (_icon ?? const SizedBox.shrink()) : child,
     );
   }
 

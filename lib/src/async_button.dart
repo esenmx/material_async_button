@@ -5,8 +5,8 @@ part of '../material_async_button.dart';
 /// `callback` is `null` **only** when the button is explicitly disabled
 /// (`enabled: false` or `onPressed == null`). Loading never disables the
 /// button: while loading, `callback` stays non-null so the button keeps its
-/// enabled look (the spinner is the state indicator). Taps that can't run are
-/// silently swallowed by the controller, so they never double-submit.
+/// enabled look (the spinner is the state indicator). Taps while the controller
+/// is loading are silently swallowed, so one controller never double-submits.
 // Formatter generations disagree on splitting a generalized typedef header
 // (`=` break vs `= Widget Function(`); pin one form so local dart format,
 // CI, and pana's package-config-free dart_style all leave it untouched.
@@ -77,6 +77,8 @@ class const AsyncButton({
   final bool enabled = true,
 
   /// External controller. When null, the widget creates and owns its own.
+  /// A run belongs to the controller that started it: changing [controller]
+  /// mid-run leaves the run there and shows the new controller's state.
   final AsyncButtonController? controller,
 
   /// Builds the widget shown while loading, with the [AsyncButton]'s own
@@ -110,11 +112,6 @@ class const AsyncButton({
 class _AsyncButtonState extends State<AsyncButton> {
   late AsyncButtonController controller;
 
-  // The run this button last rendered as loading. A controller swap adopts
-  // only this run: in the same rebuild an earlier sibling may already have
-  // moved another button's run into the controller this button is leaving.
-  Future<void>? _shownRun;
-
   /// The widget's `onPressed` once [AsyncButton.enabled] is applied — `null`
   /// (disabled) when `enabled: false` or `onPressed == null`. Both disable
   /// paths collapse here, so the controller and the builder callback stay in
@@ -124,8 +121,8 @@ class _AsyncButtonState extends State<AsyncButton> {
 
   /// Handed to the builder. `null` when disabled (see [effectiveOnPressed]);
   /// otherwise [AsyncButtonController.trigger]. Loading never disables the
-  /// button — trigger just no-ops while busy, so taps that can't run are
-  /// swallowed and the button keeps its enabled look.
+  /// button — while busy, trigger joins the in-flight run instead of starting
+  /// one, so taps are swallowed and the button keeps its enabled look.
   AsyncCallback? get callback =>
       effectiveOnPressed == null ? null : controller.trigger;
 
@@ -141,19 +138,17 @@ class _AsyncButtonState extends State<AsyncButton> {
   // so a double mount is reported once.
   void _bindAndCheck() {
     final displaced = controller._bind(this, onPressed: effectiveOnPressed);
-    assert(() {
-      if (displaced is _AsyncButtonState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          assert(
-            !(mounted &&
-                displaced.mounted &&
-                identical(displaced.controller, controller)),
+    if (displaced is _AsyncButtonState) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted &&
+            displaced.mounted &&
+            identical(displaced.controller, controller)) {
+          throw StateError(
             'An AsyncButtonController can drive only one mounted AsyncButton.',
           );
-        });
-      }
-      return true;
-    }(), 'schedules the debug-only double-mount check');
+        }
+      });
+    }
   }
 
   @override
@@ -168,24 +163,19 @@ class _AsyncButtonState extends State<AsyncButton> {
   void didUpdateWidget(covariant AsyncButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
-      final previous = controller;
-      final inFlight = identical(previous._inFlight, _shownRun)
-          ? _shownRun
-          : null;
-      previous
+      // A run stays with the controller that started it; the button now shows
+      // the new controller's state.
+      final previous = controller
         ..removeListener(listener)
         .._unbind(this);
+      controller = (widget.controller ?? AsyncButtonController())
+        ..addListener(listener);
+      _bindAndCheck();
       // Dispose only a controller we created ourselves — never one the caller
       // owns.
       if (oldWidget.controller == null) {
         previous.dispose();
       }
-      controller = (widget.controller ?? AsyncButtonController())
-        ..addListener(listener);
-      if (inFlight != null && !controller.value) {
-        controller._adopt(inFlight);
-      }
-      _bindAndCheck();
     } else {
       // onPressed (and enabled) can change on every parent rebuild — keep the
       // controller's copy current.
@@ -212,7 +202,8 @@ class _AsyncButtonState extends State<AsyncButton> {
   @override
   void dispose() {
     controller.removeListener(listener);
-    // Dispose only an internally-owned controller.
+    // Dispose only an internally-owned controller. An external controller's
+    // run and floor belong to it; its owner resets or disposes it.
     if (widget.controller == null) {
       controller.dispose();
     }
@@ -236,7 +227,6 @@ class _AsyncButtonState extends State<AsyncButton> {
         widget.minLoadingDuration ?? theme.minLoadingDuration ?? Duration.zero;
 
     final isLoading = controller.value;
-    _shownRun = isLoading ? controller._inFlight : null;
     // Without maintainSize the idle child is replaced outright and the button
     // may resize to fit the loading view; with it the loading view overlays
     // the invisible child.

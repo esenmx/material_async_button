@@ -296,7 +296,19 @@ class IconAsyncButton extends AsyncMaterialButton {
           isLoading: isLoading,
         );
       },
-      child: icon,
+      child: _idleIcon(context),
     );
+  }
+
+  // The icon IconButton shows when idle: only Material 3 swaps in
+  // selectedIcon. Also the loading footprint under maintainSize.
+  Widget _idleIcon(BuildContext context) {
+    if (isSelected ?? false) {
+      if (selectedIcon case final selected?
+          when Theme.of(context).useMaterial3) {
+        return selected;
+      }
+    }
+    return icon;
   }
 }

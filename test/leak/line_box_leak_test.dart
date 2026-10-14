@@ -1,9 +1,9 @@
 // MAB-B8: _ambientTextLineBox() built a TextPainter for every cache miss and
 // never disposed it. TextPainter is leak-tracked (FlutterMemoryAllocations).
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:leak_tracker_flutter_testing/leak_tracker_flutter_testing.dart';
 import 'package:material_async_button/material_async_button.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../_helpers.dart';
 

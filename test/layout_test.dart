@@ -1,8 +1,8 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '_helpers.dart';
 
@@ -221,5 +221,29 @@ void main() {
       await tester.pump();
       check(loading.width).isLessThan(idle.width);
     });
+
+    testWidgets(
+      'selected IconAsyncButton with larger selectedIcon keeps selected '
+      'footprint',
+      (tester) async {
+        final (:onPressed, :completer) = pendingPress();
+        final (:idle, :loading) = await _idleVsLoading(
+          tester,
+          IconAsyncButton(
+            onPressed: onPressed,
+            isSelected: true,
+            maintainSize: true,
+            icon: const SizedBox.square(dimension: 16),
+            selectedIcon: const SizedBox.square(dimension: 40),
+          ),
+          _iconButton,
+          pumpHost,
+        );
+        completer.complete();
+        await tester.pump();
+        check(idle.width).isGreaterThan(48);
+        check(loading).equals(idle);
+      },
+    );
   });
 }
