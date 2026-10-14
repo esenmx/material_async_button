@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:checks/checks.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '_helpers.dart';
 
@@ -23,9 +23,9 @@ void main() {
         ..has((it) => it.canTrigger, 'canTrigger').isFalse();
     });
 
-    test('trigger no-ops when no onPressed is attached', () async {
+    test('trigger() with no bound button throws StateError', () async {
       final c = newController();
-      await c.trigger();
+      await check(c.trigger()).throws<StateError>();
       check(c).isIdle();
     });
 
@@ -38,7 +38,17 @@ void main() {
       check(c.canTrigger).isFalse();
       await c.trigger().then<void>((_) {}, onError: (Object e) => err = e);
       check(ran).equals(0);
-      check(err).isA<Error>();
+      check(err).isA<StateError>();
+    });
+
+    test('reset() after dispose() throws StateError', () {
+      final c = AsyncButtonController()..dispose();
+      check(c.reset).throws<StateError>();
+    });
+
+    test('attach() after dispose() throws StateError', () {
+      final c = AsyncButtonController()..dispose();
+      check(() => c.attach(onPressed: () async {})).throws<StateError>();
     });
 
     test('reset returns to idle', () async {
@@ -75,21 +85,63 @@ void main() {
   });
 
   group('AsyncButtonController concurrency', () {
-    test('trigger is a no-op while already loading', () async {
-      var calls = 0;
+    test(
+      'trigger while loading joins the run instead of running again',
+      () async {
+        var calls = 0;
+        final completer = Completer<void>();
+        final c = attachedController(
+          onPressed: () async {
+            calls++;
+            await completer.future;
+          },
+        );
+        final first = c.trigger();
+        var joinedDone = false;
+        final joined = c.trigger().then((_) => joinedDone = true);
+        await pumpEventQueue();
+        check(c).isLoading();
+        check(because: 'the joiner waits for the run', joinedDone).isFalse();
+        completer.complete();
+        await Future.wait<void>([first, joined]);
+        check(joinedDone).isTrue();
+        check(calls).equals(1);
+      },
+    );
+
+    test('a joined trigger completes with the run error', () async {
       final completer = Completer<void>();
+      final c = attachedController(onPressed: () => completer.future);
+      final first = c.trigger();
+      final joined = c.trigger();
+      completer.completeError(StateError('boom'));
+      await check(first).throws<StateError>();
+      await check(joined).throws<StateError>();
+      check(c).isIdle();
+    });
+
+    test('after reset a joiner still waits for the abandoned run, and a new '
+        'trigger starts a new run', () async {
+      var calls = 0;
+      final abandoned = Completer<void>();
       final c = attachedController(
-        onPressed: () async {
+        onPressed: () {
           calls++;
-          await completer.future;
+          return calls == 1 ? abandoned.future : Future<void>.value();
         },
       );
-      final f1 = c.trigger();
-      final f2 = c.trigger();
-      check(c).isLoading();
-      completer.complete();
-      await Future.wait<void>([f1, f2]);
-      check(calls).equals(1);
+      final first = c.trigger();
+      var joinedDone = false;
+      final joined = c.trigger().then((_) => joinedDone = true);
+      c.reset();
+      await c.trigger();
+      check(calls).equals(2);
+      check(c).isIdle();
+      await pumpEventQueue();
+      check(joinedDone).isFalse();
+      abandoned.complete();
+      await Future.wait<void>([first, joined]);
+      check(joinedDone).isTrue();
     });
 
     test('reset mid-onPressed leaves the button idle', () async {

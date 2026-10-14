@@ -2,7 +2,8 @@
 
 [![pub package](https://img.shields.io/pub/v/material_async_button.svg)](https://pub.dev/packages/material_async_button) [![pub points](https://img.shields.io/pub/points/material_async_button)](https://pub.dev/packages/material_async_button/score) [![CI](https://github.com/esenmx/material_async_button/actions/workflows/ci.yaml/badge.svg)](https://github.com/esenmx/material_async_button/actions/workflows/ci.yaml) [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Drop-in async wrappers for Flutter Material buttons. Adds a **loading** state to
+Drop-in async wrappers for Flutter Material buttons
+(`package:material_ui/material_ui.dart`). Adds a **loading** state to
 `ElevatedButton`, `FilledButton`, `OutlinedButton`, `TextButton`, `IconButton`,
 and `FloatingActionButton` — without forcing you to build a project-wide wrapper
 widget.
@@ -23,6 +24,11 @@ label when it completes.
 flutter pub add material_async_button
 ```
 
+> **Note:** Version 4.x targets `package:material_ui/material_ui.dart`. Your app
+> must also import `package:material_ui/material_ui.dart` (migrate with
+> `dart fix --apply --code=migrate_design_widgets`); with
+> `package:flutter/material.dart`, the buttons ignore your app's `ThemeData`.
+
 ## Why
 
 Most apps end up writing their own `DefaultAsyncButton` wrapper to share a
@@ -30,7 +36,7 @@ loading widget and its transition across screens. This package gives you that
 wrapper as a [`ThemeExtension`][th] — configure once, every `*AsyncButton` picks
 it up; override per button when you need to.
 
-[th]: https://api.flutter.dev/flutter/material/ThemeExtension-class.html
+[th]: https://pub.dev/documentation/material_ui/latest/material_ui/ThemeExtension-class.html
 
 ## Material wrappers
 
@@ -159,7 +165,8 @@ ElevatedAsyncButton(
   child: const Text('Submit'),
 )
 
-controller.trigger();    // run onPressed from outside (rethrows on failure)
+controller.trigger();    // run onPressed from outside (rethrows on failure);
+                         // while busy, returns the in-flight run's Future
 controller.reset();      // force back to idle, abandoning the in-flight run
 controller.value;        // bool — true while loading (ValueListenable<bool>)
 controller.canTrigger;   // bool — true when trigger() would run (not loading, callback attached)
@@ -168,7 +175,16 @@ controller.canTrigger;   // bool — true when trigger() would run (not loading,
 `reset()` abandons the in-flight run: the button is idle and re-armed at once
 (an escape hatch for a hung future), and the abandoned run's completion is
 ignored. One controller drives one mounted button — binding it to a second
-fails a debug assertion.
+throws a `StateError` once the frame settles. `trigger()` throws a
+`StateError` when no button is bound (never passed to one, or its button
+unmounted or switched to another controller); gate on `canTrigger`. While a
+run is in flight, `trigger()` starts nothing and returns that run's Future, so
+`await controller.trigger()` waits for the real run and sees its error.
+`trigger()`, `reset()` and `attach()` throw a `StateError` after `dispose()`.
+A run belongs to the controller that started it: unmounting the button or
+switching it to another controller leaves the run, and its
+`minLoadingDuration`, on that controller until it settles, or until you
+`reset()` or `dispose()` it.
 
 ## Defaults
 

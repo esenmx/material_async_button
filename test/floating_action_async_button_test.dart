@@ -1,7 +1,7 @@
 import 'package:checks/checks.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '_helpers.dart';
 
@@ -238,6 +238,31 @@ void main() {
       await tester.pumpAndSettle();
       check(find.byIcon(Icons.add)).findsOne();
     });
+
+    testWidgets(
+      'collapsed (isExtended: false) without icon shows a non-zero-width '
+      'spinner',
+      (tester) async {
+        final (:onPressed, :completer) = pendingPress();
+        await tester.pumpWidget(
+          pumpHost(
+            FloatingActionAsyncButton.extended(
+              onPressed: onPressed,
+              isExtended: false,
+              label: const Text('Create'),
+            ),
+          ),
+        );
+        await tester.tap(find.byType(FloatingActionButton));
+        await tester.pump();
+        check(find.byType(CircularProgressIndicator)).findsOne();
+        check(loadingSpinnerSize(tester)).equals(24);
+        check(tester.getSize(find.byType(CircularProgressIndicator)).width)
+            .isGreaterThan(0);
+        completer.complete();
+        await tester.pumpAndSettle();
+      },
+    );
   });
 
   group('AsyncButtonSpinner', () {

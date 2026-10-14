@@ -1,5 +1,20 @@
 part of '../../material_async_button.dart';
 
+/// How [_DefaultLoadingSpinner] derives its dimension from the ambient theme,
+/// chosen per button shape so the loading view keeps the idle footprint.
+enum _SpinnerSize {
+  /// Text-only buttons — match the label's line-box height (its idle extent,
+  /// taller than the raw `fontSize`).
+  fontSize,
+
+  /// Icon-only buttons ([IconAsyncButton]) — match the icon size.
+  iconSize,
+
+  /// Icon + label buttons (the `.icon` constructors) — match the taller of the
+  /// icon size and the label line box, i.e. the idle row height.
+  max,
+}
+
 /// Abstract base for the Material wrapper widgets shipped with this package
 /// ([ElevatedAsyncButton], [FilledAsyncButton], [OutlinedAsyncButton],
 /// [TextAsyncButton], [IconAsyncButton], [FloatingActionAsyncButton]).
@@ -166,21 +181,6 @@ sealed class const AsyncStandardMaterialButton({
     required Widget? icon,
     required Widget label,
   });
-}
-
-/// How [_DefaultLoadingSpinner] derives its dimension from the ambient theme,
-/// chosen per button shape so the loading view keeps the idle footprint.
-enum _SpinnerSize {
-  /// Text-only buttons — match the label's line-box height (its idle extent,
-  /// taller than the raw `fontSize`).
-  fontSize,
-
-  /// Icon-only buttons ([IconAsyncButton]) — match the icon size.
-  iconSize,
-
-  /// Icon + label buttons (the `.icon` constructors) — match the taller of the
-  /// icon size and the label line box, i.e. the idle row height.
-  max,
 }
 
 double? _largest(double? a, double? b) => a == null

@@ -6,9 +6,10 @@ license: MIT
 
 # material-async-button-usage
 
-Replace a Material button with its async counterpart when `onPressed` is async —
-it shows a spinner while the future runs. Every Material param is forwarded,
-except that FAB `onPressed` is required.
+Replace a Material button (`package:material_ui/material_ui.dart`) with its
+async counterpart when `onPressed` is async — it shows a spinner while the
+future runs. Every Material param is forwarded, except that FAB `onPressed` is
+required.
 
 |Material|Async|Variants|
 |--|--|--|
@@ -58,7 +59,9 @@ controller.reset();
 ```
 
 Read-only `ValueListenable<bool>` — observe `value` (true while loading); gate UI with `canTrigger`.
-One controller per mounted button; `reset()` abandons the run (idle and re-armed at once).
+One controller per mounted button (a second mounted button throws `StateError`); `reset()` abandons the run (idle and re-armed at once).
+`trigger()` throws `StateError` when no button is bound or after `dispose()`; a disabled button makes it a no-op; while busy it returns the in-flight run's Future (await waits for the run, never starts a second).
+A run stays with the controller that started it — unmounting or switching the button's controller doesn't end it.
 
 ## Custom button — `AsyncButton`
 
