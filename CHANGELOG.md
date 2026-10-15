@@ -23,9 +23,20 @@
   `minLoadingDuration` floor: the run and its floor belong to the controller,
   which stays loading until the floor elapses or you `reset()` or `dispose()`
   it.
-- `AsyncButtonController.trigger()`, `reset()` and `attach()` throw a
-  `StateError` after `dispose()` in every build mode (3.1.0: a debug
-  assertion, and a silent no-op in release).
+- `AsyncButtonController.trigger()` and `reset()` throw a `StateError` after
+  `dispose()` in every build mode (3.1.0: a debug assertion, and a silent
+  no-op in release).
+- `AsyncButtonController.attach()` is removed. A controller runs only the
+  `onPressed` of the `AsyncButton` it is bound to; `attach()` was a test hook
+  that let a caller replace that callback behind the bound button's back.
+- `debugLineBoxCache` is no longer part of the public API.
+- The widget classes are closed: `AsyncMaterialButton` is `sealed` (like
+  `AsyncStandardMaterialButton`), and `ElevatedAsyncButton`,
+  `FilledAsyncButton`, `OutlinedAsyncButton`, `TextAsyncButton`,
+  `IconAsyncButton`, `FloatingActionAsyncButton`, `AsyncButton`,
+  `AsyncButtonTheme` and `AsyncButtonSpinner` are `final`. Compose them
+  instead of extending or implementing them. `AsyncButtonController` stays
+  open, so you can still fake it in your own tests.
 - `AsyncButtonController.trigger()` throws a `StateError` when no
   `AsyncButton` is bound — the controller was never passed to one, or its
   button unmounted or switched to another controller. In 3.1.0 it silently did
@@ -54,8 +65,10 @@
 - `FloatingActionAsyncButton.extended` with `isExtended: false` and no `icon`
   now renders the loading spinner in the icon slot instead of the collapsed
   zero-width label slot.
-- Detaching a button resets the controller's `minLoadingDuration` to
-  `Duration.zero`.
+- The `AsyncButtonTheme` docs, README and skill pass `loadingBuilder` and
+  `transitionBuilder` as top-level functions: an inline closure makes every
+  `ThemeData` built in `build()` unequal, so `MaterialApp` restarts its theme
+  animation on every rebuild.
 
 ## 3.1.0 - 2026-10-04
 

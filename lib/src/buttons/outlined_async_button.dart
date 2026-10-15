@@ -1,7 +1,7 @@
 part of '../../material_async_button.dart';
 
 /// Async-aware [OutlinedButton].
-class OutlinedAsyncButton extends AsyncStandardMaterialButton {
+final class OutlinedAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [OutlinedButton.new].
   const new({
     required super.onPressed,

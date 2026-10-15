@@ -102,10 +102,12 @@ no success or error state.
 **per-widget value → theme value → built-in fallback**.
 
 ```dart
+Widget thickSpinner(BuildContext _) => const AsyncButtonSpinner(strokeWidth: 3);
+
 ThemeData(
   extensions: [
     AsyncButtonTheme(
-      loadingBuilder: (_) => const AsyncButtonSpinner(strokeWidth: 3),
+      loadingBuilder: thickSpinner,
       // transitionBuilder: animate every button's swap — see Defaults below.
       maintainSize: true, // keep the idle footprint while loading
       minLoadingDuration: const Duration(milliseconds: 300), // anti-flicker
@@ -113,6 +115,12 @@ ThemeData(
   ],
 )
 ```
+
+Pass `loadingBuilder` and `transitionBuilder` as top-level or static
+functions, not inline closures. Two closures are never equal, so a
+`ThemeData` built in `build()` with an inline closure differs on every
+rebuild, and `MaterialApp` restarts its 200 ms theme animation each time.
+Per-widget builders aren't affected.
 
 - `maintainSize` (default `false`) overlays the loading view on the invisible
   idle child, so the button keeps its idle size — no width jump. `.icon`
@@ -169,7 +177,7 @@ controller.trigger();    // run onPressed from outside (rethrows on failure);
                          // while busy, returns the in-flight run's Future
 controller.reset();      // force back to idle, abandoning the in-flight run
 controller.value;        // bool — true while loading (ValueListenable<bool>)
-controller.canTrigger;   // bool — true when trigger() would run (not loading, callback attached)
+controller.canTrigger;   // bool — true when trigger() would run (not loading, bound to an enabled button)
 ```
 
 `reset()` abandons the in-flight run: the button is idle and re-armed at once
@@ -180,7 +188,7 @@ throws a `StateError` once the frame settles. `trigger()` throws a
 unmounted or switched to another controller); gate on `canTrigger`. While a
 run is in flight, `trigger()` starts nothing and returns that run's Future, so
 `await controller.trigger()` waits for the real run and sees its error.
-`trigger()`, `reset()` and `attach()` throw a `StateError` after `dispose()`.
+`trigger()` and `reset()` throw a `StateError` after `dispose()`.
 A run belongs to the controller that started it: unmounting the button or
 switching it to another controller leaves the run, and its
 `minLoadingDuration`, on that controller until it settles, or until you

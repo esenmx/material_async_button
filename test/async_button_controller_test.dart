@@ -29,12 +29,17 @@ void main() {
       check(c).isIdle();
     });
 
-    test('trigger() after dispose() never runs onPressed', () async {
+    testWidgets('trigger() after dispose() never runs onPressed', (
+      tester,
+    ) async {
       var ran = 0;
       Object? err;
-      final c = AsyncButtonController()
-        ..attach(onPressed: () async => ran++)
-        ..dispose();
+      final c = await boundController(
+        tester,
+        c: AsyncButtonController(),
+        onPressed: () async => ran++,
+      );
+      c.dispose();
       check(c.canTrigger).isFalse();
       await c.trigger().then<void>((_) {}, onError: (Object e) => err = e);
       check(ran).equals(0);
@@ -46,15 +51,13 @@ void main() {
       check(c.reset).throws<StateError>();
     });
 
-    test('attach() after dispose() throws StateError', () {
-      final c = AsyncButtonController()..dispose();
-      check(() => c.attach(onPressed: () async {})).throws<StateError>();
-    });
-
-    test('reset returns to idle', () async {
+    testWidgets('reset returns to idle', (tester) async {
       final completer = Completer<void>();
-      final c = attachedController(onPressed: () => completer.future)
-        ..trigger();
+      final c = await boundController(
+        tester,
+        onPressed: () => completer.future,
+      );
+      c.trigger();
       check(c).isLoading();
       c.reset();
       check(c).isIdle();
@@ -63,18 +66,23 @@ void main() {
   });
 
   group('AsyncButtonController.trigger', () {
-    test('successful run traces loading -> idle', () async {
-      final c = attachedController(
-        onPressed: () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    testWidgets('successful run traces loading -> idle', (tester) async {
+      const delay = Duration(milliseconds: 20);
+      final c = await boundController(
+        tester,
+        onPressed: () => Future<void>.delayed(delay),
       );
       final states = recordStates(c);
-      await c.trigger();
+      final run = c.trigger();
+      await tester.pump(delay);
+      await run;
       check(states).deepEquals([true, false]);
       check(c).isIdle();
     });
 
-    test('failing run resets to idle and rethrows', () async {
-      final c = attachedController(
+    testWidgets('failing run resets to idle and rethrows', (tester) async {
+      final c = await boundController(
+        tester,
         onPressed: () async => throw StateError('oops'),
       );
       final states = recordStates(c);
@@ -85,33 +93,37 @@ void main() {
   });
 
   group('AsyncButtonController concurrency', () {
-    test(
-      'trigger while loading joins the run instead of running again',
-      () async {
-        var calls = 0;
-        final completer = Completer<void>();
-        final c = attachedController(
-          onPressed: () async {
-            calls++;
-            await completer.future;
-          },
-        );
-        final first = c.trigger();
-        var joinedDone = false;
-        final joined = c.trigger().then((_) => joinedDone = true);
-        await pumpEventQueue();
-        check(c).isLoading();
-        check(because: 'the joiner waits for the run', joinedDone).isFalse();
-        completer.complete();
-        await Future.wait<void>([first, joined]);
-        check(joinedDone).isTrue();
-        check(calls).equals(1);
-      },
-    );
-
-    test('a joined trigger completes with the run error', () async {
+    testWidgets('trigger while loading joins the run instead of running '
+        'again', (tester) async {
+      var calls = 0;
       final completer = Completer<void>();
-      final c = attachedController(onPressed: () => completer.future);
+      final c = await boundController(
+        tester,
+        onPressed: () async {
+          calls++;
+          await completer.future;
+        },
+      );
+      final first = c.trigger();
+      var joinedDone = false;
+      final joined = c.trigger().then((_) => joinedDone = true);
+      await tester.pump();
+      check(c).isLoading();
+      check(because: 'the joiner waits for the run', joinedDone).isFalse();
+      completer.complete();
+      await Future.wait<void>([first, joined]);
+      check(joinedDone).isTrue();
+      check(calls).equals(1);
+    });
+
+    testWidgets('a joined trigger completes with the run error', (
+      tester,
+    ) async {
+      final completer = Completer<void>();
+      final c = await boundController(
+        tester,
+        onPressed: () => completer.future,
+      );
       final first = c.trigger();
       final joined = c.trigger();
       completer.completeError(StateError('boom'));
@@ -120,11 +132,12 @@ void main() {
       check(c).isIdle();
     });
 
-    test('after reset a joiner still waits for the abandoned run, and a new '
-        'trigger starts a new run', () async {
+    testWidgets('after reset a joiner still waits for the abandoned run, and a '
+        'new trigger starts a new run', (tester) async {
       var calls = 0;
       final abandoned = Completer<void>();
-      final c = attachedController(
+      final c = await boundController(
+        tester,
         onPressed: () {
           calls++;
           return calls == 1 ? abandoned.future : Future<void>.value();
@@ -137,16 +150,19 @@ void main() {
       await c.trigger();
       check(calls).equals(2);
       check(c).isIdle();
-      await pumpEventQueue();
+      await tester.pump();
       check(joinedDone).isFalse();
       abandoned.complete();
       await Future.wait<void>([first, joined]);
       check(joinedDone).isTrue();
     });
 
-    test('reset mid-onPressed leaves the button idle', () async {
+    testWidgets('reset mid-onPressed leaves the button idle', (tester) async {
       final completer = Completer<void>();
-      final c = attachedController(onPressed: () => completer.future);
+      final c = await boundController(
+        tester,
+        onPressed: () => completer.future,
+      );
       final f = c.trigger();
       check(c).isLoading();
       c.reset();
@@ -155,30 +171,39 @@ void main() {
       check(c).isIdle();
     });
 
-    test('disposing during onPressed does not throw on completion', () async {
+    testWidgets('disposing during onPressed does not throw on completion', (
+      tester,
+    ) async {
       final completer = Completer<void>();
-      final c = AsyncButtonController()
-        ..attach(onPressed: () => completer.future);
+      final c = await boundController(
+        tester,
+        c: AsyncButtonController(),
+        onPressed: () => completer.future,
+      );
       final f = c.trigger();
       check(c).isLoading();
       c.dispose();
       completer.complete();
       await f;
-      // Should complete without FlutterError/AssertionError from notifyListeners
     });
   });
 
   group('AsyncButtonController interop', () {
     testWidgets('exposes a ValueListenable<bool>', (tester) async {
       final completer = Completer<void>();
-      final c = attachedController(onPressed: () => completer.future);
+      final c = newController();
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: ValueListenableBuilder<bool>(
-            valueListenable: c,
-            builder: (context, isLoading, child) =>
-                Text(isLoading ? 'loading' : 'idle', textDirection: .ltr),
+        pumpHost(
+          Column(
+            children: [
+              boundButton(c, () => completer.future),
+              ValueListenableBuilder<bool>(
+                valueListenable: c,
+                builder: (context, isLoading, child) =>
+                    Text(isLoading ? 'loading' : 'idle'),
+              ),
+            ],
           ),
         ),
       );

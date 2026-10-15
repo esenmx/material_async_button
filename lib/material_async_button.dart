@@ -9,6 +9,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:material_async_button/src/line_box.dart';
 import 'package:material_ui/material_ui.dart';
 
 part 'src/async_button.dart';
