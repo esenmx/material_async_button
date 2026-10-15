@@ -9,10 +9,10 @@ and `FloatingActionButton` — without forcing you to build a project-wide wrapp
 widget.
 
 ```dart
-ElevatedAsyncButton(
-  onPressed: api.save,
+Widget saveButton(AsyncCallback save) => ElevatedAsyncButton(
+  onPressed: save,
   child: const Text('Save'),
-)
+);
 ```
 
 That's it. The button shows a spinner while `save()` runs and returns to its
@@ -70,6 +70,7 @@ no success or error state.
   and a `controller.trigger()` caller gets a rejected Future. Handle it where it
   belongs:
 
+  <!-- no-compile -->
   ```dart
   // Typical: your notifier/repository absorbs the failure internally
   // (e.g. AsyncValue.guard), so onPressed never throws.
@@ -104,7 +105,7 @@ no success or error state.
 ```dart
 Widget thickSpinner(BuildContext _) => const AsyncButtonSpinner(strokeWidth: 3);
 
-ThemeData(
+final theme = ThemeData(
   extensions: [
     AsyncButtonTheme(
       loadingBuilder: thickSpinner,
@@ -113,7 +114,7 @@ ThemeData(
       minLoadingDuration: const Duration(milliseconds: 300), // anti-flicker
     ),
   ],
-)
+);
 ```
 
 Pass `loadingBuilder` and `transitionBuilder` as top-level or static
@@ -143,15 +144,14 @@ instead.
 wrappers fit. The builder receives whether the button is loading:
 
 ```dart
-AsyncButton(
+Widget goButton(AsyncCallback doWork) => AsyncButton(
   onPressed: doWork,
   child: const Text('Go'),
-  builder: (context, child, callback, isLoading) => MyButton(
+  builder: (context, child, callback, isLoading) => InkWell(
     onTap: callback,
-    color: isLoading ? Colors.grey : Colors.indigo,
-    child: child,
+    child: Ink(color: isLoading ? Colors.grey : Colors.indigo, child: child),
   ),
-)
+);
 ```
 
 ## External control
@@ -163,15 +163,19 @@ reactions, and tests.
 ```dart
 final controller = AsyncButtonController();   // dispose like any ChangeNotifier
 
-TextField(
-  textInputAction: .done,
-  onSubmitted: (_) => controller.trigger(),
-)
-ElevatedAsyncButton(
-  controller: controller,
-  onPressed: submit,
-  child: const Text('Submit'),
-)
+Widget form(AsyncCallback submit) => Column(
+  children: [
+    TextField(
+      textInputAction: .done,
+      onSubmitted: (_) => controller.trigger(),
+    ),
+    ElevatedAsyncButton(
+      controller: controller,
+      onPressed: submit,
+      child: const Text('Submit'),
+    ),
+  ],
+);
 
 controller.trigger();    // run onPressed from outside (rethrows on failure);
                          // while busy, returns the in-flight run's Future
@@ -223,8 +227,8 @@ the child — pass a `transitionBuilder`. The child is already keyed by loading
 state, so an `AnimatedSwitcher` inside an `AnimatedSize` is all it takes:
 
 ```dart
-ElevatedAsyncButton(
-  onPressed: api.save,
+Widget saveButton(AsyncCallback save) => ElevatedAsyncButton(
+  onPressed: save,
   transitionBuilder: (context, child, isLoading) => AnimatedSize(
     duration: const Duration(milliseconds: 200),
     child: AnimatedSwitcher(
@@ -233,7 +237,7 @@ ElevatedAsyncButton(
     ),
   ),
   child: const Text('Save'),
-)
+);
 ```
 
 Set `transitionBuilder` on `AsyncButtonTheme` to animate every button at once.

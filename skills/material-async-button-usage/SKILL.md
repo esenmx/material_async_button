@@ -21,7 +21,8 @@ required.
 |`FloatingActionButton`|`FloatingActionAsyncButton`|`.small` `.large` `.extended`|
 
 ```dart
-ElevatedAsyncButton(onPressed: notifier.save, child: const Text('Save'))
+Widget saveButton(AsyncCallback save) =>
+    ElevatedAsyncButton(onPressed: save, child: const Text('Save'));
 ```
 
 Loading-only — no success/error state. Loading never disables the button;
@@ -40,11 +41,11 @@ Widget thickSpinner(BuildContext _) => const AsyncButtonSpinner(
   semanticsLabel: 'Loading', // screen readers (defaults to 'Loading')
 );
 
-AsyncButtonTheme(
+final theme = AsyncButtonTheme(
   loadingBuilder: thickSpinner, // a tear-off, never an inline closure
   maintainSize: true, // keep the idle footprint — no width jump
   minLoadingDuration: const Duration(milliseconds: 300), // anti-flicker floor
-)
+);
 ```
 
 Theme builders must be top-level or static functions: an inline closure makes
@@ -58,7 +59,11 @@ swap with `transitionBuilder` (wrap `child` in `AnimatedSwitcher` + `AnimatedSiz
 
 ```dart
 final controller = AsyncButtonController(); // dispose like a ChangeNotifier
-ElevatedAsyncButton(controller: controller, onPressed: submit, child: ...)
+Widget submitButton(AsyncCallback submit) => ElevatedAsyncButton(
+  controller: controller,
+  onPressed: submit,
+  child: const Text('Submit'),
+);
 
 controller.trigger(); // run onPressed externally (e.g. form "Done")
 controller.reset();
@@ -74,12 +79,12 @@ A run stays with the controller that started it — unmounting or switching the 
 Only when no wrapper fits:
 
 ```dart
-AsyncButton(
+Widget goButton(AsyncCallback doWork) => AsyncButton(
   onPressed: doWork,
   child: const Text('Go'),
   builder: (context, child, callback, isLoading) =>
-      MyButton(onTap: callback, child: child),
-)
+      InkWell(onTap: callback, child: child),
+);
 ```
 
 ## Don't
