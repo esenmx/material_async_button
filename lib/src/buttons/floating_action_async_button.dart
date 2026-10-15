@@ -8,7 +8,7 @@ const Object _defaultHeroTag = _DefaultHeroTag();
 
 /// Async-aware [FloatingActionButton]. While `onPressed` is running the child
 /// (or label, for `.extended`) is swapped for the loading widget.
-class FloatingActionAsyncButton extends AsyncMaterialButton {
+final class FloatingActionAsyncButton extends AsyncMaterialButton {
   /// Mirrors [FloatingActionButton.new].
   const new({
     required super.onPressed,

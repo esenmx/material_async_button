@@ -2,7 +2,7 @@ part of '../../material_async_button.dart';
 
 /// Async-aware [ElevatedButton]. While `onPressed` is running the label is
 /// swapped for the loading widget.
-class ElevatedAsyncButton extends AsyncStandardMaterialButton {
+final class ElevatedAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [ElevatedButton.new].
   const new({
     required super.onPressed,

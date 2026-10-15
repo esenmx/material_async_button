@@ -11,7 +11,7 @@ enum _IconButtonVariant { standard, filled, filledTonal, outlined }
 /// Pass a [tooltip] to keep the button's label for screen readers: while
 /// loading the [icon] is replaced by the spinner, which announces "Loading",
 /// and the tooltip keeps the idle label.
-class IconAsyncButton extends AsyncMaterialButton {
+final class IconAsyncButton extends AsyncMaterialButton {
   /// Mirrors [IconButton.new].
   const new({
     required super.onPressed,

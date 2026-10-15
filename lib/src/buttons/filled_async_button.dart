@@ -5,7 +5,7 @@ enum _FilledButtonVariant { primary, tonal }
 /// Async-aware [FilledButton] with all four Material 3 flavors:
 /// [FilledAsyncButton.new], [FilledAsyncButton.tonal],
 /// [FilledAsyncButton.icon], [FilledAsyncButton.tonalIcon].
-class FilledAsyncButton extends AsyncStandardMaterialButton {
+final class FilledAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [FilledButton.new].
   const new({
     required super.onPressed,

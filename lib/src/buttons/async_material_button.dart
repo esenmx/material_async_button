@@ -15,16 +15,17 @@ enum _SpinnerSize {
   max,
 }
 
-/// Abstract base for the Material wrapper widgets shipped with this package
+/// Sealed base for the Material wrapper widgets shipped with this package
 /// ([ElevatedAsyncButton], [FilledAsyncButton], [OutlinedAsyncButton],
 /// [TextAsyncButton], [IconAsyncButton], [FloatingActionAsyncButton]).
 ///
 /// Owns the shared async surface — [onPressed], [controller], and the
 /// theme-override knobs. Direct subclasses ([IconAsyncButton],
 /// [FloatingActionAsyncButton]) implement [build] and forward these fields to
-/// an [AsyncButton]; [AsyncStandardMaterialButton] provides it. For custom
-/// non-Material buttons reach for [AsyncButton] directly.
-abstract class const AsyncMaterialButton({
+/// an [AsyncButton]; [AsyncStandardMaterialButton] provides it. The six
+/// wrappers are the whole hierarchy; for custom non-Material buttons compose
+/// [AsyncButton] directly.
+sealed class const AsyncMaterialButton({
   /// See [AsyncButton.child].
   required final Widget child,
 
@@ -199,9 +200,9 @@ class const _DefaultLoadingSpinner(final _SpinnerSize sizing)
   Widget build(BuildContext context) {
     final iconSize = IconTheme.of(context).size;
     final dimension = switch (sizing) {
-      .fontSize => _ambientTextLineBox(context),
+      .fontSize => ambientTextLineBox(context),
       .iconSize => iconSize,
-      .max => _largest(iconSize, _ambientTextLineBox(context)),
+      .max => _largest(iconSize, ambientTextLineBox(context)),
     };
     // A null dimension (icon-only with an unset icon size) lets
     // AsyncButtonSpinner fall back to the ambient line box.
