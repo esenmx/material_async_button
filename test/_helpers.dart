@@ -70,8 +70,8 @@ Future<void> tapIntoLoading(WidgetTester tester, Finder finder) async {
 }
 
 /// A fresh [AsyncButtonController] that auto-disposes at test teardown — for
-/// tests that hand the controller to a widget (which attaches `onPressed`
-/// itself). Use [attachedController] when driving a detached controller.
+/// tests that hand the controller to a widget (which binds `onPressed`
+/// itself). Use [boundController] when only the controller is under test.
 AsyncButtonController newController() {
   final c = AsyncButtonController();
   addTearDown(c.dispose);
@@ -86,12 +86,26 @@ AsyncButtonController mountedController(WidgetTester tester) {
       as AsyncButtonController;
 }
 
-/// Controller pre-attached with `onPressed`, for driving it detached from any
-/// widget. Auto-disposes.
-AsyncButtonController attachedController({AsyncCallback? onPressed}) {
-  final c = AsyncButtonController()..attach(onPressed: onPressed);
-  addTearDown(c.dispose);
-  return c;
+/// A minimal [AsyncButton] running [onPressed] through [c].
+Widget boundButton(AsyncButtonController c, AsyncCallback onPressed) {
+  return AsyncButton(
+    controller: c,
+    onPressed: onPressed,
+    builder: textBuilder,
+    child: const Text('go'),
+  );
+}
+
+/// Mounts a [boundButton] for [c] (a fresh auto-disposing controller when
+/// null) and returns the bound controller.
+Future<AsyncButtonController> boundController(
+  WidgetTester tester, {
+  required AsyncCallback onPressed,
+  AsyncButtonController? c,
+}) async {
+  final controller = c ?? newController();
+  await tester.pumpWidget(pumpHost(boundButton(controller, onPressed)));
+  return controller;
 }
 
 /// Builder that renders a [TextButton] driven by the AsyncButton callback.

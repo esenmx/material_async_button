@@ -701,17 +701,17 @@ void main() {
     );
 
     testWidgets(
-      'unmounting resets controller minLoadingDuration for subsequent attach()',
+      'a controller moved to a button without a floor runs with no floor',
       (tester) async {
         final c = newController();
         await tester.pumpWidget(pumpHost(button(c)));
         await tester.pumpWidget(pumpHost(const SizedBox()));
-        c.attach(onPressed: () async {});
+        await tester.pumpWidget(pumpHost(button(c, minLoadingDuration: null)));
         var settled = false;
         c.trigger().then((_) => settled = true);
         await tester.pump();
         check(
-          because: 'detached from the 300ms-floor widget, so no floor applies',
+          because: 'the floor comes from the bound button',
           settled,
         ).isTrue();
         check(c).isIdle();

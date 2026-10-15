@@ -10,28 +10,38 @@ part of '../material_async_button.dart';
 /// fallback ([empty]) shows the default spinner and nothing else.
 ///
 /// ```dart
+/// Widget thickSpinner(BuildContext _) =>
+///     const AsyncButtonSpinner(strokeWidth: 3);
+///
 /// MaterialApp(
 ///   theme: ThemeData(
-///     extensions: [
-///       AsyncButtonTheme(
-///         loadingBuilder: (_) => const AsyncButtonSpinner(strokeWidth: 3),
-///       ),
-///     ],
+///     extensions: [AsyncButtonTheme(loadingBuilder: thickSpinner)],
 ///   ),
 /// )
 /// ```
+///
+/// Pass [loadingBuilder] and [transitionBuilder] as top-level or static
+/// functions. Closures compare by identity, so an inline closure makes every
+/// [ThemeData] built in `build()` unequal and `MaterialApp` restarts its theme
+/// animation on every rebuild.
 @immutable
-class const AsyncButtonTheme({
+final class const AsyncButtonTheme({
   /// Builds the widget shown in place of the button's child while the future is
   /// in flight. Falls back to an [AsyncButtonSpinner] when null. The spinner
   /// inherits the button's foreground; return `AsyncButtonSpinner(color: ...)`
   /// to recolour it.
+  ///
+  /// Pass a top-level or static function: an inline closure is unequal to the
+  /// one built on the next rebuild, which restarts the app's theme animation.
   final WidgetBuilder? loadingBuilder,
 
   /// Wraps the state widget to animate the idle ⇄ loading swap. `null` by
   /// default — the button performs no animation of its own. See
   /// [AsyncButtonTransitionBuilder] for plugging in an [AnimatedSwitcher] /
   /// [AnimatedSize].
+  ///
+  /// Pass a top-level or static function: an inline closure is unequal to the
+  /// one built on the next rebuild, which restarts the app's theme animation.
   final AsyncButtonTransitionBuilder? transitionBuilder,
 
   /// Whether the loading view overlays the invisible idle child instead of
@@ -113,57 +123,6 @@ class const AsyncButtonTheme({
   }
 }
 
-// Bounded cache to prevent thrashing between multiple button styles on screen,
-// while avoiding unbounded memory growth in apps with dynamic text styles.
-typedef _LineBoxKey = (TextStyle, TextDirection, TextScaler);
-final _lineBoxCache = <_LineBoxKey, double>{};
-
-// A font that loads after a style was measured (google_fonts, FontLoader)
-// changes its line box; the cache is cleared on every system font change.
-var _lineBoxCacheListensToFonts = false;
-
-/// The bounded line-box cache. Exposed only so tests can assert its capacity
-/// and LRU eviction. Not part of the consumer-facing API.
-@visibleForTesting
-Map<(TextStyle, TextDirection, TextScaler), double> get debugLineBoxCache =>
-    _lineBoxCache;
-
-/// The single-line height of the ambient label style at [context] — the
-/// vertical extent a one-line [Text] occupies here. The default spinner sizes
-/// to this (the idle content's *line box*, which is taller than the raw
-/// `fontSize`) so the button keeps its idle height while loading instead of
-/// shrinking. Honours the ambient [TextScaler], matching how the label scales.
-double _ambientTextLineBox(BuildContext context) {
-  if (!_lineBoxCacheListensToFonts) {
-    _lineBoxCacheListensToFonts = true;
-    PaintingBinding.instance.systemFonts.addListener(_lineBoxCache.clear);
-  }
-  final style = DefaultTextStyle.of(context).style;
-  final textDirection = Directionality.of(context);
-  final textScaler = MediaQuery.textScalerOf(context);
-  final key = (style, textDirection, textScaler);
-
-  final cached = _lineBoxCache.remove(key);
-  if (cached != null) {
-    _lineBoxCache[key] = cached;
-    return cached;
-  }
-
-  if (_lineBoxCache.length >= 16) {
-    _lineBoxCache.remove(_lineBoxCache.keys.first);
-  }
-
-  final painter = TextPainter(
-    text: TextSpan(text: '', style: style),
-    textDirection: textDirection,
-    textScaler: textScaler,
-  )..layout();
-  final lineBox = painter.preferredLineHeight;
-  painter.dispose();
-
-  return _lineBoxCache[key] = lineBox;
-}
-
 /// The default loading indicator — a sized, indeterminate
 /// [CircularProgressIndicator]. Used as the fallback loading view, and exposed
 /// so you can tweak it and return it from a `loadingBuilder`:
@@ -175,7 +134,7 @@ double _ambientTextLineBox(BuildContext context) {
 ///   child: const Text('Save'),
 /// )
 /// ```
-class const AsyncButtonSpinner({
+final class const AsyncButtonSpinner({
   /// Indicator colour. When null, inherits the button's foreground (its
   /// enabled foreground while loading), falling back to [ColorScheme.primary]
   /// outside any button.
@@ -209,7 +168,7 @@ class const AsyncButtonSpinner({
         color ??
         IconTheme.of(context).color ??
         Theme.of(context).colorScheme.primary;
-    final dimension = size ?? _ambientTextLineBox(context);
+    final dimension = size ?? ambientTextLineBox(context);
     return Center(
       widthFactor: 1,
       heightFactor: 1,

@@ -35,15 +35,21 @@ state management, not the button.
 ## Theme (once)
 
 ```dart
+Widget thickSpinner(BuildContext _) => const AsyncButtonSpinner(
+  strokeWidth: 3,
+  semanticsLabel: 'Loading', // screen readers (defaults to 'Loading')
+);
+
 AsyncButtonTheme(
-  loadingBuilder: (_) => const AsyncButtonSpinner(
-    strokeWidth: 3,
-    semanticsLabel: 'Loading', // screen readers (defaults to 'Loading')
-  ),
+  loadingBuilder: thickSpinner, // a tear-off, never an inline closure
   maintainSize: true, // keep the idle footprint — no width jump
   minLoadingDuration: const Duration(milliseconds: 300), // anti-flicker floor
 )
 ```
+
+Theme builders must be top-level or static functions: an inline closure makes
+each rebuilt `ThemeData` unequal, so `MaterialApp` re-animates the theme on
+every rebuild.
 
 Per-button props win. No styling knobs — that's `ButtonStyle`'s job. Animate the
 swap with `transitionBuilder` (wrap `child` in `AnimatedSwitcher` + `AnimatedSize`).

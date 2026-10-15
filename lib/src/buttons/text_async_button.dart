@@ -1,7 +1,7 @@
 part of '../../material_async_button.dart';
 
 /// Async-aware [TextButton].
-class TextAsyncButton extends AsyncStandardMaterialButton {
+final class TextAsyncButton extends AsyncStandardMaterialButton {
   /// Mirrors [TextButton.new].
   const new({
     required super.onPressed,

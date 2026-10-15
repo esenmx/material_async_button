@@ -60,7 +60,7 @@ typedef AsyncButtonTransitionBuilder =
 ///   ),
 /// )
 /// ```
-class const AsyncButton({
+final class const AsyncButton({
   /// Idle widget. Replaced by [loadingBuilder] while loading.
   required final Widget child,
 

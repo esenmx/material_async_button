@@ -61,20 +61,7 @@ class AsyncButtonController extends ChangeNotifier
     if (identical(_owner, owner)) {
       _owner = null;
       _onPressed = null;
-      _minLoadingDuration = Duration.zero;
     }
-  }
-
-  /// Sets the `onPressed` that [trigger] runs, with no owning button.
-  ///
-  /// Exposed only so tests can drive a detached controller; [AsyncButton]
-  /// binds through a library-private hook (the last button to bind wins, and
-  /// a button unbinds only while it is still the owner). Not part of the
-  /// consumer-facing API. Throws a [StateError] after [dispose].
-  @visibleForTesting
-  void attach({required AsyncCallback? onPressed}) {
-    _checkNotDisposed('attach');
-    _onPressed = onPressed;
   }
 
   /// Run the attached `onPressed`.
@@ -98,8 +85,7 @@ class AsyncButtonController extends ChangeNotifier
     if (_isDisposed) {
       return Future.error(_disposedError('trigger'));
     }
-    final onPressed = _onPressed;
-    if (_owner == null && onPressed == null) {
+    if (_owner == null) {
       return Future.error(
         StateError(
           'AsyncButtonController.trigger() called with no AsyncButton bound.',
@@ -109,6 +95,7 @@ class AsyncButtonController extends ChangeNotifier
     if (_inFlight case final inFlight?) {
       return inFlight.future;
     }
+    final onPressed = _onPressed;
     if (_isLoading || onPressed == null) {
       return Future.value();
     }

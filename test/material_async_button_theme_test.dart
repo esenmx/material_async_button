@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
+import 'package:material_async_button/src/line_box.dart';
 import 'package:material_ui/material_ui.dart';
 
 // Two distinct no-op transition builders — as with the loading builders
