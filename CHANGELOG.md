@@ -1,8 +1,6 @@
 # Changelog
 
-## Unreleased
-
-## 4.0.0 - 2026-10-14
+## 4.0.0 - 2026-10-15
 
 ### Breaking
 
@@ -36,7 +34,8 @@
   `IconAsyncButton`, `FloatingActionAsyncButton`, `AsyncButton`,
   `AsyncButtonTheme` and `AsyncButtonSpinner` are `final`. Compose them
   instead of extending or implementing them. `AsyncButtonController` stays
-  open, so you can still fake it in your own tests.
+  open: extend it, or fake it only for code that calls `trigger()`; a fake
+  that implements it can't be passed to a button.
 - `AsyncButtonController.trigger()` throws a `StateError` when no
   `AsyncButton` is bound — the controller was never passed to one, or its
   button unmounted or switched to another controller. In 3.1.0 it silently did
