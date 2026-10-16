@@ -226,9 +226,9 @@ class _HomePageState extends State<HomePage> {
           const _SectionLabel('Custom button via AsyncButton'),
           AsyncButton(
             onPressed: _simulateWork,
-            loadingBuilder: (context) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: const AsyncButtonSpinner(strokeWidth: 3),
+            loadingBuilder: (context) => const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: AsyncButtonSpinner(strokeWidth: 3),
             ),
             builder: (context, child, callback, isLoading) {
               return Material(
