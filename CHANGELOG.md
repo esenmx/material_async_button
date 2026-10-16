@@ -9,21 +9,22 @@
   public API (`ButtonStyle`, `ThemeExtension`, `IconAlignment`,
   `WidgetStatesController`, `VisualDensity`, `MaterialTapTargetSize`, etc.) now
   come from `package:material_ui/material_ui.dart`. Your app must also import
-  `package:material_ui/material_ui.dart` (`dart fix --apply --code=migrate_design_widgets`);
-  with `package:flutter/material.dart`, the buttons read `material_ui`'s default
+  `package:material_ui/material_ui.dart`
+  (`dart fix --apply --code=migrate_design_widgets`); with
+  `package:flutter/material.dart`, the buttons read `material_ui`'s default
   `Theme` and ignore your app's `ThemeData`.
 - Changing a button's `controller` mid-run no longer moves the run: it stays
   with the controller that started it, which stays loading until the run
   settles, and the button shows its new controller's state. In 3.1.0 the
-  incoming controller adopted the run, so a button swapped from no controller
-  to one mid-run now shows idle and a tap starts a new run.
+  incoming controller adopted the run, so a button swapped from no controller to
+  one mid-run now shows idle and a tap starts a new run.
 - Unmounting a button no longer cancels its external controller's
   `minLoadingDuration` floor: the run and its floor belong to the controller,
   which stays loading until the floor elapses or you `reset()` or `dispose()`
   it.
 - `AsyncButtonController.trigger()` and `reset()` throw a `StateError` after
-  `dispose()` in every build mode (3.1.0: a debug assertion, and a silent
-  no-op in release).
+  `dispose()` in every build mode (3.1.0: a debug assertion, and a silent no-op
+  in release).
 - `AsyncButtonController.attach()` is removed. A controller runs only the
   `onPressed` of the `AsyncButton` it is bound to; `attach()` was a test hook
   that let a caller replace that callback behind the bound button's back.
@@ -32,24 +33,24 @@
   `AsyncStandardMaterialButton`), and `ElevatedAsyncButton`,
   `FilledAsyncButton`, `OutlinedAsyncButton`, `TextAsyncButton`,
   `IconAsyncButton`, `FloatingActionAsyncButton`, `AsyncButton`,
-  `AsyncButtonTheme` and `AsyncButtonSpinner` are `final`. Compose them
-  instead of extending or implementing them. `AsyncButtonController` stays
-  open: extend it, or fake it only for code that calls `trigger()`; a fake
-  that implements it can't be passed to a button.
-- `AsyncButtonController.trigger()` throws a `StateError` when no
-  `AsyncButton` is bound — the controller was never passed to one, or its
-  button unmounted or switched to another controller. In 3.1.0 it silently did
-  nothing. A bound but disabled button (`enabled: false` or `onPressed: null`)
-  still makes `trigger()` a no-op.
-- `AsyncButtonController.trigger()` while a run is in flight returns that
-  run's Future instead of an already-completed one: `await trigger()` waits
-  for the run (and its `minLoadingDuration`) and sees its error, so
-  `await controller.trigger(); Navigator.pop(context);` no longer pops while
-  the save is still running. It still never starts a second run.
-- One `AsyncButtonController` bound to two mounted buttons throws a
-  `StateError` once the frame settles, in every build mode. In 3.1.0 this was a
-  debug assertion, and release builds kept last-binder-wins, so tapping one
-  button ran the other's `onPressed`.
+  `AsyncButtonTheme` and `AsyncButtonSpinner` are `final`. Compose them instead
+  of extending or implementing them. `AsyncButtonController` stays open: extend
+  it, or fake it only for code that calls `trigger()`; a fake that implements it
+  can't be passed to a button.
+- `AsyncButtonController.trigger()` throws a `StateError` when no `AsyncButton`
+  is bound — the controller was never passed to one, or its button unmounted or
+  switched to another controller. In 3.1.0 it silently did nothing. A bound but
+  disabled button (`enabled: false` or `onPressed: null`) still makes
+  `trigger()` a no-op.
+- `AsyncButtonController.trigger()` while a run is in flight returns that run's
+  Future instead of an already-completed one: `await trigger()` waits for the
+  run (and its `minLoadingDuration`) and sees its error, so
+  `await controller.trigger(); Navigator.pop(context);` no longer pops while the
+  save is still running. It still never starts a second run.
+- One `AsyncButtonController` bound to two mounted buttons throws a `StateError`
+  once the frame settles, in every build mode. In 3.1.0 this was a debug
+  assertion, and release builds kept last-binder-wins, so tapping one button ran
+  the other's `onPressed`.
 
 ### Fixed
 
@@ -59,8 +60,8 @@
   immediately without leaving pending timers or blocking `trigger()` callers.
 - `IconAsyncButton` with `maintainSize: true` and `isSelected: true` now
   overlays `selectedIcon` (when provided) instead of `icon` so the button keeps
-  its selected footprint while loading. Like `IconButton`, only Material 3
-  shows `selectedIcon`; under Material 2 a selected button shows `icon`.
+  its selected footprint while loading. Like `IconButton`, only Material 3 shows
+  `selectedIcon`; under Material 2 a selected button shows `icon`.
 - `FloatingActionAsyncButton.extended` with `isExtended: false` and no `icon`
   now renders the loading spinner in the icon slot instead of the collapsed
   zero-width label slot.
@@ -80,16 +81,16 @@
   loading view overlays the invisible idle child, so the button keeps its idle
   footprint while loading (`.icon` constructors keep their icon).
 - `minLoadingDuration` on `AsyncButtonTheme`, `AsyncButton` and every wrapper:
-  an anti-flicker floor that holds the loading view at least that long; an
-  error rethrows once the floor has elapsed.
+  an anti-flicker floor that holds the loading view at least that long; an error
+  rethrows once the floor has elapsed.
 
 ### Changed
 
 - Requires Dart 3.13 / Flutter 3.47 (was Dart 3.10 / Flutter 3.38).
 - One `AsyncButtonController` bound to two mounted buttons now fails a debug
   assertion (release builds keep last-binder-wins).
-- `AsyncButtonController.reset()` abandons the in-flight run: the button is
-  idle and re-armed at once, and the abandoned run's completion is ignored.
+- `AsyncButtonController.reset()` abandons the in-flight run: the button is idle
+  and re-armed at once, and the abandoned run's completion is ignored.
 - `onPressed: null` with an `onLongPress` keeps the button enabled for
   long-press, as in Flutter.
 - The agent skill moved to `skills/material-async-button-usage/` for
@@ -128,17 +129,22 @@
 
 - **Smarter line-box cache eviction.** The bounded text line-box cache now
   evicts only its least-recently-used entry when full, instead of clearing
-  entirely — cycling through many text styles no longer re-measures every
-  cached style.
+  entirely — cycling through many text styles no longer re-measures every cached
+  style.
 - Added test coverage for `AsyncButtonSpinner.strokeWidth`.
 
 ## 2.1.1
 
 ### Fixed
 
-- **Avoid layout cache thrashing.** Replaced the singleton `TextPainter` cache with a bounded Map. This fixes a performance issue where the cache would thrash (and incorrectly re-measure) if multiple buttons with different text styles were rendered in the same frame.
-- **Dead code warning.** Fixed a static analysis warning in `AsyncButtonTheme.lerp` by using `covariant` for the `other` parameter.
-- Added comprehensive test coverage for `AsyncButtonController` disposal during an active asynchronous operation and external controller swapping.
+- **Avoid layout cache thrashing.** Replaced the singleton `TextPainter` cache
+  with a bounded Map. This fixes a performance issue where the cache would
+  thrash (and incorrectly re-measure) if multiple buttons with different text
+  styles were rendered in the same frame.
+- **Dead code warning.** Fixed a static analysis warning in
+  `AsyncButtonTheme.lerp` by using `covariant` for the `other` parameter.
+- Added comprehensive test coverage for `AsyncButtonController` disposal during
+  an active asynchronous operation and external controller swapping.
 
 ## 2.1.0
 
@@ -147,9 +153,10 @@
 - **New `FloatingActionAsyncButton` wrapper.** Adds drop-in async loading states
   to `FloatingActionButton` with support for all four core variants: standard,
   `.small`, `.large`, and `.extended`.
-- **Improved accessibility for screen readers.** Added `semanticsLabel` parameter to
-  `AsyncButtonSpinner` (defaulting to `'Loading'`) to ensure screen readers
-  actively announce the progress of asynchronous operations when buttons are clicked.
+- **Improved accessibility for screen readers.** Added `semanticsLabel`
+  parameter to `AsyncButtonSpinner` (defaulting to `'Loading'`) to ensure screen
+  readers actively announce the progress of asynchronous operations when buttons
+  are clicked.
 
 ## 2.0.2
 
@@ -158,8 +165,8 @@
 - **Buttons no longer shrink by a sub-pixel while loading.** The default spinner
   now sizes to the label's **line-box height** (the idle content's vertical
   extent) rather than the raw `fontSize`, which is shorter than the rendered
-  line. `.icon` buttons take `max(iconSize, lineBox)`, text-only buttons take the
-  line box, icon-only buttons keep `iconSize` (unchanged). The line box is
+  line. `.icon` buttons take `max(iconSize, lineBox)`, text-only buttons take
+  the line box, icon-only buttons keep `iconSize` (unchanged). The line box is
   measured with the ambient `TextScaler`, so the loading view also tracks text
   scaling.
 
@@ -199,14 +206,15 @@ a pure complement to `ButtonStyle`.
 - **`AsyncButtonController` is now a read-only `ValueListenable<bool>`**
   (`ChangeNotifier implements ValueListenable<bool>`). There is no public
   `value` setter — drive it with `trigger()` / `reset()` and observe with
-  `addListener` / `ValueListenableBuilder<bool>`. Builders receive `bool
-  isLoading` instead of an `AsyncButtonStatus`.
+  `addListener` / `ValueListenableBuilder<bool>`. Builders receive
+  `bool isLoading` instead of an `AsyncButtonStatus`.
 - **`AsyncButtonTheme` carries only `loadingBuilder` + `transitionBuilder`.**
   `AsyncButtonTheme.empty` (spinner-only) is the sole baseline; removed
   `AsyncButtonTheme.material()`. It complements `ButtonStyle` — no styling.
 - **`disabled` flag → `enabled` (defaults to `true`).** Affirmative naming that
-  pairs with a tear-off `onPressed`. Either `enabled: false` or `onPressed: null`
-  disables — both also no-op an external `controller.trigger()`.
+  pairs with a tear-off `onPressed`. Either `enabled: false` or
+  `onPressed: null` disables — both also no-op an external
+  `controller.trigger()`.
 - **`loadingChild` (a `Widget`) → `loadingBuilder` (a `WidgetBuilder`)** on both
   the widgets and `AsyncButtonTheme`.
 - **Removed the loading-colour knobs** (`loadingForegroundColor`,
@@ -216,7 +224,7 @@ a pure complement to `ButtonStyle`.
 ### Fixed
 
 - **Loading never disables the button.** It keeps the button's themed enabled
-  colours — being loading and being *disabled* are different things. The spinner
+  colours — being loading and being _disabled_ are different things. The spinner
   inherits the enabled foreground for free (no more greyed indicator); taps that
   can't run are silently swallowed, and `onLongPress` is gated off while busy.
   The button shows the disabled look **only** when explicitly disabled via
@@ -233,8 +241,8 @@ a pure complement to `ButtonStyle`.
 ## 1.0.1
 
 - Docs: use tear-off form (`onPressed: api.save`) in README examples.
-- CI: split workflow into format/analyze/test/pana/example, add
-  tag-triggered pub.dev publish via OIDC trusted publishing.
+- CI: split workflow into format/analyze/test/pana/example, add tag-triggered
+  pub.dev publish via OIDC trusted publishing.
 
 ## 1.0.0
 
