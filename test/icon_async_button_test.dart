@@ -134,21 +134,21 @@ void main() {
           statesController: states,
           icon: const Icon(Icons.add),
         ),
-        'filled': (onPressed, states) => IconAsyncButton.filled(
+        'filled': (onPressed, states) => .filled(
           onPressed: onPressed,
           onHover: onHover,
           onLongPress: onLongPress,
           statesController: states,
           icon: const Icon(Icons.add),
         ),
-        'filledTonal': (onPressed, states) => IconAsyncButton.filledTonal(
+        'filledTonal': (onPressed, states) => .filledTonal(
           onPressed: onPressed,
           onHover: onHover,
           onLongPress: onLongPress,
           statesController: states,
           icon: const Icon(Icons.add),
         ),
-        'outlined': (onPressed, states) => IconAsyncButton.outlined(
+        'outlined': (onPressed, states) => .outlined(
           onPressed: onPressed,
           onHover: onHover,
           onLongPress: onLongPress,

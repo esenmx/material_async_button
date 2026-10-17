@@ -227,7 +227,7 @@ class _HomePageState extends State<HomePage> {
           AsyncButton(
             onPressed: _simulateWork,
             loadingBuilder: (context) => const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: .symmetric(horizontal: 16, vertical: 12),
               child: AsyncButtonSpinner(strokeWidth: 3),
             ),
             builder: (context, child, callback, isLoading) {
@@ -239,7 +239,7 @@ class _HomePageState extends State<HomePage> {
               );
             },
             child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: .symmetric(horizontal: 16, vertical: 12),
               child: Text('Custom', style: TextStyle(color: Colors.white)),
             ),
           ),
@@ -277,7 +277,7 @@ Widget _animatedSwitchSize(BuildContext context, Widget child, bool isLoading) {
 class const _SectionLabel(final String text) extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
+    padding: const .symmetric(vertical: 8),
     child: Text(text, style: Theme.of(context).textTheme.titleMedium),
   );
 }
