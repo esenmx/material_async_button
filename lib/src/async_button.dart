@@ -224,7 +224,7 @@ class _AsyncButtonState extends State<AsyncButton> {
     final transitionBuilder =
         widget.transitionBuilder ?? theme.transitionBuilder;
     controller._minLoadingDuration =
-        widget.minLoadingDuration ?? theme.minLoadingDuration ?? Duration.zero;
+        widget.minLoadingDuration ?? theme.minLoadingDuration ?? .zero;
 
     final isLoading = controller.value;
     // Without maintainSize the idle child is replaced outright and the button

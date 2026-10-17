@@ -904,7 +904,7 @@ void main() {
           child: const Text('Go'),
         ),
         (c, f) => Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const .all(8),
           child: ElevatedAsyncButton(
             key: reparentKey,
             controller: c,

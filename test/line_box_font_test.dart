@@ -43,7 +43,7 @@ void main() {
     ).readAsBytesSync();
     await tester.runAsync(() async {
       final loader = FontLoader('LateFont')
-        ..addFont(Future.value(ByteData.sublistView(bytes)));
+        ..addFont(.value(.sublistView(bytes)));
       await loader.load();
     });
     await tester.pumpWidget(const SizedBox());
