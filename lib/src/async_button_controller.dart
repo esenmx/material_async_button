@@ -42,7 +42,7 @@ class AsyncButtonController extends ChangeNotifier
   int _run = 0;
   _Run? _inFlight;
   Object? _owner;
-  Duration _minLoadingDuration = Duration.zero;
+  Duration _minLoadingDuration = .zero;
 
   void _cancelFloor() => _inFlight?.cancelFloor();
 
@@ -83,10 +83,10 @@ class AsyncButtonController extends ChangeNotifier
   /// surface errors, so handle them in your state management.
   Future<void> trigger() {
     if (_isDisposed) {
-      return Future.error(_disposedError('trigger'));
+      return .error(_disposedError('trigger'));
     }
     if (_owner == null) {
-      return Future.error(
+      return .error(
         StateError(
           'AsyncButtonController.trigger() called with no AsyncButton bound.',
         ),
@@ -97,7 +97,7 @@ class AsyncButtonController extends ChangeNotifier
     }
     final onPressed = _onPressed;
     if (_isLoading || onPressed == null) {
-      return Future.value();
+      return .value();
     }
     return _start(onPressed);
   }
@@ -175,8 +175,8 @@ final class _Run {
   // tap. onPressed runs inside the try so a synchronous throw still awaits the
   // floor.
   factory(AsyncCallback onPressed, Duration floor) {
-    if (floor <= Duration.zero) {
-      return _Run._(_guard(onPressed, null), null, null);
+    if (floor <= .zero) {
+      return ._(_guard(onPressed, null), null, null);
     }
     final completer = Completer<void>();
     final timer = Timer(floor, () {
@@ -184,7 +184,7 @@ final class _Run {
         completer.complete();
       }
     });
-    return _Run._(_guard(onPressed, completer.future), timer, completer);
+    return ._(_guard(onPressed, completer.future), timer, completer);
   }
 
   new _(this.future, this._floorTimer, this._floor);
