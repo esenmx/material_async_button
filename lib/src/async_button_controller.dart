@@ -136,6 +136,10 @@ class AsyncButtonController extends ChangeNotifier
     final inFlight = _Run(_minLoadingDuration);
     _inFlight = inFlight;
     _setLoading(true);
+    if (_isDisposed || run != _run) {
+      inFlight.abandon();
+      return;
+    }
     inFlight.start(onPressed);
     try {
       await inFlight.future;
@@ -226,6 +230,11 @@ final class _Run {
   Future<void> get future => _done.future;
 
   void start(AsyncCallback onPressed) => _done.complete(_guard(onPressed));
+
+  void abandon() {
+    cancelFloor();
+    _done.complete();
+  }
 
   void cancelFloor() {
     _floorTimer?.cancel();

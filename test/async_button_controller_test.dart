@@ -274,11 +274,35 @@ void main() {
         }
       });
       await c.trigger();
-      check(calls).equals(1);
+      check(calls).equals(0);
       check(c).isIdle();
       await c.trigger();
-      check(calls).equals(2);
+      check(calls).equals(1);
     });
+
+    testWidgets(
+      'reset then trigger from a loading listener runs onPressed once',
+      (tester) async {
+        final c = newController();
+        var calls = 0;
+        await boundController(tester, c: c, onPressed: () async => calls++);
+        var retriggered = false;
+        late final Future<void> joined;
+        c.addListener(() {
+          if (c.value && !retriggered) {
+            retriggered = true;
+            joined = c.trigger();
+            c
+              ..reset()
+              ..trigger();
+          }
+        });
+        await c.trigger();
+        await joined;
+        check(calls).equals(1);
+        check(c).isIdle();
+      },
+    );
 
     testWidgets('reset in the synchronous prefix cancels the floor', (
       tester,
