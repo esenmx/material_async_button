@@ -21,7 +21,7 @@ for the whole app.
 ## Quick start
 
 ```sh
-flutter pub add material_async_button
+flutter pub add material_async_button material_ui
 ```
 
 ```dart
@@ -41,7 +41,8 @@ it throws, the button goes back to idle and passes the error on (see
 [Errors and success](#errors-and-success-loading-only)).
 
 > **Note:** Version 4.x targets `package:material_ui/material_ui.dart`. Your app
-> must also import `package:material_ui/material_ui.dart` (migrate with
+> must also depend on `material_ui` and import
+> `package:material_ui/material_ui.dart` (migrate with
 > `dart fix --apply --code=migrate_design_widgets`); with
 > `package:flutter/material.dart`, the buttons ignore your app's `ThemeData`.
 
@@ -79,7 +80,10 @@ verbatim, with these exceptions:
 The label-button `.icon` constructors (`ElevatedAsyncButton.icon`,
 `FilledAsyncButton.icon`, etc.) drop the icon while loading and show the spinner
 alone, unless `maintainSize` is set — then the icon stays. (`IconAsyncButton`
-has no `.icon` variant — it swaps its sole icon for the spinner.)
+has no `.icon` variant — it swaps its sole icon for the spinner.) With a
+`transitionBuilder` and no `maintainSize`, the button keeps Material's icon-row
+padding and gap while loading so the swap can animate, and the spinner sits
+slightly off center wherever those are uneven, such as `iconAlignment: .end`.
 
 ### Loading never disables the button
 
@@ -193,7 +197,8 @@ affected.
   constructors keep their icon visible beside the spinner.
 - `minLoadingDuration` (default `Duration.zero`) holds the loading view at least
   that long from the tap or `controller.trigger()`, so a fast future doesn't
-  flash a spinner. An error rethrows once the floor has elapsed.
+  flash a spinner. An error rethrows once the floor has elapsed. A negative
+  duration throws an `ArgumentError` when a button using it builds.
 
 Both are also per-widget parameters on every button and on `AsyncButton`.
 
@@ -232,7 +237,11 @@ Widget form(AsyncCallback submit) => Column(
   the abandoned run's completion is ignored.
 - `controller.value` is `true` while loading.
 - `controller.canTrigger` is `true` when `trigger()` would run: not loading, and
-  bound to an enabled button.
+  bound to an enabled button. The controller notifies listeners when it changes,
+  so a `ListenableBuilder` can gate surrounding UI on it. Listeners hear a
+  change from a run at once, and one from the button (mounting, unmounting,
+  `enabled`, `onPressed`) after that frame, so a listener can fire with `value`
+  unchanged.
 
 One controller drives one mounted button — binding it to a second throws a
 `StateError` once the frame settles. When no button is bound (never passed to

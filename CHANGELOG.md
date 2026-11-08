@@ -1,5 +1,44 @@
 # Changelog
 
+## Unreleased
+
+### BREAKING
+
+- `clipBehavior` on `ElevatedAsyncButton`, `FilledAsyncButton`,
+  `OutlinedAsyncButton` and `TextAsyncButton` is now `Clip?`, and each
+  constructor has the default of the Material constructor it mirrors. A
+  `style.backgroundBuilder` or `foregroundBuilder` on `ElevatedAsyncButton.new`,
+  `OutlinedAsyncButton.new`, `OutlinedAsyncButton.icon` or `TextAsyncButton.new`
+  now clips with `Clip.antiAlias`, as Material does, instead of `Clip.none`.
+- A negative `minLoadingDuration`, per widget or from `AsyncButtonTheme`, throws
+  an `ArgumentError` when the button builds. It used to count as zero.
+- `AsyncButtonController` listeners also fire when `canTrigger` changes, so one
+  can fire with `value` unchanged. Compare `value` if you only care about
+  loading.
+
+### Fixed
+
+- `controller.canTrigger` now notifies on mount, unmount, `enabled` and
+  `onPressed` changes, after the frame, so UI gated on it updates. It used to
+  stay stale.
+- `reset()` during `onPressed`'s synchronous prefix, or from a listener as
+  loading starts, no longer leaves the controller stuck: later taps ran nothing
+  while `canTrigger` said `true`. `trigger()` in that window now joins the run
+  instead of returning a completed Future, and `reset()` or `dispose()` there
+  now cancel the `minLoadingDuration` floor.
+- `transitionBuilder` now animates on `ElevatedAsyncButton.icon`,
+  `FilledAsyncButton.icon`, `FilledAsyncButton.tonalIcon`,
+  `OutlinedAsyncButton.icon` and `TextAsyncButton.icon` without `maintainSize`.
+  Dropping the icon used to remount the label and the transition around it.
+  With a `transitionBuilder`, these buttons now keep Material's icon-row padding
+  and gap while loading, so the spinner sits off center wherever those are
+  uneven, by up to 8 pixels with `iconAlignment: .end`. Without one, the spinner
+  stays centered.
+- `AsyncButtonSpinner` docs: outside a button the colour is the ambient
+  `IconTheme` colour. The documented `ColorScheme.primary` fallback could never
+  apply and is gone.
+- README: the install line now adds `material_ui`, which Quick start imports.
+
 ## 4.0.1 - 2026-10-16
 
 ### Fixed

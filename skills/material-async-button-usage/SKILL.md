@@ -48,6 +48,8 @@ final theme = AsyncButtonTheme(
 );
 ```
 
+A negative `minLoadingDuration` throws an `ArgumentError` when a button builds.
+
 Theme builders must be top-level or static functions: an inline closure makes
 each rebuilt `ThemeData` unequal, so `MaterialApp` re-animates the theme on
 every rebuild.
@@ -70,7 +72,9 @@ controller.trigger(); // run onPressed externally (e.g. form "Done")
 ```
 
 Read-only `ValueListenable<bool>` — observe `value` (true while loading); gate
-UI with `canTrigger`. One controller per mounted button (a second mounted button
+UI with `canTrigger` in a `ListenableBuilder` (listeners also fire when it alone
+changes, post-frame for mount, unmount, `enabled` and `onPressed`, so `value`
+may be unchanged). One controller per mounted button (a second mounted button
 throws `StateError`); `reset()` abandons the run (idle and re-armed at once).
 `trigger()`'s Future fails with `StateError` when no button is bound or after
 `dispose()` (`reset()` throws after `dispose()`); a disabled button makes it a
