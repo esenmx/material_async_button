@@ -126,7 +126,167 @@ Future<({Size idle, Size loading})> _idleVsLoading(
   return (idle: idle, loading: loading);
 }
 
+/// Every wrapper constructor whose idle row shows an icon beside a label.
+final Map<String, _Build> _iconRows = {
+  'ElevatedAsyncButton.icon': (f) => ElevatedAsyncButton.icon(
+    onPressed: f,
+    transitionBuilder: _crossFade,
+    icon: _icon,
+    label: _label,
+  ),
+  'FilledAsyncButton.icon': (f) => FilledAsyncButton.icon(
+    onPressed: f,
+    transitionBuilder: _crossFade,
+    icon: _icon,
+    label: _label,
+  ),
+  'FilledAsyncButton.tonalIcon': (f) => FilledAsyncButton.tonalIcon(
+    onPressed: f,
+    transitionBuilder: _crossFade,
+    icon: _icon,
+    label: _label,
+  ),
+  'OutlinedAsyncButton.icon': (f) => OutlinedAsyncButton.icon(
+    onPressed: f,
+    transitionBuilder: _crossFade,
+    icon: _icon,
+    label: _label,
+  ),
+  'TextAsyncButton.icon': (f) => TextAsyncButton.icon(
+    onPressed: f,
+    transitionBuilder: _crossFade,
+    icon: _icon,
+    label: _label,
+  ),
+  'FloatingActionAsyncButton.extended': (f) =>
+      FloatingActionAsyncButton.extended(
+        onPressed: f,
+        transitionBuilder: _crossFade,
+        icon: _icon,
+        label: _label,
+      ),
+};
+
+const _fadeTime = Duration(milliseconds: 200);
+
+Widget _crossFade(BuildContext _, Widget child, bool _) => AnimatedSize(
+  duration: _fadeTime,
+  child: AnimatedSwitcher(duration: _fadeTime, child: child),
+);
+
 void main() {
+  group('a transitionBuilder animates the swap on icon rows', () {
+    for (final MapEntry(key: name, value: build) in _iconRows.entries) {
+      testWidgets('$name cross-fades and drops the icon', (tester) async {
+        final (:onPressed, :completer) = pendingPress();
+        await tester.pumpWidget(pumpHost(build(onPressed)));
+        final switcher = tester.state(find.byType(AnimatedSwitcher));
+
+        await tester.tap(find.text('Save'));
+        await tester.pump();
+        await tester.pump(_fadeTime ~/ 2);
+
+        check(
+          because: 'the transition must survive the swap',
+          tester.state(find.byType(AnimatedSwitcher)),
+        ).identicalTo(switcher);
+        check(find.text('Save')).findsOne();
+        check(find.byType(CircularProgressIndicator)).findsOne();
+        check(find.byIcon(Icons.save)).findsNone();
+
+        completer.complete();
+        await tester.pumpAndSettle();
+        check(tester.state(find.byType(AnimatedSwitcher)))
+            .identicalTo(switcher);
+        check(find.byIcon(Icons.save)).findsOne();
+      });
+    }
+  });
+
+  testWidgets('a transitionBuilder from the theme also animates the swap', (
+    tester,
+  ) async {
+    final (:onPressed, :completer) = pendingPress();
+    await tester.pumpWidget(
+      pumpHost(
+        ElevatedAsyncButton.icon(
+          onPressed: onPressed,
+          icon: _icon,
+          label: _label,
+        ),
+        theme: ThemeData(
+          extensions: const [AsyncButtonTheme(transitionBuilder: _crossFade)],
+        ),
+      ),
+    );
+    final switcher = tester.state(find.byType(AnimatedSwitcher));
+
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+
+    check(tester.state(find.byType(AnimatedSwitcher))).identicalTo(switcher);
+
+    completer.complete();
+    await tester.pumpAndSettle();
+  });
+
+  group('without a transitionBuilder the spinner stays centered', () {
+    final rows = <String, Widget Function(AsyncCallback, IconAlignment)>{
+      'ElevatedAsyncButton.icon': (f, alignment) => ElevatedAsyncButton.icon(
+        onPressed: f,
+        iconAlignment: alignment,
+        icon: _icon,
+        label: _label,
+      ),
+      'FilledAsyncButton.icon': (f, alignment) => FilledAsyncButton.icon(
+        onPressed: f,
+        iconAlignment: alignment,
+        icon: _icon,
+        label: _label,
+      ),
+      'FilledAsyncButton.tonalIcon': (f, alignment) =>
+          FilledAsyncButton.tonalIcon(
+            onPressed: f,
+            iconAlignment: alignment,
+            icon: _icon,
+            label: _label,
+          ),
+      'OutlinedAsyncButton.icon': (f, alignment) => OutlinedAsyncButton.icon(
+        onPressed: f,
+        iconAlignment: alignment,
+        icon: _icon,
+        label: _label,
+      ),
+      'TextAsyncButton.icon': (f, alignment) => TextAsyncButton.icon(
+        onPressed: f,
+        iconAlignment: alignment,
+        icon: _icon,
+        label: _label,
+      ),
+    };
+    for (final MapEntry(key: name, value: build) in rows.entries) {
+      for (final alignment in IconAlignment.values) {
+        testWidgets('$name with iconAlignment ${alignment.name}', (
+          tester,
+        ) async {
+          final (:onPressed, :completer) = pendingPress();
+          await tester.pumpWidget(pumpHost(build(onPressed, alignment)));
+
+          await tester.tap(find.text('Save'));
+          await tester.pump();
+
+          final spinner = tester.getCenter(
+            find.byType(CircularProgressIndicator),
+          );
+          check(spinner.dx).isCloseTo(tester.getCenter(_standard).dx, 0.5);
+
+          completer.complete();
+          await tester.pumpAndSettle();
+        });
+      }
+    }
+  });
+
   group('loading keeps the idle height and never grows', () {
     for (final MapEntry(key: host, value: pump) in _hosts.entries) {
       for (final MapEntry(key: name, value: (build, finder))

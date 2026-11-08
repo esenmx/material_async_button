@@ -119,7 +119,7 @@ sealed class const AsyncStandardMaterialButton({
   final bool autofocus = false,
 
   /// Forwarded to the underlying Material button.
-  final Clip clipBehavior = .none,
+  final Clip? clipBehavior,
 
   /// Forwarded to the underlying Material button.
   final WidgetStatesController? statesController,
@@ -134,6 +134,9 @@ sealed class const AsyncStandardMaterialButton({
   @override
   Widget build(BuildContext context) {
     final keepFootprint = _resolveMaintainSize(context);
+    final animates =
+        (transitionBuilder ?? AsyncButtonTheme.of(context).transitionBuilder) !=
+        null;
     return AsyncButton(
       onPressed: onPressed,
       enabled: enabled,
@@ -150,11 +153,18 @@ sealed class const AsyncStandardMaterialButton({
       minLoadingDuration: minLoadingDuration,
       builder: (context, animatedChild, callback, isLoading) {
         final longPress = enabled && !isLoading ? onLongPress : null;
-        if (_icon != null) {
+        if (_icon case final icon?) {
           return _buildIconButton(
             onPressed: callback,
             onLongPress: longPress,
-            icon: isLoading && !keepFootprint ? null : _icon,
+            // A null icon makes Material drop its icon row and center the
+            // spinner, but that remounts the label and any transition around
+            // it, so an animated swap keeps the row.
+            icon: !isLoading || keepFootprint
+                ? icon
+                : animates
+                ? const SizedBox.shrink()
+                : null,
             label: animatedChild,
           );
         }

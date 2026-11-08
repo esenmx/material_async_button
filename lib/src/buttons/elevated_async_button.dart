@@ -36,7 +36,7 @@ final class ElevatedAsyncButton extends AsyncStandardMaterialButton {
     super.style,
     super.focusNode,
     super.autofocus,
-    super.clipBehavior,
+    super.clipBehavior = .none,
     super.statesController,
     super.enabled,
     super.iconAlignment,
