@@ -816,7 +816,12 @@ void main() {
     testWidgets('a valid per-widget value overrides the theme', (tester) async {
       await tester.pumpWidget(
         pumpHost(
-          buttons['AsyncButton']?.call(.zero) ?? const SizedBox(),
+          AsyncButton(
+            onPressed: noop,
+            minLoadingDuration: .zero,
+            builder: textBuilder,
+            child: const Text('go'),
+          ),
           theme: asyncButtonTheme(minLoadingDuration: negative),
         ),
       );
