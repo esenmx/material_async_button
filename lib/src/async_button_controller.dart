@@ -8,6 +8,9 @@ part of '../material_async_button.dart';
 /// [trigger] / [reset]; there is no public setter, so external code can't
 /// desync the displayed state from the running future.
 ///
+/// Listeners fire when [value] or [canTrigger] changes, so one can fire with
+/// [value] unchanged.
+///
 /// Use it to:
 ///   - trigger the bound button's `onPressed` from outside the button
 ///     (e.g. a form keyboard "Done" action),
@@ -29,6 +32,10 @@ class AsyncButtonController extends ChangeNotifier
 
   /// True when [trigger] would actually run `onPressed`: not loading and
   /// bound to an enabled button. Use it to gate surrounding UI.
+  ///
+  /// Listeners hear a change from a run at once. A change from the button
+  /// (mounting, unmounting, `enabled`, `onPressed`) happens while the tree
+  /// builds, so they hear it after that frame.
   bool get canTrigger => !_isLoading && _onPressed != null;
 
   // Widget-owned configuration. Refreshed whenever the bound [AsyncButton]
@@ -44,6 +51,24 @@ class AsyncButtonController extends ChangeNotifier
   Object? _owner;
   Duration _minLoadingDuration = .zero;
 
+  bool _announcedCanTrigger = false;
+  bool _announcePending = false;
+
+  // Binding happens during build, where notifying is illegal.
+  void _announceCanTriggerAfterFrame() {
+    if (_announcePending || canTrigger == _announcedCanTrigger) {
+      return;
+    }
+    _announcePending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _announcePending = false;
+      if (!_isDisposed && canTrigger != _announcedCanTrigger) {
+        _announcedCanTrigger = canTrigger;
+        notifyListeners();
+      }
+    });
+  }
+
   void _cancelFloor() => _inFlight?.cancelFloor();
 
   // Last binder wins; returns the owner it displaced, if any. A multi-child
@@ -54,6 +79,7 @@ class AsyncButtonController extends ChangeNotifier
     final displaced = identical(_owner, owner) ? null : _owner;
     _owner = owner;
     _onPressed = onPressed;
+    _announceCanTriggerAfterFrame();
     return displaced;
   }
 
@@ -61,6 +87,7 @@ class AsyncButtonController extends ChangeNotifier
     if (identical(_owner, owner)) {
       _owner = null;
       _onPressed = null;
+      _announceCanTriggerAfterFrame();
     }
   }
 
@@ -96,7 +123,7 @@ class AsyncButtonController extends ChangeNotifier
       return inFlight.future;
     }
     final onPressed = _onPressed;
-    if (_isLoading || onPressed == null) {
+    if (onPressed == null) {
       return .value();
     }
     return _start(onPressed);
@@ -104,9 +131,12 @@ class AsyncButtonController extends ChangeNotifier
 
   Future<void> _start(AsyncCallback onPressed) async {
     final run = ++_run;
-    _setLoading(true);
-    final inFlight = _Run(onPressed, _minLoadingDuration);
+    // Published first: onPressed's synchronous prefix and loading listeners can
+    // already call reset() or trigger().
+    final inFlight = _Run(_minLoadingDuration);
     _inFlight = inFlight;
+    _setLoading(true);
+    inFlight.start(onPressed);
     try {
       await inFlight.future;
     } finally {
@@ -148,13 +178,14 @@ class AsyncButtonController extends ChangeNotifier
       StateError('AsyncButtonController.$method() called after dispose().');
 
   /// The only mutation point of [value]. Dedupes (like the former
-  /// [ValueNotifier]) so listeners fire only on a real change, and never
+  /// [ValueNotifier]) so it fires listeners only on a real change, and never
   /// notifies after [dispose].
   void _setLoading(bool value) {
     if (_isDisposed || _isLoading == value) {
       return;
     }
     _isLoading = value;
+    _announcedCanTrigger = canTrigger;
     notifyListeners();
   }
 
@@ -172,11 +203,10 @@ class AsyncButtonController extends ChangeNotifier
 // controller that started it.
 final class _Run {
   // The floor timer starts before onPressed runs: the floor counts from the
-  // tap. onPressed runs inside the try so a synchronous throw still awaits the
-  // floor.
-  factory(AsyncCallback onPressed, Duration floor) {
-    if (floor <= .zero) {
-      return ._(_guard(onPressed, null), null, null);
+  // tap.
+  factory(Duration floor) {
+    if (floor == .zero) {
+      return ._(null, null);
     }
     final completer = Completer<void>();
     final timer = Timer(floor, () {
@@ -184,14 +214,18 @@ final class _Run {
         completer.complete();
       }
     });
-    return ._(_guard(onPressed, completer.future), timer, completer);
+    return ._(timer, completer);
   }
 
-  new _(this.future, this._floorTimer, this._floor);
+  new _(this._floorTimer, this._floor);
 
-  final Future<void> future;
+  final Completer<void> _done = Completer<void>();
   final Timer? _floorTimer;
   final Completer<void>? _floor;
+
+  Future<void> get future => _done.future;
+
+  void start(AsyncCallback onPressed) => _done.complete(_guard(onPressed));
 
   void cancelFloor() {
     _floorTimer?.cancel();
@@ -200,15 +234,14 @@ final class _Run {
     }
   }
 
-  static Future<void> _guard(
-    AsyncCallback onPressed,
-    Future<void>? floor,
-  ) async {
+  // onPressed runs inside the try so a synchronous throw still awaits the
+  // floor.
+  Future<void> _guard(AsyncCallback onPressed) async {
     try {
       await onPressed();
     } finally {
-      if (floor != null) {
-        await floor;
+      if (_floor case final floor?) {
+        await floor.future;
       }
     }
   }

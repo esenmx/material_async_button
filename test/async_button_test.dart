@@ -8,6 +8,11 @@ import 'package:material_ui/material_ui.dart';
 
 import '_helpers.dart';
 
+/// Exposes whether a button still listens, so a leak can fail a test.
+final class _ListenedController extends AsyncButtonController {
+  bool listened() => hasListeners;
+}
+
 typedef _Button = Widget Function(
   AsyncButtonController c,
   AsyncCallback onPressed,
@@ -414,8 +419,10 @@ void main() {
     testWidgets(
       'swapping the external controller transfers listening without leak',
       (tester) async {
-        final a = newController();
-        final b = newController();
+        final a = _ListenedController();
+        addTearDown(a.dispose);
+        final b = _ListenedController();
+        addTearDown(b.dispose);
         final aCompleter = Completer<void>();
         final bCompleter = Completer<void>();
         var aCalls = 0;
@@ -439,6 +446,14 @@ void main() {
         await tester.pumpWidget(
           pumpHost(button(b, bCompleter, () => bCalls++)),
         );
+        check(
+          because: 'the old controller keeps no listener',
+          a.listened(),
+        ).isFalse();
+        check(
+          because: 'the new controller is listened to',
+          b.listened(),
+        ).isTrue();
         // The widget now listens to b: a has no button bound, so trigger()
         // throws and nothing loads.
         await check(a.trigger()).throws<StateError>();
@@ -592,8 +607,8 @@ void main() {
     testWidgets('reset() during the floor ends loading once', (tester) async {
       final c = newController();
       final trace = <bool>[];
-      c.addListener(() => trace.add(c.value));
       await tester.pumpWidget(pumpHost(button(c)));
+      c.addListener(() => trace.add(c.value));
       await tester.tap(find.byType(TextButton));
       await tester.pump(ms * 100);
       c.reset();
@@ -717,6 +732,96 @@ void main() {
         check(c).isIdle();
       },
     );
+  });
+
+  group('minLoadingDuration rejects a negative duration', () {
+    const negative = Duration(milliseconds: -1);
+    Future<void> noop() async {}
+    final buttons = <String, Widget Function(Duration?)>{
+      'AsyncButton': (d) => AsyncButton(
+        onPressed: noop,
+        minLoadingDuration: d,
+        builder: textBuilder,
+        child: const Text('go'),
+      ),
+      'ElevatedAsyncButton': (d) => ElevatedAsyncButton(
+        onPressed: noop,
+        minLoadingDuration: d,
+        child: const Text('go'),
+      ),
+      'ElevatedAsyncButton.icon': (d) => ElevatedAsyncButton.icon(
+        onPressed: noop,
+        minLoadingDuration: d,
+        icon: const Icon(Icons.add),
+        label: const Text('go'),
+      ),
+      'FilledAsyncButton': (d) => FilledAsyncButton(
+        onPressed: noop,
+        minLoadingDuration: d,
+        child: const Text('go'),
+      ),
+      'OutlinedAsyncButton': (d) => OutlinedAsyncButton(
+        onPressed: noop,
+        minLoadingDuration: d,
+        child: const Text('go'),
+      ),
+      'TextAsyncButton': (d) => TextAsyncButton(
+        onPressed: noop,
+        minLoadingDuration: d,
+        child: const Text('go'),
+      ),
+      'IconAsyncButton': (d) => IconAsyncButton(
+        onPressed: noop,
+        minLoadingDuration: d,
+        icon: const Icon(Icons.add),
+      ),
+      'FloatingActionAsyncButton': (d) => FloatingActionAsyncButton(
+        onPressed: noop,
+        minLoadingDuration: d,
+        child: const Icon(Icons.add),
+      ),
+      'FloatingActionAsyncButton.extended': (d) =>
+          FloatingActionAsyncButton.extended(
+            onPressed: noop,
+            minLoadingDuration: d,
+            icon: const Icon(Icons.add),
+            label: const Text('go'),
+          ),
+    };
+
+    void checkRejected(Object? error) {
+      check(error)
+          .isA<ArgumentError>()
+          .has((e) => e.name, 'name')
+          .equals('minLoadingDuration');
+    }
+
+    for (final MapEntry(key: name, value: build) in buttons.entries) {
+      testWidgets('on $name', (tester) async {
+        await tester.pumpWidget(pumpHost(build(negative)));
+        checkRejected(tester.takeException());
+      });
+
+      testWidgets('from the theme on $name', (tester) async {
+        await tester.pumpWidget(
+          pumpHost(
+            build(null),
+            theme: asyncButtonTheme(minLoadingDuration: negative),
+          ),
+        );
+        checkRejected(tester.takeException());
+      });
+    }
+
+    testWidgets('a valid per-widget value overrides the theme', (tester) async {
+      await tester.pumpWidget(
+        pumpHost(
+          buttons['AsyncButton']?.call(.zero) ?? const SizedBox(),
+          theme: asyncButtonTheme(minLoadingDuration: negative),
+        ),
+      );
+      check(tester.takeException()).isNull();
+    });
   });
 
   group('AsyncButton controller ownership', () {

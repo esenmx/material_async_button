@@ -99,6 +99,7 @@ final class const AsyncButton({
 
   /// Per-widget override of [AsyncButtonTheme.minLoadingDuration]: the
   /// shortest time a run shows the loading view. Defaults to [Duration.zero].
+  /// A negative value throws an [ArgumentError] when the button builds.
   final Duration? minLoadingDuration,
   super.key,
 }) extends StatefulWidget {
@@ -111,6 +112,7 @@ final class const AsyncButton({
 
 class _AsyncButtonState extends State<AsyncButton> {
   late AsyncButtonController controller;
+  bool _builtLoading = false;
 
   /// The widget's `onPressed` once [AsyncButton.enabled] is applied — `null`
   /// (disabled) when `enabled: false` or `onPressed == null`. Both disable
@@ -210,8 +212,9 @@ class _AsyncButtonState extends State<AsyncButton> {
     super.dispose();
   }
 
+  // A canTrigger-only notification changes nothing this state renders.
   void listener() {
-    if (mounted) {
+    if (mounted && controller.value != _builtLoading) {
       setState(() {});
     }
   }
@@ -223,10 +226,18 @@ class _AsyncButtonState extends State<AsyncButton> {
         widget.loadingBuilder ?? theme.loadingBuilder ?? _defaultLoadingBuilder;
     final transitionBuilder =
         widget.transitionBuilder ?? theme.transitionBuilder;
-    controller._minLoadingDuration =
+    final floor =
         widget.minLoadingDuration ?? theme.minLoadingDuration ?? .zero;
+    if (floor.isNegative) {
+      throw ArgumentError.value(
+        floor,
+        'minLoadingDuration',
+        'must not be negative',
+      );
+    }
+    controller._minLoadingDuration = floor;
 
-    final isLoading = controller.value;
+    final isLoading = _builtLoading = controller.value;
     // Without maintainSize the idle child is replaced outright and the button
     // may resize to fit the loading view; with it the loading view overlays
     // the invisible child.
