@@ -4,6 +4,8 @@ import 'package:material_async_button/material_async_button.dart';
 import 'package:material_async_button/src/line_box.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '_helpers.dart';
+
 // Two distinct no-op transition builders — as with the loading builders
 // below, their separate references are the point.
 Widget _noopTransition(BuildContext context, Widget child, bool isLoading) {
@@ -174,6 +176,39 @@ void main() {
       check(AsyncButtonTheme.empty.maintainSize).isNull();
       check(AsyncButtonTheme.empty.minLoadingDuration).isNull();
     });
+  });
+
+  group('AsyncButtonSpinner outside a button', () {
+    const primary = Color(0xFF00FF00);
+    final theme = ThemeData(colorScheme: const .light(primary: primary));
+
+    testWidgets('takes the ambient IconTheme colour', (tester) async {
+      const ambient = Color(0xFF123456);
+      await tester.pumpWidget(
+        pumpHost(
+          const IconTheme(
+            data: IconThemeData(color: ambient),
+            child: AsyncButtonSpinner(),
+          ),
+          theme: theme,
+        ),
+      );
+      check(spinnerColor(tester)).equals(ambient);
+    });
+
+    testWidgets(
+      'a colourless IconTheme resolves to its fallback, not primary',
+      (tester) async {
+        await tester.pumpWidget(
+          pumpHost(
+            const IconTheme(data: IconThemeData(), child: AsyncButtonSpinner()),
+            theme: theme,
+          ),
+        );
+        check(spinnerColor(tester))
+            .equals(const IconThemeData.fallback().color);
+      },
+    );
   });
 
   group('AsyncButtonSpinner line box cache', () {

@@ -52,6 +52,7 @@ final class const AsyncButtonTheme({
   /// The shortest time a run shows the loading view, measured from the tap or
   /// [AsyncButtonController.trigger] — an anti-flicker floor for fast futures.
   /// An error rethrows once the floor has elapsed. Defaults to [Duration.zero].
+  /// A negative value throws an [ArgumentError] when a button using it builds.
   final Duration? minLoadingDuration,
 }) extends ThemeExtension<AsyncButtonTheme> {
   /// Builds an [AsyncButtonTheme]. Every field is nullable so callers only
@@ -135,9 +136,9 @@ final class const AsyncButtonTheme({
 /// )
 /// ```
 final class const AsyncButtonSpinner({
-  /// Indicator colour. When null, inherits the button's foreground (its
-  /// enabled foreground while loading), falling back to [ColorScheme.primary]
-  /// outside any button.
+  /// Indicator colour. When null, inherits the ambient [IconTheme] colour: the
+  /// button's foreground inside a button (its enabled foreground while
+  /// loading).
   final Color? color,
 
   /// Stroke width of the [CircularProgressIndicator].
@@ -155,19 +156,15 @@ final class const AsyncButtonSpinner({
   final String? semanticsLabel = 'Loading',
   super.key,
 }) extends StatelessWidget {
-  /// Creates a spinner. [color] defaults to the button's foreground and
-  /// otherwise the primary colour; [strokeWidth] sets the line weight; [size]
-  /// sets the square the indicator occupies — when null it tracks the ambient
-  /// label line box so the spinner matches the button's label; [semanticsLabel]
-  /// sets the accessibility label read by screen readers.
+  /// Creates a spinner. [color] defaults to the ambient [IconTheme] colour,
+  /// which is the button's foreground; [strokeWidth] sets the line weight;
+  /// [size] sets the square the indicator occupies — when null it tracks the
+  /// ambient label line box so the spinner matches the button's label;
+  /// [semanticsLabel] sets the accessibility label read by screen readers.
   this;
 
   @override
   Widget build(BuildContext context) {
-    final resolved =
-        color ??
-        IconTheme.of(context).color ??
-        Theme.of(context).colorScheme.primary;
     final dimension = size ?? ambientTextLineBox(context);
     return Center(
       widthFactor: 1,
@@ -176,7 +173,9 @@ final class const AsyncButtonSpinner({
         dimension: dimension,
         child: CircularProgressIndicator(
           strokeWidth: strokeWidth,
-          valueColor: AlwaysStoppedAnimation<Color>(resolved),
+          valueColor: AlwaysStoppedAnimation<Color?>(
+            color ?? IconTheme.of(context).color,
+          ),
           semanticsLabel: semanticsLabel,
         ),
       ),
