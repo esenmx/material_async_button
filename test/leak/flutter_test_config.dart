@@ -4,6 +4,6 @@ import 'package:leak_tracker_flutter_testing/leak_tracker_flutter_testing.dart';
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   LeakTesting.enable();
-  LeakTesting.settings = LeakTesting.settings.withTrackedAll();
+  LeakTesting.settings = .settings.withTrackedAll();
   await testMain();
 }

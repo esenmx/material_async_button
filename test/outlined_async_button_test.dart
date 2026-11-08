@@ -81,7 +81,7 @@ void main() {
       // 15 * 2 = 30
       final lineBox = tester.getSize(find.text('Delete account')).height;
       await tapIntoLoading(tester, find.byType(OutlinedButton));
-      check(lineBox).isGreaterThan(spinnerFontSize(tester)!); // 30 > 15
+      check(spinnerFontSize(tester)).isNotNull().isLessThan(lineBox); // 15 < 30
       check(loadingSpinnerSize(tester)).equals(lineBox);
       completer.complete();
       await tester.pumpAndSettle();

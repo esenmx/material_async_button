@@ -159,6 +159,7 @@ void main() {
     testWidgets('loading spinner is sized to the taller of icon and line box', (
       tester,
     ) async {
+      const iconSize = 32.0;
       final (:onPressed, :completer) = pendingPress();
       await tester.pumpWidget(
         pumpHost(
@@ -168,7 +169,7 @@ void main() {
             // the icon dominates the row. Must go through the style: an
             // ambient IconTheme would be overridden by ButtonStyleButton's
             // resolved iconSize.
-            style: ElevatedButton.styleFrom(iconSize: 32),
+            style: ElevatedButton.styleFrom(iconSize: iconSize),
             icon: const Icon(Icons.send),
             label: const Text('send'),
           ),
@@ -176,16 +177,13 @@ void main() {
       );
       final lineBox = tester.getSize(find.text('send')).height;
       await tapIntoLoading(tester, find.byType(ElevatedButton));
-      final iconSize = spinnerIconThemeSize(tester);
-      final fontSize = spinnerFontSize(tester);
-      check(iconSize).equals(32);
-      check(fontSize).isNotNull();
+      check(spinnerIconThemeSize(tester)).equals(iconSize);
       // The .icon row height is max(icon, lineBox); with the icon (32) taller
       // than the line box (~20), the spinner must take the icon's size — a
       // line-box-sized spinner is the old, shrinking behaviour.
-      check(iconSize!).isGreaterThan(lineBox);
+      check(iconSize).isGreaterThan(lineBox);
       check(loadingSpinnerSize(tester)).equals(iconSize);
-      check(loadingSpinnerSize(tester)!).isGreaterThan(fontSize!);
+      check(spinnerFontSize(tester)).isNotNull().isLessThan(iconSize);
       completer.complete();
       await tester.pump();
     });

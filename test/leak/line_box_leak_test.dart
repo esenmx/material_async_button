@@ -1,7 +1,6 @@
 // MAB-B8: _ambientTextLineBox() built a TextPainter for every cache miss and
 // never disposed it. TextPainter is leak-tracked (FlutterMemoryAllocations).
 import 'package:flutter_test/flutter_test.dart';
-import 'package:leak_tracker_flutter_testing/leak_tracker_flutter_testing.dart';
 import 'package:material_async_button/material_async_button.dart';
 import 'package:material_async_button/src/line_box.dart';
 import 'package:material_ui/material_ui.dart';
@@ -11,7 +10,7 @@ import '../_helpers.dart';
 void main() {
   testWidgets(
     'default spinner does not leak TextPainters',
-    experimentalLeakTesting: LeakTesting.settings.withTrackedAll(),
+    experimentalLeakTesting: .settings.withTrackedAll(),
     (tester) async {
       debugLineBoxCache.clear();
       final (:onPressed, :completer) = pendingPress();

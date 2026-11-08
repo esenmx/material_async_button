@@ -107,9 +107,9 @@ void main() {
       // the push this test would pass vacuously even on correct code. Two
       // default-tag FABs sharing the const default tag must trip it, proving
       // the default heroTag actually reaches the Hero wrapper.
-      navigatorKey.currentState!.push(
-        MaterialPageRoute<void>(builder: (_) => const Scaffold()),
-      );
+      tester
+          .state<NavigatorState>(find.byKey(navigatorKey))
+          .push(MaterialPageRoute<void>(builder: (_) => const Scaffold()));
       await tester.pump();
       await tester.pump();
       check(tester.takeException()).isA<FlutterError>();
