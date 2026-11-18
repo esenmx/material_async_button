@@ -39,6 +39,7 @@ ThemeData asyncButtonTheme({
   AsyncButtonTransitionBuilder? transitionBuilder,
   bool? maintainSize,
   Duration? minLoadingDuration,
+  bool? disableWhileLoading,
 }) {
   return ThemeData(
     extensions: [
@@ -47,6 +48,7 @@ ThemeData asyncButtonTheme({
         transitionBuilder: transitionBuilder,
         maintainSize: maintainSize,
         minLoadingDuration: minLoadingDuration,
+        disableWhileLoading: disableWhileLoading,
       ),
     ],
   );

@@ -33,6 +33,7 @@ void main() {
         transitionBuilder: _noopTransition,
         maintainSize: true,
         minLoadingDuration: _short,
+        disableWhileLoading: true,
       );
       check(base.copyWith()).equals(base);
     });
@@ -43,6 +44,7 @@ void main() {
         transitionBuilder: _noopTransition,
         maintainSize: true,
         minLoadingDuration: _short,
+        disableWhileLoading: true,
       );
       final overridden = base.copyWith(loadingBuilder: _loadingB);
       check(overridden)
@@ -55,14 +57,25 @@ void main() {
         ..has(
           (it) => it.minLoadingDuration,
           'minLoadingDuration',
-        ).equals(_short);
-      check(base.copyWith(maintainSize: false, minLoadingDuration: _long))
+        ).equals(_short)
+        ..has(
+          (it) => it.disableWhileLoading,
+          'disableWhileLoading',
+        ).equals(true);
+      check(
+          base.copyWith(
+            maintainSize: false,
+            minLoadingDuration: _long,
+            disableWhileLoading: false,
+          ),
+        )
         ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingA)
         ..has((it) => it.maintainSize, 'maintainSize').equals(false)
+        ..has((it) => it.minLoadingDuration, 'minLoadingDuration').equals(_long)
         ..has(
-          (it) => it.minLoadingDuration,
-          'minLoadingDuration',
-        ).equals(_long);
+          (it) => it.disableWhileLoading,
+          'disableWhileLoading',
+        ).equals(false);
     });
 
     test('lerp snaps fields at the halfway point', () {
@@ -71,12 +84,14 @@ void main() {
         transitionBuilder: _noopTransition,
         maintainSize: false,
         minLoadingDuration: _short,
+        disableWhileLoading: false,
       );
       const to = AsyncButtonTheme(
         loadingBuilder: _loadingB,
         transitionBuilder: _otherTransition,
         maintainSize: true,
         minLoadingDuration: _long,
+        disableWhileLoading: true,
       );
 
       // `t < 0.5` keeps `this`; the boundary itself already takes `other`.
@@ -97,7 +112,11 @@ void main() {
           ..has(
             (it) => it.minLoadingDuration,
             'minLoadingDuration',
-          ).equals(expected.minLoadingDuration);
+          ).equals(expected.minLoadingDuration)
+          ..has(
+            (it) => it.disableWhileLoading,
+            'disableWhileLoading',
+          ).equals(expected.disableWhileLoading);
       }
     });
 
@@ -151,17 +170,20 @@ void main() {
         transitionBuilder: _noopTransition,
         maintainSize: true,
         minLoadingDuration: _short,
+        disableWhileLoading: true,
       );
       final b = AsyncButtonTheme(
         loadingBuilder: _loadingA,
         transitionBuilder: _noopTransition,
         maintainSize: true,
         minLoadingDuration: Duration(milliseconds: _short.inMilliseconds),
+        disableWhileLoading: true,
       );
       check(a).equals(b);
       check(a.hashCode).equals(b.hashCode);
       check(a).not((it) => it.equals(a.copyWith(maintainSize: false)));
       check(a).not((it) => it.equals(a.copyWith(minLoadingDuration: _long)));
+      check(a).not((it) => it.equals(a.copyWith(disableWhileLoading: false)));
     });
 
     test('empty leaves every field at its default', () {
@@ -175,6 +197,7 @@ void main() {
       check(AsyncButtonTheme.empty.transitionBuilder).isNull();
       check(AsyncButtonTheme.empty.maintainSize).isNull();
       check(AsyncButtonTheme.empty.minLoadingDuration).isNull();
+      check(AsyncButtonTheme.empty.disableWhileLoading).isNull();
     });
   });
 

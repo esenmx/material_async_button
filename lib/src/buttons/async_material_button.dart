@@ -49,6 +49,9 @@ sealed class const AsyncMaterialButton({
 
   /// See [AsyncButton.minLoadingDuration].
   final Duration? minLoadingDuration,
+
+  /// See [AsyncButton.disableWhileLoading].
+  final bool? disableWhileLoading,
   super.key,
 }) extends StatelessWidget {
   /// Subclass-only constructor. Forwards every field to [AsyncButton]. See
@@ -99,6 +102,7 @@ sealed class const AsyncStandardMaterialButton({
   super.transitionBuilder,
   super.maintainSize,
   super.minLoadingDuration,
+  super.disableWhileLoading,
 
   /// Forwarded to the underlying Material button.
   final VoidCallback? onLongPress,
@@ -151,6 +155,7 @@ sealed class const AsyncStandardMaterialButton({
       transitionBuilder: transitionBuilder,
       maintainSize: keepFootprint,
       minLoadingDuration: minLoadingDuration,
+      disableWhileLoading: disableWhileLoading,
       builder: (context, animatedChild, callback, isLoading) {
         final longPress = enabled && !isLoading ? onLongPress : null;
         if (_icon case final icon?) {

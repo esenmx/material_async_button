@@ -1595,4 +1595,331 @@ void main() {
       },
     );
   });
+
+  group('disableWhileLoading across all buttons', () {
+    VoidCallback? innerOnPressed(WidgetTester tester) {
+      final styled = find.bySubtype<ButtonStyleButton>();
+      if (styled.evaluate().isNotEmpty) {
+        return tester.widget<ButtonStyleButton>(styled).onPressed;
+      }
+      final icon = find.byType(IconButton);
+      if (icon.evaluate().isNotEmpty) {
+        return tester.widget<IconButton>(icon).onPressed;
+      }
+      return tester
+          .widget<FloatingActionButton>(find.byType(FloatingActionButton))
+          .onPressed;
+    }
+
+    final buttons =
+        <
+          String,
+          Widget Function({
+            required AsyncCallback onPressed,
+            required AsyncButtonController controller,
+            required bool? disableWhileLoading,
+          })
+        >{
+          'AsyncButton':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => AsyncButton(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                builder: textBuilder,
+                child: const Text('go'),
+              ),
+          'ElevatedAsyncButton':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => ElevatedAsyncButton(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                child: const Text('go'),
+              ),
+          'ElevatedAsyncButton.icon':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => ElevatedAsyncButton.icon(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                icon: const Icon(Icons.add),
+                label: const Text('go'),
+              ),
+          'FilledAsyncButton':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => FilledAsyncButton(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                child: const Text('go'),
+              ),
+          'FilledAsyncButton.tonal':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => FilledAsyncButton.tonal(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                child: const Text('go'),
+              ),
+          'FilledAsyncButton.icon':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => FilledAsyncButton.icon(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                icon: const Icon(Icons.add),
+                label: const Text('go'),
+              ),
+          'FilledAsyncButton.tonalIcon':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => FilledAsyncButton.tonalIcon(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                icon: const Icon(Icons.add),
+                label: const Text('go'),
+              ),
+          'OutlinedAsyncButton':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => OutlinedAsyncButton(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                child: const Text('go'),
+              ),
+          'OutlinedAsyncButton.icon':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => OutlinedAsyncButton.icon(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                icon: const Icon(Icons.add),
+                label: const Text('go'),
+              ),
+          'TextAsyncButton':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => TextAsyncButton(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                child: const Text('go'),
+              ),
+          'TextAsyncButton.icon':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => TextAsyncButton.icon(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                icon: const Icon(Icons.add),
+                label: const Text('go'),
+              ),
+          'IconAsyncButton':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => IconAsyncButton(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                icon: const Icon(Icons.add),
+              ),
+          'IconAsyncButton.filled':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => IconAsyncButton.filled(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                icon: const Icon(Icons.add),
+              ),
+          'IconAsyncButton.filledTonal':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => IconAsyncButton.filledTonal(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                icon: const Icon(Icons.add),
+              ),
+          'IconAsyncButton.outlined':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => IconAsyncButton.outlined(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                icon: const Icon(Icons.add),
+              ),
+          'FloatingActionAsyncButton':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => FloatingActionAsyncButton(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                child: const Icon(Icons.add),
+              ),
+          'FloatingActionAsyncButton.small':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => FloatingActionAsyncButton.small(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                child: const Icon(Icons.add),
+              ),
+          'FloatingActionAsyncButton.large':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => FloatingActionAsyncButton.large(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                child: const Icon(Icons.add),
+              ),
+          'FloatingActionAsyncButton.extended':
+              ({
+                required onPressed,
+                required controller,
+                required disableWhileLoading,
+              }) => FloatingActionAsyncButton.extended(
+                onPressed: onPressed,
+                controller: controller,
+                disableWhileLoading: disableWhileLoading,
+                icon: const Icon(Icons.add),
+                label: const Text('go'),
+              ),
+        };
+
+    for (final MapEntry(key: name, value: build) in buttons.entries) {
+      testWidgets(
+        '$name resolves widget -> theme -> false and re-enables after run',
+        (tester) async {
+          final c = newController();
+          final (:onPressed, :completer) = pendingPress();
+
+          // Per-widget true disables while loading, re-enables after.
+          await tester.pumpWidget(
+            pumpHost(
+              build(
+                onPressed: onPressed,
+                controller: c,
+                disableWhileLoading: true,
+              ),
+            ),
+          );
+          check(innerOnPressed(tester)).isNotNull();
+          final firstRun = c.trigger();
+          await tester.pump();
+          check(innerOnPressed(tester)).isNull();
+          completer.complete();
+          await firstRun;
+          await tester.pump();
+          check(innerOnPressed(tester)).isNotNull();
+
+          // Per-widget false overrides theme true.
+          final second = pendingPress();
+          await tester.pumpWidget(
+            pumpHost(
+              build(
+                onPressed: second.onPressed,
+                controller: c,
+                disableWhileLoading: false,
+              ),
+              theme: asyncButtonTheme(disableWhileLoading: true),
+            ),
+          );
+          final secondRun = c.trigger();
+          await tester.pump();
+          check(innerOnPressed(tester)).isNotNull();
+          second.completer.complete();
+          await secondRun;
+          await tester.pump();
+        },
+      );
+    }
+
+    testWidgets(
+      'with onLongPress set, disableWhileLoading drops both callbacks so '
+      'statesController reports WidgetState.disabled while loading',
+      (tester) async {
+        final states = WidgetStatesController();
+        addTearDown(states.dispose);
+        final (:onPressed, :completer) = pendingPress();
+        await tester.pumpWidget(
+          pumpHost(
+            FilledAsyncButton(
+              onPressed: onPressed,
+              onLongPress: () {},
+              statesController: states,
+              disableWhileLoading: true,
+              child: const Text('go'),
+            ),
+          ),
+        );
+        check(states.value.contains(WidgetState.disabled)).isFalse();
+
+        await tester.tap(find.byType(FilledButton));
+        await tester.pump();
+        final button = tester.widget<FilledButton>(find.byType(FilledButton));
+        check(button.onPressed).isNull();
+        check(button.onLongPress).isNull();
+        check(states.value.contains(WidgetState.disabled)).isTrue();
+
+        completer.complete();
+        await tester.pumpAndSettle();
+        final settled = tester.widget<FilledButton>(find.byType(FilledButton));
+        check(settled.onPressed).isNotNull();
+        check(settled.onLongPress).isNotNull();
+        check(states.value.contains(WidgetState.disabled)).isFalse();
+      },
+    );
+  });
 }

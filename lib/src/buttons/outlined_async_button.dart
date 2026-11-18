@@ -20,6 +20,7 @@ final class OutlinedAsyncButton extends AsyncStandardMaterialButton {
     super.transitionBuilder,
     super.maintainSize,
     super.minLoadingDuration,
+    super.disableWhileLoading,
     super.key,
   });
 
@@ -43,6 +44,7 @@ final class OutlinedAsyncButton extends AsyncStandardMaterialButton {
     super.transitionBuilder,
     super.maintainSize,
     super.minLoadingDuration,
+    super.disableWhileLoading,
     super.key,
   }) : super(child: label);
 

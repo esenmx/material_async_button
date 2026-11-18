@@ -85,16 +85,18 @@ has no `.icon` variant — it swaps its sole icon for the spinner.) With a
 padding and gap while loading so the swap can animate, and the spinner sits
 slightly off center wherever those are uneven, such as `iconAlignment: .end`.
 
-### Loading never disables the button
+### Loading never disables the button by default
 
-Being loading and being _disabled_ are different things — the spinner is the
-indicator, the button keeps its themed enabled colours, and taps that can't run
-are silently swallowed (`onLongPress` is gated off while busy). The button shows
-the disabled look **only** when you disable it explicitly — pass
-`enabled: false` (defaults to `true`) or `onPressed: null`. As in Flutter, a
-label button with `onPressed: null` and an `onLongPress` stays enabled for
-long-press; `IconAsyncButton`, like `IconButton`, ignores `onLongPress` without
-`onPressed`. Either path also no-ops an external `controller.trigger()`.
+Being loading and being _disabled_ are different things — by default, the
+spinner is the indicator, the button keeps its themed enabled colours, and taps
+that can't run are silently swallowed (`onLongPress` is gated off while busy).
+The button shows the disabled look **only** when you disable it explicitly —
+pass `enabled: false` (defaults to `true`) or `onPressed: null` — or when you
+opt into `disableWhileLoading: true` (per button or on `AsyncButtonTheme`). As
+in Flutter, a label button with `onPressed: null` and an `onLongPress` stays
+enabled for long-press when idle; `IconAsyncButton`, like `IconButton`, ignores
+`onLongPress` without `onPressed`. Explicit `enabled: false` or `onPressed:
+null` also no-ops an external `controller.trigger()`.
 
 ### Size and animation
 
@@ -181,6 +183,7 @@ final theme = ThemeData(
       // transitionBuilder: animate every button's swap (see above).
       maintainSize: true, // keep the idle footprint while loading
       minLoadingDuration: const Duration(milliseconds: 300), // anti-flicker
+      disableWhileLoading: true, // draw busy buttons in their disabled style
     ),
   ],
 );
@@ -199,8 +202,12 @@ affected.
   that long from the tap or `controller.trigger()`, so a fast future doesn't
   flash a spinner. An error rethrows once the floor has elapsed. A negative
   duration throws an `ArgumentError` when a button using it builds.
+- `disableWhileLoading` (default `false`) passes `onPressed: null` while the
+  future is in flight, so the button paints its disabled style (and
+  `AsyncButtonSpinner` inherits the disabled foreground), then re-enables when
+  the run settles.
 
-Both are also per-widget parameters on every button and on `AsyncButton`.
+All three are also per-widget parameters on every button and on `AsyncButton`.
 
 With no extension registered, `AsyncButtonTheme.of` falls back to
 `AsyncButtonTheme.empty` — the default spinner and nothing else.

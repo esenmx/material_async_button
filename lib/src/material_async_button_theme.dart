@@ -3,7 +3,8 @@ part of '../material_async_button.dart';
 /// App-wide defaults for `material_async_button` widgets, attached as a
 /// [ThemeExtension] on [ThemeData]. Complements [ButtonStyle] / `ButtonThemeData`
 /// — it carries only async behaviour (the loading view, its transition, its
-/// footprint and minimum duration), never styling knobs.
+/// footprint, minimum duration and whether loading disables the button), never
+/// styling knobs.
 ///
 /// Resolution order for any field: per-widget value, then theme value, then
 /// the hard-coded fallback. With no extension registered the zero-config
@@ -54,6 +55,12 @@ final class const AsyncButtonTheme({
   /// An error rethrows once the floor has elapsed. Defaults to [Duration.zero].
   /// A negative value throws an [ArgumentError] when a button using it builds.
   final Duration? minLoadingDuration,
+
+  /// Whether the button disables itself while `onPressed` is in flight,
+  /// passing `null` as its callback so it renders its disabled look (and the
+  /// default [AsyncButtonSpinner] inherits the disabled foreground). Taps stay
+  /// ignored while busy either way. Defaults to `false`.
+  final bool? disableWhileLoading,
 }) extends ThemeExtension<AsyncButtonTheme> {
   /// Builds an [AsyncButtonTheme]. Every field is nullable so callers only
   /// set the ones they want.
@@ -78,12 +85,14 @@ final class const AsyncButtonTheme({
     AsyncButtonTransitionBuilder? transitionBuilder,
     bool? maintainSize,
     Duration? minLoadingDuration,
+    bool? disableWhileLoading,
   }) {
     return AsyncButtonTheme(
       loadingBuilder: loadingBuilder ?? this.loadingBuilder,
       transitionBuilder: transitionBuilder ?? this.transitionBuilder,
       maintainSize: maintainSize ?? this.maintainSize,
       minLoadingDuration: minLoadingDuration ?? this.minLoadingDuration,
+      disableWhileLoading: disableWhileLoading ?? this.disableWhileLoading,
     );
   }
 
@@ -100,6 +109,9 @@ final class const AsyncButtonTheme({
       transitionBuilder: snap ? transitionBuilder : other.transitionBuilder,
       maintainSize: snap ? maintainSize : other.maintainSize,
       minLoadingDuration: snap ? minLoadingDuration : other.minLoadingDuration,
+      disableWhileLoading: snap
+          ? disableWhileLoading
+          : other.disableWhileLoading,
     );
   }
 
@@ -110,7 +122,8 @@ final class const AsyncButtonTheme({
             loadingBuilder == other.loadingBuilder &&
             transitionBuilder == other.transitionBuilder &&
             maintainSize == other.maintainSize &&
-            minLoadingDuration == other.minLoadingDuration;
+            minLoadingDuration == other.minLoadingDuration &&
+            disableWhileLoading == other.disableWhileLoading;
   }
 
   @override
@@ -120,6 +133,7 @@ final class const AsyncButtonTheme({
       transitionBuilder,
       maintainSize,
       minLoadingDuration,
+      disableWhileLoading,
     );
   }
 }
@@ -137,8 +151,8 @@ final class const AsyncButtonTheme({
 /// ```
 final class const AsyncButtonSpinner({
   /// Indicator colour. When null, inherits the ambient [IconTheme] colour: the
-  /// button's foreground inside a button (its enabled foreground while
-  /// loading).
+  /// button's foreground inside a button (enabled by default, or disabled when
+  /// [AsyncButtonTheme.disableWhileLoading] is `true`).
   final Color? color,
 
   /// Stroke width of the [CircularProgressIndicator].

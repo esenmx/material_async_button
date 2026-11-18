@@ -2,11 +2,13 @@ part of '../material_async_button.dart';
 
 /// Signature for [AsyncButton.builder].
 ///
-/// `callback` is `null` **only** when the button is explicitly disabled
-/// (`enabled: false` or `onPressed == null`). Loading never disables the
-/// button: while loading, `callback` stays non-null so the button keeps its
-/// enabled look (the spinner is the state indicator). Taps while the controller
-/// is loading are silently swallowed, so one controller never double-submits.
+/// `callback` is `null` when the button is explicitly disabled (`enabled:
+/// false` or `onPressed == null`), or while loading with
+/// `disableWhileLoading: true`. By default (`disableWhileLoading: false`),
+/// loading never disables the button: `callback` stays non-null so the button
+/// keeps its enabled look (the spinner is the state indicator). Taps while the
+/// controller is loading are silently swallowed, so one controller never
+/// double-submits.
 // Formatter generations disagree on splitting a generalized typedef header
 // (`=` break vs `= Widget Function(`); pin one form so local dart format,
 // CI, and pana's package-config-free dart_style all leave it untouched.
@@ -101,6 +103,12 @@ final class const AsyncButton({
   /// shortest time a run shows the loading view. Defaults to [Duration.zero].
   /// A negative value throws an [ArgumentError] when the button builds.
   final Duration? minLoadingDuration,
+
+  /// Per-widget override of [AsyncButtonTheme.disableWhileLoading]. When
+  /// `true` the builder receives a `null` callback while loading, so the button
+  /// renders its disabled look (and [AsyncButtonSpinner] inherits the disabled
+  /// foreground). Defaults to `false`.
+  final bool? disableWhileLoading,
   super.key,
 }) extends StatefulWidget {
   /// Creates an [AsyncButton]. See the class doc for usage.
@@ -121,10 +129,11 @@ class _AsyncButtonState extends State<AsyncButton> {
   AsyncCallback? get effectiveOnPressed =>
       widget.enabled ? widget.onPressed : null;
 
-  /// Handed to the builder. `null` when disabled (see [effectiveOnPressed]);
-  /// otherwise [AsyncButtonController.trigger]. Loading never disables the
-  /// button — while busy, trigger joins the in-flight run instead of starting
-  /// one, so taps are swallowed and the button keeps its enabled look.
+  /// Idle callback handed to the builder: `null` when disabled (see
+  /// [effectiveOnPressed]); otherwise [AsyncButtonController.trigger]. Unless
+  /// [AsyncButton.disableWhileLoading] drops it during a run, loading keeps it
+  /// non-null — trigger joins the in-flight run instead of starting one, so
+  /// taps are swallowed and the button keeps its enabled look.
   AsyncCallback? get callback =>
       effectiveOnPressed == null ? null : controller.trigger;
 
@@ -270,7 +279,10 @@ class _AsyncButtonState extends State<AsyncButton> {
       content = transitionBuilder(context, content, isLoading);
     }
 
-    return widget.builder(context, content, callback, isLoading);
+    final disableBusy =
+        widget.disableWhileLoading ?? theme.disableWhileLoading ?? false;
+    final effectiveCallback = isLoading && disableBusy ? null : callback;
+    return widget.builder(context, content, effectiveCallback, isLoading);
   }
 }
 

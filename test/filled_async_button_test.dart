@@ -144,4 +144,101 @@ void main() {
       await tester.pumpAndSettle();
     });
   });
+
+  group('FilledAsyncButton disableWhileLoading', () {
+    Color? buttonMaterialColor(WidgetTester tester, Finder button) {
+      return tester
+          .widget<Material>(
+            find.descendant(of: button, matching: find.byType(Material)),
+          )
+          .color;
+    }
+
+    testWidgets(
+      'theme flag disables the inner FilledButton mid-run, paints the same '
+      'colours as FilledButton(onPressed: null) of the same style, and '
+      're-enables after',
+      (tester) async {
+        final (:onPressed, :completer) = pendingPress();
+        final style = FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF112233),
+          foregroundColor: const Color(0xFFEEEEEE),
+          disabledBackgroundColor: const Color(0xFF445566),
+          disabledForegroundColor: const Color(0xFF99AABB),
+        );
+        const asyncKey = ValueKey('async');
+        const disabledKey = ValueKey('disabled');
+        await tester.pumpWidget(
+          pumpHost(
+            Column(
+              mainAxisSize: .min,
+              children: [
+                FilledAsyncButton(
+                  key: asyncKey,
+                  onPressed: onPressed,
+                  style: style,
+                  child: const Text('go'),
+                ),
+                FilledButton(
+                  key: disabledKey,
+                  onPressed: null,
+                  style: style,
+                  child: const Text('ref'),
+                ),
+              ],
+            ),
+            theme: asyncButtonTheme(disableWhileLoading: true),
+          ),
+        );
+        final asyncButton = find.descendant(
+          of: find.byKey(asyncKey),
+          matching: find.byType(FilledButton),
+        );
+        final disabledButton = find.byKey(disabledKey);
+
+        await tapIntoLoading(tester, asyncButton);
+        check(tester.widget<FilledButton>(asyncButton).onPressed).isNull();
+        check(buttonMaterialColor(tester, asyncButton))
+            .equals(buttonMaterialColor(tester, disabledButton));
+        final expectedForeground = tester
+            .widget<RichText>(
+              find.descendant(
+                of: disabledButton,
+                matching: find.byType(RichText),
+              ),
+            )
+            .text
+            .style
+            ?.color;
+        check(spinnerColor(tester)).equals(expectedForeground);
+
+        completer.complete();
+        await tester.pumpAndSettle();
+        check(tester.widget<FilledButton>(asyncButton).onPressed).isNotNull();
+        check(buttonMaterialColor(tester, asyncButton))
+            .equals(const Color(0xFF112233));
+      },
+    );
+
+    testWidgets('per-widget false overrides theme true', (tester) async {
+      final (:onPressed, :completer) = pendingPress();
+      final theme = asyncButtonTheme(disableWhileLoading: true);
+      await tester.pumpWidget(
+        pumpHost(
+          FilledAsyncButton(
+            onPressed: onPressed,
+            disableWhileLoading: false,
+            child: const Text('go'),
+          ),
+          theme: theme,
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(FilledButton));
+      check(tester.widget<FilledButton>(find.byType(FilledButton)).onPressed)
+          .isNotNull();
+      check(spinnerColor(tester)).equals(theme.colorScheme.onPrimary);
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+  });
 }

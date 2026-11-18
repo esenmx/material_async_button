@@ -26,10 +26,11 @@ Widget saveButton(AsyncCallback save) =>
     ElevatedAsyncButton(onPressed: save, child: const Text('Save'));
 ```
 
-Loading-only — no success/error state. Loading never disables the button;
-`enabled: false` or `onPressed: null` does (a label button with an `onLongPress`
-stays enabled for long-press, as in Flutter; `IconAsyncButton` does not). A
-throw rethrows: a tap's error reaches your zone /
+Loading-only — no success/error state. Loading never disables the button by
+default (`disableWhileLoading: true` opts into `onPressed: null` while busy);
+`enabled: false` or `onPressed: null` disables at idle (a label button with an
+`onLongPress` stays enabled for long-press when idle, as in Flutter;
+`IconAsyncButton` does not). A throw rethrows: a tap's error reaches your zone /
 `PlatformDispatcher.instance.onError`, and `controller.trigger()` callers get a
 rejected Future — handle failures in your state management, not the button.
 
@@ -45,6 +46,7 @@ final theme = AsyncButtonTheme(
   loadingBuilder: thickSpinner, // a tear-off, never an inline closure
   maintainSize: true, // keep the idle footprint — no width jump
   minLoadingDuration: const Duration(milliseconds: 300), // anti-flicker floor
+  disableWhileLoading: true, // optional: disabled look while busy
 );
 ```
 

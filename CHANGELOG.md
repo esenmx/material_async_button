@@ -16,6 +16,13 @@
   can fire with `value` unchanged. Compare `value` if you only care about
   loading.
 
+### Added
+
+- `disableWhileLoading` on `AsyncButtonTheme`, `AsyncButton` and every wrapper:
+  passes a `null` callback while loading so the button renders its disabled look
+  (and `AsyncButtonSpinner` inherits the disabled foreground), then re-enables
+  when the run settles. Defaults to `false`.
+
 ### Fixed
 
 - `controller.canTrigger` now notifies on mount, unmount, `enabled` and
