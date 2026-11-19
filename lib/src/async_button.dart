@@ -20,7 +20,6 @@ typedef AsyncButtonWidgetBuilder =
       AsyncCallback? callback,
       // Builder callbacks are positional by Flutter convention (cf.
       // ValueWidgetBuilder<bool>); a named bool here would be un-idiomatic.
-      // ignore: avoid_positional_boolean_parameters
       bool isLoading,
     );
 
@@ -36,7 +35,6 @@ typedef AsyncButtonTransitionBuilder =
       Widget child,
       // Builder callbacks are positional by Flutter convention (cf.
       // ValueWidgetBuilder<bool>); a named bool here would be un-idiomatic.
-      // ignore: avoid_positional_boolean_parameters
       bool isLoading,
     );
 // dart format on
