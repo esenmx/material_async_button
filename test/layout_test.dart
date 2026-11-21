@@ -190,15 +190,15 @@ void main() {
           because: 'the transition must survive the swap',
           tester.state(find.byType(AnimatedSwitcher)),
         ).identicalTo(switcher);
-        check(find.text('Save')).findsOne();
-        check(find.byType(CircularProgressIndicator)).findsOne();
-        check(find.byIcon(Icons.save)).findsNone();
+        check(find.text('Save')).findsOne;
+        check(find.byType(CircularProgressIndicator)).findsOne;
+        check(find.byIcon(Icons.save)).findsNone;
 
         completer.complete();
         await tester.pumpAndSettle();
         check(tester.state(find.byType(AnimatedSwitcher)))
             .identicalTo(switcher);
-        check(find.byIcon(Icons.save)).findsOne();
+        check(find.byIcon(Icons.save)).findsOne;
       });
     }
   });
@@ -354,9 +354,9 @@ void main() {
               ? find.byIcon(Icons.save)
               : find.text('Save');
           // Kept in the tree for its footprint, but not interactive.
-          check(hidden).findsOne();
-          check(hidden.hitTestable()).findsNone();
-          check(find.byType(CircularProgressIndicator)).findsOne();
+          check(hidden).findsOne;
+          check(hidden.hitTestable()).findsNone;
+          check(find.byType(CircularProgressIndicator)).findsOne;
           completer.complete();
           await tester.pump();
           check(loading).equals(idle);

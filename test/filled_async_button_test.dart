@@ -13,7 +13,7 @@ void main() {
           FilledAsyncButton(onPressed: () async {}, child: const Text('go')),
         ),
       );
-      check(find.byType(FilledButton)).findsOne();
+      check(find.byType(FilledButton)).findsOne;
     });
 
     testWidgets('.tonal renders FilledButton in tonal style', (tester) async {
@@ -25,7 +25,7 @@ void main() {
           ),
         ),
       );
-      check(find.byType(FilledButton)).findsOne();
+      check(find.byType(FilledButton)).findsOne;
     });
 
     testWidgets('.tonalIcon renders', (tester) async {
@@ -38,7 +38,7 @@ void main() {
           ),
         ),
       );
-      check(find.byType(FilledButton)).findsOne();
+      check(find.byType(FilledButton)).findsOne;
     });
 
     testWidgets('.icon shows the spinner while loading, restores after', (
@@ -56,13 +56,13 @@ void main() {
       );
       await tapIntoLoading(tester, find.byType(FilledButton));
       // Loading drops the icon and shows the spinner alone.
-      check(find.byType(CircularProgressIndicator)).findsOne();
-      check(find.byIcon(Icons.save)).findsNone();
+      check(find.byType(CircularProgressIndicator)).findsOne;
+      check(find.byIcon(Icons.save)).findsNone;
       completer.complete();
       await tester.pumpAndSettle();
       // Label and icon return once the work completes.
-      check(find.text('save')).findsOne();
-      check(find.byIcon(Icons.save)).findsOne();
+      check(find.text('save')).findsOne;
+      check(find.byIcon(Icons.save)).findsOne;
     });
   });
 
@@ -197,7 +197,7 @@ void main() {
         final disabledButton = find.byKey(disabledKey);
 
         await tapIntoLoading(tester, asyncButton);
-        check(tester.widget<FilledButton>(asyncButton).onPressed).isNull();
+        check(tester.widget<FilledButton>(asyncButton).onPressed).isNull;
         check(buttonMaterialColor(tester, asyncButton))
             .equals(buttonMaterialColor(tester, disabledButton));
         final expectedForeground = tester

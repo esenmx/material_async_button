@@ -21,8 +21,8 @@ void main() {
           ),
         ),
       );
-      check(find.byIcon(Icons.refresh)).findsOne();
-      check(find.byType(IconButton)).findsOne();
+      check(find.byIcon(Icons.refresh)).findsOne;
+      check(find.byType(IconButton)).findsOne;
     });
 
     testWidgets('each variant renders its IconButton flavor', (tester) async {
@@ -88,10 +88,10 @@ void main() {
       );
       await tester.tap(find.byType(IconButton));
       await tester.pump();
-      check(find.byType(CircularProgressIndicator)).findsOne();
+      check(find.byType(CircularProgressIndicator)).findsOne;
       completer.complete();
       await tester.pumpAndSettle();
-      check(find.byIcon(Icons.refresh)).findsOne();
+      check(find.byIcon(Icons.refresh)).findsOne;
     });
 
     testWidgets('forwards its parameters to the underlying IconButton', (
@@ -173,7 +173,7 @@ void main() {
         await tester.tap(find.byType(IconButton));
         await tester.pump();
         button = tester.widget<IconButton>(find.byType(IconButton));
-        check(because: name, button.onLongPress).isNull();
+        check(because: name, button.onLongPress).isNull;
         completer.complete();
         await tester.pumpAndSettle();
       }
@@ -193,14 +193,14 @@ void main() {
           ),
         ),
       );
-      check(find.byIcon(Icons.favorite)).findsOne();
+      check(find.byIcon(Icons.favorite)).findsOne;
       await tester.tap(find.byType(IconButton));
       await tester.pump();
-      check(find.byType(CircularProgressIndicator)).findsOne();
-      check(find.byIcon(Icons.favorite)).findsNone();
+      check(find.byType(CircularProgressIndicator)).findsOne;
+      check(find.byIcon(Icons.favorite)).findsNone;
       completer.complete();
       await tester.pumpAndSettle();
-      check(find.byIcon(Icons.favorite)).findsOne();
+      check(find.byIcon(Icons.favorite)).findsOne;
     });
   });
 
@@ -234,7 +234,7 @@ void main() {
         ),
       );
       check(find.byIcon(Icons.star_border).evaluate()).length.equals(2);
-      check(find.byIcon(Icons.star)).findsNone();
+      check(find.byIcon(Icons.star)).findsNone;
     });
   });
 

@@ -48,19 +48,19 @@ void main() {
       );
       final overridden = base.copyWith(loadingBuilder: _loadingB);
       check(overridden)
-        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingB)
+        ..has('loadingBuilder', (it) => it.loadingBuilder).equals(_loadingB)
         ..has(
-          (it) => it.transitionBuilder,
           'transitionBuilder',
+          (it) => it.transitionBuilder,
         ).equals(_noopTransition)
-        ..has((it) => it.maintainSize, 'maintainSize').equals(true)
+        ..has('maintainSize', (it) => it.maintainSize).equals(true)
         ..has(
-          (it) => it.minLoadingDuration,
           'minLoadingDuration',
+          (it) => it.minLoadingDuration,
         ).equals(_short)
         ..has(
-          (it) => it.disableWhileLoading,
           'disableWhileLoading',
+          (it) => it.disableWhileLoading,
         ).equals(true);
       check(
           base.copyWith(
@@ -69,12 +69,12 @@ void main() {
             disableWhileLoading: false,
           ),
         )
-        ..has((it) => it.loadingBuilder, 'loadingBuilder').equals(_loadingA)
-        ..has((it) => it.maintainSize, 'maintainSize').equals(false)
-        ..has((it) => it.minLoadingDuration, 'minLoadingDuration').equals(_long)
+        ..has('loadingBuilder', (it) => it.loadingBuilder).equals(_loadingA)
+        ..has('maintainSize', (it) => it.maintainSize).equals(false)
+        ..has('minLoadingDuration', (it) => it.minLoadingDuration).equals(_long)
         ..has(
-          (it) => it.disableWhileLoading,
           'disableWhileLoading',
+          (it) => it.disableWhileLoading,
         ).equals(false);
     });
 
@@ -98,24 +98,24 @@ void main() {
       for (final (t, expected) in [(0.4, from), (0.5, to), (0.6, to)]) {
         check(from.lerp(to, t), because: 't=$t')
           ..has(
-            (it) => it.loadingBuilder,
             'loadingBuilder',
+            (it) => it.loadingBuilder,
           ).equals(expected.loadingBuilder)
           ..has(
-            (it) => it.transitionBuilder,
             'transitionBuilder',
+            (it) => it.transitionBuilder,
           ).equals(expected.transitionBuilder)
           ..has(
-            (it) => it.maintainSize,
             'maintainSize',
+            (it) => it.maintainSize,
           ).equals(expected.maintainSize)
           ..has(
-            (it) => it.minLoadingDuration,
             'minLoadingDuration',
+            (it) => it.minLoadingDuration,
           ).equals(expected.minLoadingDuration)
           ..has(
-            (it) => it.disableWhileLoading,
             'disableWhileLoading',
+            (it) => it.disableWhileLoading,
           ).equals(expected.disableWhileLoading);
       }
     });
@@ -141,7 +141,7 @@ void main() {
       );
       check(captured)
           .isNotNull()
-          .has((it) => it.loadingBuilder, 'loadingBuilder')
+          .has('loadingBuilder', (it) => it.loadingBuilder)
           .equals(_loadingA);
     });
 
@@ -160,8 +160,8 @@ void main() {
         ),
       );
       check(captured).isNotNull()
-        ..has((it) => it.loadingBuilder, 'loadingBuilder').isNull()
-        ..has((it) => it.transitionBuilder, 'transitionBuilder').isNull();
+        ..has('loadingBuilder', (it) => it.loadingBuilder).isNull
+        ..has('transitionBuilder', (it) => it.transitionBuilder).isNull;
     });
 
     test('equality is value-based', () {
@@ -181,9 +181,9 @@ void main() {
       );
       check(a).equals(b);
       check(a.hashCode).equals(b.hashCode);
-      check(a).not((it) => it.equals(a.copyWith(maintainSize: false)));
-      check(a).not((it) => it.equals(a.copyWith(minLoadingDuration: _long)));
-      check(a).not((it) => it.equals(a.copyWith(disableWhileLoading: false)));
+      check(a).not(.it()..equals(a.copyWith(maintainSize: false)));
+      check(a).not(.it()..equals(a.copyWith(minLoadingDuration: _long)));
+      check(a).not(.it()..equals(a.copyWith(disableWhileLoading: false)));
     });
 
     test('empty leaves every field at its default', () {
@@ -193,11 +193,11 @@ void main() {
       // ignore: use_named_constants
       const b = AsyncButtonTheme();
       check(AsyncButtonTheme.empty).equals(b);
-      check(AsyncButtonTheme.empty.loadingBuilder).isNull();
-      check(AsyncButtonTheme.empty.transitionBuilder).isNull();
-      check(AsyncButtonTheme.empty.maintainSize).isNull();
-      check(AsyncButtonTheme.empty.minLoadingDuration).isNull();
-      check(AsyncButtonTheme.empty.disableWhileLoading).isNull();
+      check(AsyncButtonTheme.empty.loadingBuilder).isNull;
+      check(AsyncButtonTheme.empty.transitionBuilder).isNull;
+      check(AsyncButtonTheme.empty.maintainSize).isNull;
+      check(AsyncButtonTheme.empty.minLoadingDuration).isNull;
+      check(AsyncButtonTheme.empty.disableWhileLoading).isNull;
     });
   });
 
@@ -265,7 +265,7 @@ void main() {
         // A 17th style evicts the oldest entry.
         await pumpSpinnerWithFontSize(17);
         check(debugLineBoxCache.length).equals(16);
-        check(debugLineBoxCache.containsKey(firstKey)).isFalse();
+        check(debugLineBoxCache.containsKey(firstKey)).isFalse;
 
         // A hit on the now-oldest entry moves it to the MRU end without
         // growing or evicting.

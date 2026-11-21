@@ -20,14 +20,14 @@ void main() {
     test('starts idle by default with no onPressed', () {
       final c = newController();
       check(c)
-        ..isIdle()
-        ..has((it) => it.canTrigger, 'canTrigger').isFalse();
+        ..isIdle
+        ..has('canTrigger', (it) => it.canTrigger).isFalse;
     });
 
     test('trigger() with no bound button throws StateError', () async {
       final c = newController();
       await check(c.trigger()).throws<StateError>();
-      check(c).isIdle();
+      check(c).isIdle;
     });
 
     testWidgets('trigger() after dispose() never runs onPressed', (
@@ -41,7 +41,7 @@ void main() {
         onPressed: () async => ran++,
       );
       c.dispose();
-      check(c.canTrigger).isFalse();
+      check(c.canTrigger).isFalse;
       await c.trigger().then<void>((_) {}, onError: (Object e) => err = e);
       check(ran).equals(0);
       check(err).isA<StateError>();
@@ -59,9 +59,9 @@ void main() {
         onPressed: () => completer.future,
       );
       c.trigger();
-      check(c).isLoading();
+      check(c).isLoading;
       c.reset();
-      check(c).isIdle();
+      check(c).isIdle;
       completer.complete();
     });
   });
@@ -78,7 +78,7 @@ void main() {
       await tester.pump(delay);
       await run;
       check(states).deepEquals([true, false]);
-      check(c).isIdle();
+      check(c).isIdle;
     });
 
     testWidgets('failing run resets to idle and rethrows', (tester) async {
@@ -89,7 +89,7 @@ void main() {
       final states = recordStates(c);
       await check(c.trigger()).throws<StateError>();
       check(states).deepEquals([true, false]);
-      check(c).isIdle();
+      check(c).isIdle;
     });
   });
 
@@ -109,11 +109,11 @@ void main() {
       var joinedDone = false;
       final joined = c.trigger().then((_) => joinedDone = true);
       await tester.pump();
-      check(c).isLoading();
-      check(because: 'the joiner waits for the run', joinedDone).isFalse();
+      check(c).isLoading;
+      check(because: 'the joiner waits for the run', joinedDone).isFalse;
       completer.complete();
       await Future.wait<void>([first, joined]);
-      check(joinedDone).isTrue();
+      check(joinedDone).isTrue;
       check(calls).equals(1);
     });
 
@@ -130,7 +130,7 @@ void main() {
       completer.completeError(StateError('boom'));
       await check(first).throws<StateError>();
       await check(joined).throws<StateError>();
-      check(c).isIdle();
+      check(c).isIdle;
     });
 
     testWidgets('after reset a joiner still waits for the abandoned run, and a '
@@ -150,12 +150,12 @@ void main() {
       c.reset();
       await c.trigger();
       check(calls).equals(2);
-      check(c).isIdle();
+      check(c).isIdle;
       await tester.pump();
-      check(joinedDone).isFalse();
+      check(joinedDone).isFalse;
       abandoned.complete();
       await Future.wait<void>([first, joined]);
-      check(joinedDone).isTrue();
+      check(joinedDone).isTrue;
     });
 
     testWidgets('reset mid-onPressed leaves the button idle', (tester) async {
@@ -165,11 +165,11 @@ void main() {
         onPressed: () => completer.future,
       );
       final f = c.trigger();
-      check(c).isLoading();
+      check(c).isLoading;
       c.reset();
       completer.complete();
       await f;
-      check(c).isIdle();
+      check(c).isIdle;
     });
 
     testWidgets('disposing during onPressed does not throw on completion', (
@@ -182,7 +182,7 @@ void main() {
         onPressed: () => completer.future,
       );
       final f = c.trigger();
-      check(c).isLoading();
+      check(c).isLoading;
       c.dispose();
       completer.complete();
       await f;
@@ -205,8 +205,8 @@ void main() {
         },
       );
       await c.trigger();
-      check(c).isIdle();
-      check(c.canTrigger).isTrue();
+      check(c).isIdle;
+      check(c.canTrigger).isTrue;
       await c.trigger();
       check(calls).equals(2);
     });
@@ -231,10 +231,10 @@ void main() {
       var joinedDone = false;
       final joiner = joined.single.then((_) => joinedDone = true);
       await tester.pump();
-      check(because: 'the joiner waits for the run', joinedDone).isFalse();
+      check(because: 'the joiner waits for the run', joinedDone).isFalse;
       finish.complete();
       await Future.wait<void>([first, joiner]);
-      check(joinedDone).isTrue();
+      check(joinedDone).isTrue;
       check(calls).equals(1);
     });
 
@@ -254,10 +254,10 @@ void main() {
       var joinedDone = false;
       final joiner = joined.single.then((_) => joinedDone = true);
       await tester.pump();
-      check(because: 'the joiner waits for the run', joinedDone).isFalse();
+      check(because: 'the joiner waits for the run', joinedDone).isFalse;
       finish.complete();
       await Future.wait<void>([first, joiner]);
-      check(joinedDone).isTrue();
+      check(joinedDone).isTrue;
     });
 
     testWidgets('reset from a loading listener abandons the run', (
@@ -275,7 +275,7 @@ void main() {
       });
       await c.trigger();
       check(calls).equals(0);
-      check(c).isIdle();
+      check(c).isIdle;
       await c.trigger();
       check(calls).equals(1);
     });
@@ -300,7 +300,7 @@ void main() {
         await c.trigger();
         await joined;
         check(calls).equals(1);
-        check(c).isIdle();
+        check(c).isIdle;
       },
     );
 
@@ -322,7 +322,7 @@ void main() {
       var done = false;
       final run = c.trigger().then((_) => done = true);
       await tester.pump();
-      check(because: 'reset releases the abandoned floor', done).isTrue();
+      check(because: 'reset releases the abandoned floor', done).isTrue;
       await run;
     });
 
@@ -344,7 +344,7 @@ void main() {
       var done = false;
       final run = c.trigger().then((_) => done = true);
       await tester.pump();
-      check(because: 'dispose releases the floor', done).isTrue();
+      check(because: 'dispose releases the floor', done).isTrue;
       await run;
     });
   });
@@ -367,7 +367,7 @@ void main() {
       final c = newController();
       await tester.pumpWidget(gated(c, boundButton(c, () async {})));
       await tester.pump();
-      check(find.text('can')).findsOne();
+      check(find.text('can')).findsOne;
     });
 
     testWidgets('a gate above the button sees enabled flip both ways', (
@@ -383,15 +383,15 @@ void main() {
       );
       await tester.pumpWidget(gated(c, button(enabled: false)));
       await tester.pump();
-      check(find.text('cannot')).findsOne();
+      check(find.text('cannot')).findsOne;
 
       await tester.pumpWidget(gated(c, button(enabled: true)));
       await tester.pump();
-      check(find.text('can')).findsOne();
+      check(find.text('can')).findsOne;
 
       await tester.pumpWidget(gated(c, button(enabled: false)));
       await tester.pump();
-      check(find.text('cannot')).findsOne();
+      check(find.text('cannot')).findsOne;
     });
 
     testWidgets('a gate above the button sees onPressed go null', (
@@ -406,22 +406,22 @@ void main() {
       );
       await tester.pumpWidget(gated(c, button(() async {})));
       await tester.pump();
-      check(find.text('can')).findsOne();
+      check(find.text('can')).findsOne;
 
       await tester.pumpWidget(gated(c, button(null)));
       await tester.pump();
-      check(find.text('cannot')).findsOne();
+      check(find.text('cannot')).findsOne;
     });
 
     testWidgets('a gate above the button sees the unmount', (tester) async {
       final c = newController();
       await tester.pumpWidget(gated(c, boundButton(c, () async {})));
       await tester.pump();
-      check(find.text('can')).findsOne();
+      check(find.text('can')).findsOne;
 
       await tester.pumpWidget(gated(c, null));
       await tester.pump();
-      check(find.text('cannot')).findsOne();
+      check(find.text('cannot')).findsOne;
     });
 
     testWidgets('the controller a button leaves notifies', (tester) async {
@@ -435,9 +435,9 @@ void main() {
 
       await tester.pumpWidget(pumpHost(boundButton(b, () async {})));
       check(aNotified).equals(1);
-      check(a.canTrigger).isFalse();
+      check(a.canTrigger).isFalse;
       check(bNotified).equals(1);
-      check(b.canTrigger).isTrue();
+      check(b.canTrigger).isTrue;
     });
 
     testWidgets('a listener from before the mount hears the bind, then the '
@@ -476,7 +476,7 @@ void main() {
       await tester.pumpWidget(pumpHost(keyed('new')));
       await tester.pump();
       check(notified).equals(0);
-      check(c.canTrigger).isTrue();
+      check(c.canTrigger).isTrue;
     });
 
     testWidgets('disabling mid-run notifies only the run transitions', (
@@ -501,7 +501,7 @@ void main() {
       completer.complete();
       await tester.pump();
       check(states).deepEquals([true, false]);
-      check(c.canTrigger).isTrue();
+      check(c.canTrigger).isTrue;
     });
 
     testWidgets('a controller disposed with its button stays silent', (
@@ -512,8 +512,8 @@ void main() {
         pumpHost(_DisposesOnUnmount(c, child: boundButton(c, () async {}))),
       );
       await tester.pumpWidget(pumpHost(const SizedBox()));
-      check(tester.takeException()).isNull();
-      check(c.canTrigger).isFalse();
+      check(tester.takeException()).isNull;
+      check(c.canTrigger).isFalse;
     });
 
     testWidgets('a button does not rebuild for a canTrigger change', (
@@ -556,16 +556,16 @@ void main() {
           ),
         ),
       );
-      check(find.text('idle')).findsOne();
+      check(find.text('idle')).findsOne;
 
       c.trigger();
       await tester.pump();
-      check(find.text('loading')).findsOne();
+      check(find.text('loading')).findsOne;
 
       completer.complete();
       await tester.pump(); // drain the completion microtask
       await tester.pump(); // rebuild with the idle state
-      check(find.text('idle')).findsOne();
+      check(find.text('idle')).findsOne;
     });
   });
 }

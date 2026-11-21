@@ -183,24 +183,24 @@ double? spinnerFontSize(WidgetTester tester) {
 
 /// `checks`-style assertions for [Finder].
 extension FinderChecks on Subject<Finder> {
-  void findsOne() => has((f) => f.evaluate().length, 'matches').equals(1);
-  void findsNone() => has((f) => f.evaluate(), 'matches').isEmpty();
+  void get findsOne => has('matches', (f) => f.evaluate().length).equals(1);
+  void get findsNone => has('matches', (f) => f.evaluate()).isEmpty;
 }
 
 /// `checks`-style assertions for [AsyncButtonController].
 extension AsyncButtonControllerChecks on Subject<AsyncButtonController> {
-  void isIdle() => has((c) => c.value, 'isLoading').isFalse();
-  void isLoading() => has((c) => c.value, 'isLoading').isTrue();
+  void get isIdle => has('isLoading', (c) => c.value).isFalse;
+  void get isLoading => has('isLoading', (c) => c.value).isTrue;
 
-  void isDisposed() => has(
+  void get isDisposed => has(
+    'dispose guard',
     (c) =>
         () => ChangeNotifier.debugAssertNotDisposed(c),
-    'dispose guard',
   ).throws<FlutterError>();
 
-  void isNotDisposed() => has(
+  void get isNotDisposed => has(
+    'dispose guard',
     (c) =>
         () => ChangeNotifier.debugAssertNotDisposed(c),
-    'dispose guard',
   ).returnsNormally();
 }

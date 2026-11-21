@@ -53,7 +53,7 @@ void main() {
           ),
         ),
       );
-      check(find.text('hello')).findsOne();
+      check(find.text('hello')).findsOne;
     });
 
     testWidgets('falls back to built-in spinner when no loadingBuilder', (
@@ -71,7 +71,7 @@ void main() {
       );
       await tester.tap(find.byType(TextButton));
       await tester.pump();
-      check(find.byType(CircularProgressIndicator)).findsOne();
+      check(find.byType(CircularProgressIndicator)).findsOne;
       completer.complete();
       await tester.pumpAndSettle();
     });
@@ -113,7 +113,7 @@ void main() {
       );
       await tester.tap(find.byType(TextButton));
       await tester.pump();
-      check(find.text('spinning')).findsOne();
+      check(find.text('spinning')).findsOne;
       completer.complete();
       await tester.pumpAndSettle();
     });
@@ -136,7 +136,7 @@ void main() {
       );
       await tester.tap(find.byType(TextButton));
       await tester.pump();
-      check(find.text('themed-loading')).findsOne();
+      check(find.text('themed-loading')).findsOne;
       completer.complete();
       await tester.pumpAndSettle();
     });
@@ -156,8 +156,8 @@ void main() {
       );
       await tester.tap(find.byType(TextButton));
       await tester.pump();
-      check(find.text('widget')).findsOne();
-      check(find.text('themed')).findsNone();
+      check(find.text('widget')).findsOne;
+      check(find.text('themed')).findsNone;
       completer.complete();
       await tester.pumpAndSettle();
     });
@@ -178,7 +178,7 @@ void main() {
       );
       await tester.tap(find.byType(TextButton));
       await tester.pumpAndSettle();
-      check(find.text('label')).findsOne();
+      check(find.text('label')).findsOne;
     });
 
     testWidgets('a throwing onPressed returns to idle and rethrows', (
@@ -200,7 +200,7 @@ void main() {
       await check(controller.trigger()).throws<StateError>();
       await tester.pump();
       // The button is back to its idle child — there is no error view.
-      check(find.text('label')).findsOne();
+      check(find.text('label')).findsOne;
     });
 
     testWidgets('taps while loading join the run without reporting its error '
@@ -243,7 +243,7 @@ void main() {
         ),
       );
       final btn = tester.widget<TextButton>(find.byType(TextButton));
-      check(btn.onPressed).isNull();
+      check(btn.onPressed).isNull;
     });
 
     testWidgets('callback null when enabled is false', (tester) async {
@@ -258,7 +258,7 @@ void main() {
         ),
       );
       final btn = tester.widget<TextButton>(find.byType(TextButton));
-      check(btn.onPressed).isNull();
+      check(btn.onPressed).isNull;
     });
 
     testWidgets('enabled:false no-ops external controller.trigger', (
@@ -282,8 +282,8 @@ void main() {
       await controller.trigger();
       await tester.pump();
       check(ran).equals(0);
-      check(controller).isIdle();
-      check(find.byType(CircularProgressIndicator)).findsNone();
+      check(controller).isIdle;
+      check(find.byType(CircularProgressIndicator)).findsNone;
     });
   });
 
@@ -310,12 +310,12 @@ void main() {
       controller.trigger();
       await tester.pump();
       // Loading: spinner shows and the button keeps its enabled look.
-      check(find.byType(CircularProgressIndicator)).findsOne();
+      check(find.byType(CircularProgressIndicator)).findsOne;
       check(tester.widget<TextButton>(textButton).onPressed).isNotNull();
 
       completer.complete();
       await tester.pumpAndSettle();
-      check(find.text('label')).findsOne();
+      check(find.text('label')).findsOne;
     });
 
     testWidgets('controller.reset clears the loading state', (tester) async {
@@ -333,10 +333,10 @@ void main() {
       );
       controller.trigger();
       await tester.pump();
-      check(find.byType(CircularProgressIndicator)).findsOne();
+      check(find.byType(CircularProgressIndicator)).findsOne;
       controller.reset();
       await tester.pump();
-      check(find.text('label')).findsOne();
+      check(find.text('label')).findsOne;
       completer.complete();
     });
 
@@ -359,13 +359,13 @@ void main() {
 
         // 2. Pump with external controller
         await tester.pumpWidget(pumpHost(button(externalController)));
-        check(internalController).isDisposed();
+        check(internalController).isDisposed;
 
         // The widget now listens to externalController: driving it must show
         // loading.
         externalController.trigger();
         await tester.pump();
-        check(find.byType(CircularProgressIndicator)).findsOne();
+        check(find.byType(CircularProgressIndicator)).findsOne;
 
         completer.complete();
         await tester.pumpAndSettle();
@@ -402,7 +402,7 @@ void main() {
       // throws and runs nothing.
       await check(externalController.trigger()).throws<StateError>();
       await tester.pump();
-      check(find.byType(CircularProgressIndicator)).findsNone();
+      check(find.byType(CircularProgressIndicator)).findsNone;
       check(
         because: 'a detached controller runs nothing',
         externalCalls,
@@ -449,28 +449,28 @@ void main() {
         check(
           because: 'the old controller keeps no listener',
           a.listened(),
-        ).isFalse();
+        ).isFalse;
         check(
           because: 'the new controller is listened to',
           b.listened(),
-        ).isTrue();
+        ).isTrue;
         // The widget now listens to b: a has no button bound, so trigger()
         // throws and nothing loads.
         await check(a.trigger()).throws<StateError>();
         await tester.pump();
-        check(find.byType(CircularProgressIndicator)).findsNone();
+        check(find.byType(CircularProgressIndicator)).findsNone;
         check(because: 'a detached controller runs nothing', aCalls).equals(0);
         // Driving b does.
         b.trigger();
         await tester.pump();
-        check(find.byType(CircularProgressIndicator)).findsOne();
+        check(find.byType(CircularProgressIndicator)).findsOne;
         check(bCalls).equals(1);
         aCompleter.complete();
         bCompleter.complete();
         await tester.pumpAndSettle();
         // Neither caller-owned controller was disposed by the swap.
-        check(a).isNotDisposed();
-        check(b).isNotDisposed();
+        check(a).isNotDisposed;
+        check(b).isNotDisposed;
       },
     );
 
@@ -488,7 +488,7 @@ void main() {
 
       await tester.pumpWidget(pumpHost(const SizedBox()));
 
-      check(internalController).isDisposed();
+      check(internalController).isDisposed;
     });
 
     testWidgets('does not dispose external controller when unmounted', (
@@ -508,7 +508,7 @@ void main() {
 
       await tester.pumpWidget(pumpHost(const SizedBox()));
 
-      check(controller).isNotDisposed();
+      check(controller).isNotDisposed;
     });
   });
 
@@ -525,8 +525,8 @@ void main() {
       await tester.tap(find.byType(FilledButton));
       await tester.pump();
       // No AnimatedSwitcher/AnimatedSize is inserted by the package.
-      check(find.byType(AnimatedSwitcher)).findsNone();
-      check(find.byType(CircularProgressIndicator)).findsOne();
+      check(find.byType(AnimatedSwitcher)).findsNone;
+      check(find.byType(CircularProgressIndicator)).findsOne;
       completer.complete();
       await tester.pumpAndSettle();
     });
@@ -553,7 +553,7 @@ void main() {
       );
       await tester.tap(find.byType(FilledButton));
       await tester.pump();
-      check(find.byType(AnimatedSwitcher)).findsOne();
+      check(find.byType(AnimatedSwitcher)).findsOne;
       check(seenLoading).contains(true);
       completer.complete();
       await tester.pumpAndSettle();
@@ -585,9 +585,9 @@ void main() {
       await tester.pumpWidget(pumpHost(button(c)));
       await tester.tap(find.byType(TextButton));
       await tester.pump(ms * 299);
-      check(c).isLoading();
+      check(c).isLoading;
       await tester.pump(ms);
-      check(c).isIdle();
+      check(c).isIdle;
     });
 
     testWidgets('the floor counts from the tap, not from completion', (
@@ -599,9 +599,9 @@ void main() {
       );
       await tester.tap(find.byType(TextButton));
       await tester.pump(ms * 299);
-      check(c).isLoading();
+      check(c).isLoading;
       await tester.pump(ms);
-      check(because: 'idle at +300 ms, not +500 ms', c).isIdle();
+      check(because: 'idle at +300 ms, not +500 ms', c).isIdle;
     });
 
     testWidgets('reset() during the floor ends loading once', (tester) async {
@@ -626,10 +626,10 @@ void main() {
       );
       c.trigger().then<void>((_) {}, onError: (Object e) => error = e);
       await tester.pump(ms * 100);
-      check(c).isLoading();
-      check(error).isNull();
+      check(c).isLoading;
+      check(error).isNull;
       await tester.pump(ms * 200);
-      check(c).isIdle();
+      check(c).isIdle;
       check(error).isA<StateError>();
     });
 
@@ -643,9 +643,9 @@ void main() {
       );
       await tester.tap(find.byType(TextButton));
       await tester.pump(ms * 99);
-      check(c).isLoading();
+      check(c).isLoading;
       await tester.pump(ms);
-      check(c).isIdle();
+      check(c).isIdle;
     });
 
     testWidgets('theme value applies when the widget sets none', (
@@ -660,9 +660,9 @@ void main() {
       );
       await tester.tap(find.byType(TextButton));
       await tester.pump(ms * 299);
-      check(c).isLoading();
+      check(c).isLoading;
       await tester.pump(ms);
-      check(c).isIdle();
+      check(c).isIdle;
     });
 
     testWidgets('unmounting mid-floor leaves an external controller loading '
@@ -676,9 +676,9 @@ void main() {
       check(
         because: 'the run and its floor belong to the controller',
         c,
-      ).isLoading();
+      ).isLoading;
       await tester.pump(ms * 200);
-      check(c).isIdle();
+      check(c).isIdle;
     });
 
     testWidgets('unmounting before the floor elapses leaves no pending timer', (
@@ -708,10 +708,10 @@ void main() {
         var settled = false;
         c.trigger().then((_) => settled = true);
         await tester.pump(ms * 100);
-        check(settled).isFalse();
+        check(settled).isFalse;
         c.reset();
         await tester.pump();
-        check(settled).isTrue();
+        check(settled).isTrue;
       },
     );
 
@@ -725,11 +725,8 @@ void main() {
         var settled = false;
         c.trigger().then((_) => settled = true);
         await tester.pump();
-        check(
-          because: 'the floor comes from the bound button',
-          settled,
-        ).isTrue();
-        check(c).isIdle();
+        check(because: 'the floor comes from the bound button', settled).isTrue;
+        check(c).isIdle;
       },
     );
   });
@@ -792,7 +789,7 @@ void main() {
     void checkRejected(Object? error) {
       check(error)
           .isA<ArgumentError>()
-          .has((e) => e.name, 'name')
+          .has('name', (e) => e.name)
           .equals('minLoadingDuration');
     }
 
@@ -825,7 +822,7 @@ void main() {
           theme: asyncButtonTheme(minLoadingDuration: negative),
         ),
       );
-      check(tester.takeException()).isNull();
+      check(tester.takeException()).isNull;
     });
   });
 
@@ -863,11 +860,11 @@ void main() {
       check(
         because: 'the abandoned run must not clear the new one',
         c,
-      ).isLoading();
+      ).isLoading;
 
       runs.last.complete();
       await tester.pump();
-      check(c).isIdle();
+      check(c).isIdle;
     });
 
     testWidgets('a controller swapped in mid-flight shows its own idle state', (
@@ -898,13 +895,13 @@ void main() {
       await tester.pump();
 
       await tester.pumpWidget(host(ext));
-      check(tester.takeException()).isNull();
+      check(tester.takeException()).isNull;
       check(
         because: 'the run stays with the internal controller it started on',
         ext,
-      ).isIdle();
-      check(find.byType(CircularProgressIndicator)).findsNone();
-      check(find.text('busy=false')).findsOne();
+      ).isIdle;
+      check(find.byType(CircularProgressIndicator)).findsNone;
+      check(find.text('busy=false')).findsOne;
 
       await tester.tap(find.byType(TextButton));
       await tester.pump();
@@ -912,11 +909,11 @@ void main() {
         because: 'a tap starts a run on the new controller',
         calls,
       ).equals(2);
-      check(find.text('busy=true')).findsOne();
+      check(find.text('busy=true')).findsOne;
 
       completer.complete();
       await tester.pump();
-      check(ext).isIdle();
+      check(ext).isIdle;
     });
 
     testWidgets('one controller on two mounted buttons throws StateError', (
@@ -953,7 +950,7 @@ void main() {
         ),
       );
       await tester.pumpWidget(pumpHost(const SizedBox()));
-      check(because: 'no button is attached any more', c.canTrigger).isFalse();
+      check(because: 'no button is attached any more', c.canTrigger).isFalse;
       await check(c.trigger()).throws<StateError>();
       check(because: 'unmounted button callback must not run', ran).equals(0);
     });
@@ -1033,8 +1030,8 @@ void main() {
           pumpHost(before(c, () async => ran.add('old'))),
         );
         await tester.pumpWidget(pumpHost(after(c, () async => ran.add('new'))));
-        check(tester.takeException()).isNull();
-        check(c.canTrigger).isTrue();
+        check(tester.takeException()).isNull;
+        check(c.canTrigger).isTrue;
         await c.trigger();
         check(ran).deepEquals(['new']);
       });
@@ -1083,8 +1080,8 @@ void main() {
         await tester.pumpWidget(
           _columnOf([after(c, () async => ran.add('new'))]),
         );
-        check(tester.takeException()).isNull();
-        check(c.canTrigger).isTrue();
+        check(tester.takeException()).isNull;
+        check(c.canTrigger).isTrue;
         await c.trigger();
         check(ran).deepEquals(['new']);
       });
@@ -1103,13 +1100,13 @@ void main() {
           await tester.pumpWidget(_columnOf([before(c, work)]));
           await tester.tap(find.byType(ElevatedButton));
           await tester.pump();
-          check(c).isLoading();
+          check(c).isLoading;
           check(runs).equals(1);
 
           await tester.pumpWidget(_columnOf([after(c, work)]));
-          check(tester.takeException()).isNull();
-          check(c).isLoading();
-          check(find.byType(CircularProgressIndicator)).findsOne();
+          check(tester.takeException()).isNull;
+          check(c).isLoading;
+          check(find.byType(CircularProgressIndicator)).findsOne;
 
           await tester.tap(find.byType(CircularProgressIndicator));
           await tester.pump();
@@ -1117,7 +1114,7 @@ void main() {
 
           completer.complete();
           await tester.pump();
-          check(c).isIdle();
+          check(c).isIdle;
         },
       );
     }
@@ -1141,18 +1138,18 @@ void main() {
         await tester.pumpWidget(host(c1));
         await tester.tap(find.byType(ElevatedButton));
         await tester.pump();
-        check(c1).isLoading();
+        check(c1).isLoading;
 
         for (final next in [c2, c3]) {
           await tester.pumpWidget(host(next));
           await tester.pump();
-          check(c1).isLoading();
-          check(next).isIdle();
-          check(find.byType(CircularProgressIndicator)).findsNone();
+          check(c1).isLoading;
+          check(next).isIdle;
+          check(find.byType(CircularProgressIndicator)).findsNone;
         }
 
         await tester.pump(const Duration(seconds: 5));
-        check(because: 'the floor elapsed on its own controller', c1).isIdle();
+        check(because: 'the floor elapsed on its own controller', c1).isIdle;
       },
     );
 
@@ -1179,9 +1176,9 @@ void main() {
       check(tester.takeException()).isA<StateError>();
 
       await tester.pumpAndSettle();
-      check(tester.takeException()).isNull();
-      check(find.byType(ElevatedButton)).findsOne();
-      check(c.canTrigger).isTrue();
+      check(tester.takeException()).isNull;
+      check(find.byType(ElevatedButton)).findsOne;
+      check(c.canTrigger).isTrue;
     });
 
     testWidgets('a GlobalKey move between two parents mid-flight keeps the '
@@ -1207,14 +1204,14 @@ void main() {
       await tester.pump();
       for (final left in [false, true]) {
         await tester.pumpWidget(host(left: left));
-        check(because: 'left: $left', tester.takeException()).isNull();
-        check(because: 'the run survives the move', c).isLoading();
+        check(because: 'left: $left', tester.takeException()).isNull;
+        check(because: 'the run survives the move', c).isLoading;
       }
 
       completer.complete();
       await tester.pump();
-      check(c).isIdle();
-      check(c.canTrigger).isTrue();
+      check(c).isIdle;
+      check(c.canTrigger).isTrue;
     });
 
     testWidgets('shifting controllers along a row mid-flight leaves the run '
@@ -1240,20 +1237,20 @@ void main() {
       await tester.pump();
       await tester.pumpWidget(_columnOf([a(c2), b(c3)]));
       await tester.pump();
-      check(tester.takeException()).isNull();
+      check(tester.takeException()).isNull;
       check(
         because: 'no button drives c1, but its run is in flight',
         c1,
-      ).isLoading();
-      check(c2).isIdle();
-      check(c3).isIdle();
-      check(find.byType(CircularProgressIndicator)).findsNone();
+      ).isLoading;
+      check(c2).isIdle;
+      check(c3).isIdle;
+      check(find.byType(CircularProgressIndicator)).findsNone;
       await c3.trigger();
       check(bRan).equals(1);
 
       completer.complete();
       await tester.pump();
-      check(c1).isIdle();
+      check(c1).isIdle;
     });
 
     for (final MapEntry(key: name, value: parent) in _parents.entries) {
@@ -1276,28 +1273,28 @@ void main() {
         await tester.pump();
         await tester.pumpWidget(buttons(1));
         await tester.pump();
-        check(tester.takeException()).isNull();
-        check(cs[0]).isLoading();
-        check(cs[1]).isIdle();
-        check(cs[2]).isIdle();
+        check(tester.takeException()).isNull;
+        check(cs[0]).isLoading;
+        check(cs[1]).isIdle;
+        check(cs[2]).isIdle;
         check(
           because: 'button 2 now drives cs[0] and shows its run',
           find.byType(CircularProgressIndicator),
-        ).findsOne();
-        check(find.text('0')).findsOne();
-        check(find.text('1')).findsOne();
-        check(find.text('2')).findsNone();
+        ).findsOne;
+        check(find.text('0')).findsOne;
+        check(find.text('1')).findsOne;
+        check(find.text('2')).findsNone;
         var joinedDone = false;
         final joined = cs[0].trigger().then((_) => joinedDone = true);
         await cs[2].trigger();
         check(because: 'busy cs[0] joins its run', ran).deepEquals([1]);
         await tester.pump();
-        check(joinedDone).isFalse();
+        check(joinedDone).isFalse;
 
         completer.complete();
         await tester.pump();
         await joined;
-        check(cs[0]).isIdle();
+        check(cs[0]).isIdle;
       });
     }
 
@@ -1319,14 +1316,14 @@ void main() {
       await tester.pump();
       await tester.pumpWidget(rows(1));
       await tester.pump();
-      check(tester.takeException()).isNull();
+      check(tester.takeException()).isNull;
       check([for (var i = 0; i < 5; i++) cs[i].value])
           .deepEquals([true, false, false, false, false]);
-      check(find.byType(CircularProgressIndicator)).findsNone();
+      check(find.byType(CircularProgressIndicator)).findsNone;
 
       completer.complete();
       await tester.pump();
-      check(cs[0]).isIdle();
+      check(cs[0]).isIdle;
     });
 
     for (final loadingFirst in [true, false]) {
@@ -1357,23 +1354,23 @@ void main() {
         await tester.pump();
         await tester.pumpWidget(host(y, x));
         await tester.pump();
-        check(tester.takeException()).isNull();
+        check(tester.takeException()).isNull;
         check(
           because: 'the run stays on the controller that started it',
           loadingFirst ? x : y,
-        ).isLoading();
-        check(loadingFirst ? y : x).isIdle();
+        ).isLoading;
+        check(loadingFirst ? y : x).isIdle;
         check(
           because: 'the button now driving the busy controller shows the run',
           find.text(loadingFirst ? '2' : '1'),
-        ).findsNone();
-        check(find.text(loadingFirst ? '1' : '2')).findsOne();
-        check(find.byType(CircularProgressIndicator)).findsOne();
+        ).findsNone;
+        check(find.text(loadingFirst ? '1' : '2')).findsOne;
+        check(find.byType(CircularProgressIndicator)).findsOne;
 
         completer.complete();
         await tester.pump();
-        check(x).isIdle();
-        check(y).isIdle();
+        check(x).isIdle;
+        check(y).isIdle;
       });
     }
 
@@ -1400,13 +1397,13 @@ void main() {
       await tester.pumpWidget(host(show: true));
       await tester.tap(find.text('save'));
       await tester.pump();
-      check(b).isLoading();
+      check(b).isLoading;
 
       await tester.pumpWidget(host(show: false));
-      check(tester.takeException()).isNull();
-      check(because: 'save is still in flight', b).isLoading();
-      check(b.canTrigger).isFalse();
-      check(find.byType(CircularProgressIndicator)).findsOne();
+      check(tester.takeException()).isNull;
+      check(because: 'save is still in flight', b).isLoading;
+      check(b.canTrigger).isFalse;
+      check(find.byType(CircularProgressIndicator)).findsOne;
 
       await tester.tap(find.byType(TextButton));
       await tester.pump();
@@ -1414,7 +1411,7 @@ void main() {
 
       completer.complete();
       await tester.pump();
-      check(b).isIdle();
+      check(b).isIdle;
     });
 
     testWidgets('reordering unkeyed buttons mid-flight keeps the run on its '
@@ -1445,10 +1442,10 @@ void main() {
       await tester.pump();
 
       await tester.pumpWidget(host(swapped: true));
-      check(tester.takeException()).isNull();
-      check(because: 'save is still in flight', b).isLoading();
-      check(find.text('other')).findsOne();
-      check(find.text('save')).findsNone();
+      check(tester.takeException()).isNull;
+      check(because: 'save is still in flight', b).isLoading;
+      check(find.text('other')).findsOne;
+      check(find.text('save')).findsNone;
       check(
         because: 'the spinner sits in the first slot, where save now is',
         tester.getCenter(find.byType(CircularProgressIndicator)).dy,
@@ -1458,12 +1455,12 @@ void main() {
       final joined = b.trigger().then((_) => joinedDone = true);
       await tester.pump();
       check(because: 'a trigger while loading joins the run', runs).equals(1);
-      check(joinedDone).isFalse();
+      check(joinedDone).isFalse;
 
       completer.complete();
       await tester.pump();
       await joined;
-      check(b).isIdle();
+      check(b).isIdle;
     });
 
     Widget floorPair(
@@ -1497,11 +1494,11 @@ void main() {
 
       await tester.pumpWidget(floorPair(b, a));
       await tester.pump(const Duration(milliseconds: 300));
-      check(because: "y's 100 ms floor has elapsed on b", b).isIdle();
-      check(because: "x's 2 s floor still holds a", a).isLoading();
+      check(because: "y's 100 ms floor has elapsed on b", b).isIdle;
+      check(because: "x's 2 s floor still holds a", a).isLoading;
 
       await tester.pump(const Duration(seconds: 2));
-      check(a).isIdle();
+      check(a).isIdle;
     });
 
     testWidgets('resetting both controllers after a mid-floor exchange leaves '
@@ -1517,8 +1514,8 @@ void main() {
       a.reset();
       b.reset();
       await tester.pump();
-      check(a).isIdle();
-      check(b).isIdle();
+      check(a).isIdle;
+      check(b).isIdle;
       await tester.pumpWidget(const SizedBox());
     });
 
@@ -1545,7 +1542,7 @@ void main() {
 
       await tester.pumpWidget(host(a, b));
       await tester.pumpWidget(host(b, a));
-      check(tester.takeException()).isNull();
+      check(tester.takeException()).isNull;
       await b.trigger();
       await a.trigger();
       check(
@@ -1575,23 +1572,23 @@ void main() {
         await tester.pumpWidget(host(ext));
         ext.trigger();
         await tester.pump();
-        check(find.text('busy=true')).findsOne();
+        check(find.text('busy=true')).findsOne;
 
         await tester.pumpWidget(host(null));
-        check(tester.takeException()).isNull();
-        check(because: 'its run is still in flight', ext).isLoading();
+        check(tester.takeException()).isNull;
+        check(because: 'its run is still in flight', ext).isLoading;
         check(
           because: 'the button now shows its new internal controller',
           find.byType(CircularProgressIndicator),
-        ).findsNone();
+        ).findsNone;
         await tester.pump();
-        check(find.text('busy=true')).findsOne();
+        check(find.text('busy=true')).findsOne;
 
         completer.complete();
         await tester.pump();
-        check(ext).isIdle();
+        check(ext).isIdle;
         await tester.pump();
-        check(find.text('busy=false')).findsOne();
+        check(find.text('busy=false')).findsOne;
       },
     );
   });
@@ -1858,7 +1855,7 @@ void main() {
           check(innerOnPressed(tester)).isNotNull();
           final firstRun = c.trigger();
           await tester.pump();
-          check(innerOnPressed(tester)).isNull();
+          check(innerOnPressed(tester)).isNull;
           completer.complete();
           await firstRun;
           await tester.pump();
@@ -1904,21 +1901,21 @@ void main() {
             ),
           ),
         );
-        check(states.value.contains(WidgetState.disabled)).isFalse();
+        check(states.value.contains(WidgetState.disabled)).isFalse;
 
         await tester.tap(find.byType(FilledButton));
         await tester.pump();
         final button = tester.widget<FilledButton>(find.byType(FilledButton));
-        check(button.onPressed).isNull();
-        check(button.onLongPress).isNull();
-        check(states.value.contains(WidgetState.disabled)).isTrue();
+        check(button.onPressed).isNull;
+        check(button.onLongPress).isNull;
+        check(states.value.contains(WidgetState.disabled)).isTrue;
 
         completer.complete();
         await tester.pumpAndSettle();
         final settled = tester.widget<FilledButton>(find.byType(FilledButton));
         check(settled.onPressed).isNotNull();
         check(settled.onLongPress).isNotNull();
-        check(states.value.contains(WidgetState.disabled)).isFalse();
+        check(states.value.contains(WidgetState.disabled)).isFalse;
       },
     );
   });

@@ -13,7 +13,7 @@ void main() {
           TextAsyncButton(onPressed: () async {}, child: const Text('go')),
         ),
       );
-      check(find.byType(TextButton)).findsOne();
+      check(find.byType(TextButton)).findsOne;
     });
 
     testWidgets('forwards isSemanticButton to TextButton', (tester) async {
@@ -40,9 +40,9 @@ void main() {
           ),
         ),
       );
-      check(find.byType(TextButton)).findsOne();
-      check(find.byIcon(Icons.copy)).findsOne();
-      check(find.text('copy')).findsOne();
+      check(find.byType(TextButton)).findsOne;
+      check(find.byIcon(Icons.copy)).findsOne;
+      check(find.text('copy')).findsOne;
     });
 
     testWidgets('plain loading spinner tracks the label line box', (

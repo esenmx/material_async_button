@@ -5,10 +5,10 @@ import 'package:material_async_button/material_async_button.dart';
 import 'package:material_ui/material_ui.dart';
 
 extension on Subject<Finder> {
-  void findsOne() => has((f) => f.evaluate().length, 'matches').equals(1);
-  void findsNone() => has((f) => f.evaluate(), 'matches').isEmpty();
+  void get findsOne => has('matches', (f) => f.evaluate().length).equals(1);
+  void get findsNone => has('matches', (f) => f.evaluate()).isEmpty;
   void findsMany([int min = 1]) =>
-      has((f) => f.evaluate().length, 'matches').isGreaterOrEqual(min);
+      has('matches', (f) => f.evaluate().length).isGreaterOrEqual(min);
 }
 
 void main() {
@@ -16,7 +16,7 @@ void main() {
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
-    check(find.text('Material wrappers')).findsOne();
+    check(find.text('Material wrappers')).findsOne;
     check(find.byType(ElevatedAsyncButton)).findsMany();
     check(find.byType(FilledAsyncButton)).findsMany();
   });
@@ -30,10 +30,10 @@ void main() {
     await tester.tap(find.text('ElevatedAsyncButton'));
     await tester.pump();
 
-    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.byType(CircularProgressIndicator)).findsOne;
 
     await tester.pumpAndSettle();
-    check(find.byType(CircularProgressIndicator)).findsNone();
+    check(find.byType(CircularProgressIndicator)).findsNone;
   });
 
   testWidgets('failing action returns to idle and shows the error SnackBar', (
@@ -44,10 +44,10 @@ void main() {
 
     await tester.tap(find.text('OutlinedAsyncButton (handles failure)'));
     await tester.pump();
-    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.byType(CircularProgressIndicator)).findsOne;
 
     await tester.pumpAndSettle();
-    check(find.byType(CircularProgressIndicator)).findsNone();
-    check(find.text('Failed: Exception: simulated failure')).findsOne();
+    check(find.byType(CircularProgressIndicator)).findsNone;
+    check(find.text('Failed: Exception: simulated failure')).findsOne;
   });
 }

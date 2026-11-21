@@ -13,8 +13,8 @@ void main() {
           ElevatedAsyncButton(onPressed: () async {}, child: const Text('go')),
         ),
       );
-      check(find.byType(ElevatedButton)).findsOne();
-      check(find.text('go')).findsOne();
+      check(find.byType(ElevatedButton)).findsOne;
+      check(find.text('go')).findsOne;
     });
 
     testWidgets('loading spinner uses primary, not the disabled grey', (
@@ -50,7 +50,7 @@ void main() {
       // the underlying button stays tappable with a live onPressed.
       check(
         tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
-      ).isNull();
+      ).isNull;
     });
 
     testWidgets('an external controller drives the loading state', (
@@ -67,16 +67,16 @@ void main() {
           ),
         ),
       );
-      check(find.byType(CircularProgressIndicator)).findsNone();
+      check(find.byType(CircularProgressIndicator)).findsNone;
       // Trigger from outside the widget: only works if the wrapper forwarded
       // the external controller into AsyncButton (which attaches onPressed).
       controller.trigger();
       await tester.pump();
-      check(controller).isLoading();
-      check(find.byType(CircularProgressIndicator)).findsOne();
+      check(controller).isLoading;
+      check(find.byType(CircularProgressIndicator)).findsOne;
       completer.complete();
       await tester.pumpAndSettle();
-      check(find.byType(CircularProgressIndicator)).findsNone();
+      check(find.byType(CircularProgressIndicator)).findsNone;
     });
 
     testWidgets('onLongPress is gated off while loading', (tester) async {
@@ -100,7 +100,7 @@ void main() {
       // Loading: the button looks enabled, but long-press is gated off.
       check(
         tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onLongPress,
-      ).isNull();
+      ).isNull;
 
       completer.complete();
       await tester.pumpAndSettle();
@@ -123,9 +123,9 @@ void main() {
         onLongPress: () {},
         child: const Text('x'),
       );
-      check(because: 'Flutter baseline', plain.enabled).isTrue();
+      check(because: 'Flutter baseline', plain.enabled).isTrue;
       check(tester.widget<ElevatedButton>(find.byType(ElevatedButton)).enabled)
-          .isTrue();
+          .isTrue;
     });
   });
 
@@ -143,17 +143,17 @@ void main() {
           ),
         ),
       );
-      check(find.byIcon(Icons.send)).findsOne();
-      check(find.text('send')).findsOne();
+      check(find.byIcon(Icons.send)).findsOne;
+      check(find.text('send')).findsOne;
       await tapIntoLoading(tester, find.byType(ElevatedButton));
       // Loading drops the icon and shows the spinner alone.
-      check(find.byType(CircularProgressIndicator)).findsOne();
-      check(find.byIcon(Icons.send)).findsNone();
+      check(find.byType(CircularProgressIndicator)).findsOne;
+      check(find.byIcon(Icons.send)).findsNone;
       completer.complete();
       await tester.pumpAndSettle();
       // Icon and label both return once the work completes.
-      check(find.byIcon(Icons.send)).findsOne();
-      check(find.text('send')).findsOne();
+      check(find.byIcon(Icons.send)).findsOne;
+      check(find.text('send')).findsOne;
     });
 
     testWidgets('loading spinner is sized to the taller of icon and line box', (

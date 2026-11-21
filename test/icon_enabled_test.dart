@@ -49,7 +49,7 @@ void main() {
         tester
             .widget<ButtonStyleButton>(find.bySubtype<ButtonStyleButton>())
             .enabled,
-      ).isFalse();
+      ).isFalse;
     });
   }
 }

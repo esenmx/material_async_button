@@ -13,7 +13,7 @@ void main() {
           OutlinedAsyncButton(onPressed: () async {}, child: const Text('go')),
         ),
       );
-      check(find.byType(OutlinedButton)).findsOne();
+      check(find.byType(OutlinedButton)).findsOne;
     });
 
     testWidgets('.icon renders with icon + label', (tester) async {
@@ -26,9 +26,9 @@ void main() {
           ),
         ),
       );
-      check(find.byType(OutlinedButton)).findsOne();
-      check(find.byIcon(Icons.share)).findsOne();
-      check(find.text('share')).findsOne();
+      check(find.byType(OutlinedButton)).findsOne;
+      check(find.byIcon(Icons.share)).findsOne;
+      check(find.text('share')).findsOne;
     });
 
     testWidgets('loading spinner honours style.foregroundColor', (

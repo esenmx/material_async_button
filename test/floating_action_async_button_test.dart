@@ -18,8 +18,8 @@ void main() {
           ),
         ),
       );
-      check(find.byType(FloatingActionButton)).findsOne();
-      check(find.text('go')).findsOne();
+      check(find.byType(FloatingActionButton)).findsOne;
+      check(find.text('go')).findsOne;
       // Pins the .standard -> FloatingActionButton.new mapping: the standard
       // FAB is 56x56 (small pads to 48x48, large is 96x96).
       check(tester.getSize(find.byType(FloatingActionButton)))
@@ -179,17 +179,17 @@ void main() {
           ),
         ),
       );
-      check(find.byIcon(Icons.send)).findsOne();
-      check(find.text('send')).findsOne();
+      check(find.byIcon(Icons.send)).findsOne;
+      check(find.text('send')).findsOne;
       await tapIntoLoading(tester, find.byType(FloatingActionButton));
       // Loading drops the icon and shows the spinner alone.
-      check(find.byType(CircularProgressIndicator)).findsOne();
-      check(find.byIcon(Icons.send)).findsNone();
+      check(find.byType(CircularProgressIndicator)).findsOne;
+      check(find.byIcon(Icons.send)).findsNone;
       completer.complete();
       await tester.pumpAndSettle();
       // Icon and label both return once the work completes.
-      check(find.byIcon(Icons.send)).findsOne();
-      check(find.text('send')).findsOne();
+      check(find.byIcon(Icons.send)).findsOne;
+      check(find.text('send')).findsOne;
     });
 
     testWidgets('loading spinner is sized to the taller of icon and line box '
@@ -229,14 +229,14 @@ void main() {
           ),
         ),
       );
-      check(find.byIcon(Icons.add)).findsOne();
+      check(find.byIcon(Icons.add)).findsOne;
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pump();
-      check(find.byType(CircularProgressIndicator)).findsOne();
-      check(find.byIcon(Icons.add)).findsNone();
+      check(find.byType(CircularProgressIndicator)).findsOne;
+      check(find.byIcon(Icons.add)).findsNone;
       completer.complete();
       await tester.pumpAndSettle();
-      check(find.byIcon(Icons.add)).findsOne();
+      check(find.byIcon(Icons.add)).findsOne;
     });
 
     testWidgets(
@@ -255,7 +255,7 @@ void main() {
         );
         await tester.tap(find.byType(FloatingActionButton));
         await tester.pump();
-        check(find.byType(CircularProgressIndicator)).findsOne();
+        check(find.byType(CircularProgressIndicator)).findsOne;
         check(loadingSpinnerSize(tester)).equals(24);
         check(tester.getSize(find.byType(CircularProgressIndicator)).width)
             .isGreaterThan(0);
