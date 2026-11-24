@@ -6,8 +6,22 @@ class const _DefaultHeroTag();
 
 const Object _defaultHeroTag = _DefaultHeroTag();
 
+typedef _FabPaint = ({
+  Color? foreground,
+  Color? background,
+  double? disabledElevation,
+});
+
 /// Async-aware [FloatingActionButton]. While `onPressed` is running the child
 /// (or label, for `.extended`) is swapped for the loading widget.
+///
+/// [FloatingActionButton] has no disabled look of its own, so whenever this
+/// button is disabled (`enabled: false`, `onPressed: null`, or busy under
+/// `disableWhileLoading`) it paints Material's disabled button tokens:
+/// `onSurface` at 12% for the fill and 38% for the foreground (overriding
+/// [backgroundColor] and [foregroundColor]), and an elevation of
+/// [disabledElevation], then [FloatingActionButtonThemeData.disabledElevation],
+/// then 0.
 final class FloatingActionAsyncButton extends AsyncMaterialButton {
   /// Mirrors [FloatingActionButton.new].
   const new({
@@ -172,10 +186,12 @@ final class FloatingActionAsyncButton extends AsyncMaterialButton {
   /// Forwarded to the underlying [FloatingActionButton].
   final String? tooltip;
 
-  /// Forwarded to the underlying [FloatingActionButton].
+  /// Forwarded to the underlying [FloatingActionButton], except while
+  /// disabled; see the class doc.
   final Color? foregroundColor;
 
-  /// Forwarded to the underlying [FloatingActionButton].
+  /// Forwarded to the underlying [FloatingActionButton], except while
+  /// disabled; see the class doc.
   final Color? backgroundColor;
 
   /// Forwarded to the underlying [FloatingActionButton].
@@ -199,7 +215,9 @@ final class FloatingActionAsyncButton extends AsyncMaterialButton {
   /// Forwarded to the underlying [FloatingActionButton].
   final double? highlightElevation;
 
-  /// Forwarded to the underlying [FloatingActionButton].
+  /// Forwarded to the underlying [FloatingActionButton]. When null, a
+  /// disabled button uses [FloatingActionButtonThemeData.disabledElevation],
+  /// then 0, not [elevation]; see the class doc.
   final double? disabledElevation;
 
   /// Forwarded to the underlying [FloatingActionButton].
@@ -261,28 +279,57 @@ final class FloatingActionAsyncButton extends AsyncMaterialButton {
       maintainSize: keepFootprint,
       minLoadingDuration: minLoadingDuration,
       disableWhileLoading: disableWhileLoading,
-      builder: (context, animatedChild, callback, isLoading) =>
-          switch (_variant) {
-            .standard => _buildStandard(callback, animatedChild),
-            .small || .large => _buildSmallOrLarge(callback, animatedChild),
-            .extended => _buildExtended(
-              callback,
-              animatedChild,
-              isLoading: isLoading,
-              collapsed: collapsed,
-              keepFootprint: keepFootprint,
-            ),
-          },
+      builder: (context, animatedChild, callback, isLoading) {
+        final paint = _paint(context, disabled: callback == null);
+        return switch (_variant) {
+          .standard => _buildStandard(callback, animatedChild, paint),
+          .small ||
+          .large => _buildSmallOrLarge(callback, animatedChild, paint),
+          .extended => _buildExtended(
+            callback,
+            animatedChild,
+            paint,
+            isLoading: isLoading,
+            collapsed: collapsed,
+            keepFootprint: keepFootprint,
+          ),
+        };
+      },
       child: collapsed ? (_icon ?? const SizedBox.shrink()) : child,
     );
   }
 
-  Widget _buildStandard(VoidCallback? callback, Widget animatedChild) {
+  _FabPaint _paint(BuildContext context, {required bool disabled}) {
+    if (!disabled) {
+      return (
+        foreground: foregroundColor,
+        background: backgroundColor,
+        disabledElevation: disabledElevation,
+      );
+    }
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    // Material's buttons quantize onSurface(0.38) and onSurface(0.12) to 8-bit
+    // alpha; match them exactly.
+    return (
+      foreground: onSurface.withAlpha(0x61),
+      background: onSurface.withAlpha(0x1F),
+      disabledElevation:
+          disabledElevation ??
+          FloatingActionButtonTheme.of(context).disabledElevation ??
+          0,
+    );
+  }
+
+  Widget _buildStandard(
+    VoidCallback? callback,
+    Widget animatedChild,
+    _FabPaint paint,
+  ) {
     return FloatingActionButton(
       onPressed: callback,
       tooltip: tooltip,
-      foregroundColor: foregroundColor,
-      backgroundColor: backgroundColor,
+      foregroundColor: paint.foreground,
+      backgroundColor: paint.background,
       focusColor: focusColor,
       hoverColor: hoverColor,
       splashColor: splashColor,
@@ -290,7 +337,7 @@ final class FloatingActionAsyncButton extends AsyncMaterialButton {
       focusElevation: focusElevation,
       hoverElevation: hoverElevation,
       highlightElevation: highlightElevation,
-      disabledElevation: disabledElevation,
+      disabledElevation: paint.disabledElevation,
       mouseCursor: mouseCursor,
       shape: shape,
       clipBehavior: clipBehavior,
@@ -305,7 +352,11 @@ final class FloatingActionAsyncButton extends AsyncMaterialButton {
     );
   }
 
-  Widget _buildSmallOrLarge(VoidCallback? callback, Widget animatedChild) {
+  Widget _buildSmallOrLarge(
+    VoidCallback? callback,
+    Widget animatedChild,
+    _FabPaint paint,
+  ) {
     final constructor = switch (_variant) {
       .small => FloatingActionButton.small,
       _ => FloatingActionButton.large,
@@ -313,8 +364,8 @@ final class FloatingActionAsyncButton extends AsyncMaterialButton {
     return constructor(
       onPressed: callback,
       tooltip: tooltip,
-      foregroundColor: foregroundColor,
-      backgroundColor: backgroundColor,
+      foregroundColor: paint.foreground,
+      backgroundColor: paint.background,
       focusColor: focusColor,
       hoverColor: hoverColor,
       splashColor: splashColor,
@@ -322,7 +373,7 @@ final class FloatingActionAsyncButton extends AsyncMaterialButton {
       focusElevation: focusElevation,
       hoverElevation: hoverElevation,
       highlightElevation: highlightElevation,
-      disabledElevation: disabledElevation,
+      disabledElevation: paint.disabledElevation,
       mouseCursor: mouseCursor,
       shape: shape,
       clipBehavior: clipBehavior,
@@ -337,7 +388,8 @@ final class FloatingActionAsyncButton extends AsyncMaterialButton {
 
   Widget _buildExtended(
     VoidCallback? callback,
-    Widget animatedChild, {
+    Widget animatedChild,
+    _FabPaint paint, {
     required bool isLoading,
     required bool collapsed,
     required bool keepFootprint,
@@ -349,8 +401,8 @@ final class FloatingActionAsyncButton extends AsyncMaterialButton {
           ? animatedChild
           : (isLoading && !keepFootprint ? null : _icon),
       tooltip: tooltip,
-      foregroundColor: foregroundColor,
-      backgroundColor: backgroundColor,
+      foregroundColor: paint.foreground,
+      backgroundColor: paint.background,
       focusColor: focusColor,
       hoverColor: hoverColor,
       splashColor: splashColor,
@@ -358,7 +410,7 @@ final class FloatingActionAsyncButton extends AsyncMaterialButton {
       focusElevation: focusElevation,
       hoverElevation: hoverElevation,
       highlightElevation: highlightElevation,
-      disabledElevation: disabledElevation,
+      disabledElevation: paint.disabledElevation,
       mouseCursor: mouseCursor,
       shape: shape,
       clipBehavior: clipBehavior,

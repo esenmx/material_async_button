@@ -15,6 +15,12 @@
 - `AsyncButtonController` listeners also fire when `canTrigger` changes, so one
   can fire with `value` unchanged. Compare `value` if you only care about
   loading.
+- A disabled `FloatingActionAsyncButton` (`enabled: false` or `onPressed: null`)
+  now renders the disabled look, as the other wrappers do. It used to look
+  enabled. `FloatingActionButton` has none, so the button paints Material's
+  disabled button colours itself: its `foregroundColor` and `backgroundColor`
+  give way, and a null `disabledElevation` falls to the FAB theme's, then 0,
+  instead of `elevation`.
 
 ### Added
 
@@ -36,15 +42,19 @@
 - `transitionBuilder` now animates on `ElevatedAsyncButton.icon`,
   `FilledAsyncButton.icon`, `FilledAsyncButton.tonalIcon`,
   `OutlinedAsyncButton.icon` and `TextAsyncButton.icon` without `maintainSize`.
-  Dropping the icon used to remount the label and the transition around it.
-  With a `transitionBuilder`, these buttons now keep Material's icon-row padding
-  and gap while loading, so the spinner sits off center wherever those are
-  uneven, by up to 8 pixels with `iconAlignment: .end`. Without one, the spinner
-  stays centered.
+  Dropping the icon used to remount the label and the transition around it. With
+  a `transitionBuilder`, these buttons now keep Material's icon-row padding and
+  gap while loading, so the spinner sits off center wherever those are uneven,
+  by up to 8 pixels with `iconAlignment: .end`. Without one, the spinner stays
+  centered.
 - `AsyncButtonSpinner` docs: outside a button the colour is the ambient
   `IconTheme` colour. The documented `ColorScheme.primary` fallback could never
   apply and is gone.
 - README: the install line now adds `material_ui`, which Quick start imports.
+
+### Changed
+
+- The agent skill is shorter and covers `disableWhileLoading`.
 
 ## 4.0.1 - 2026-10-16
 

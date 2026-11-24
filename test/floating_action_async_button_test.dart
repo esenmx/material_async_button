@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_async_button/material_async_button.dart';
 import 'package:material_ui/material_ui.dart';
@@ -263,6 +264,227 @@ void main() {
         await tester.pumpAndSettle();
       },
     );
+  });
+
+  group('FloatingActionAsyncButton disabled look', () {
+    Material fabMaterial(WidgetTester tester) => tester.widget<Material>(
+      find
+          .descendant(
+            of: find.byType(FloatingActionButton),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+
+    final variants =
+        <String, Widget Function(AsyncCallback onPressed, bool disable)>{
+          'new': (onPressed, disable) => FloatingActionAsyncButton(
+            onPressed: onPressed,
+            disableWhileLoading: disable,
+            child: const Icon(Icons.add),
+          ),
+          'small': (onPressed, disable) => FloatingActionAsyncButton.small(
+            onPressed: onPressed,
+            disableWhileLoading: disable,
+            child: const Icon(Icons.add),
+          ),
+          'large': (onPressed, disable) => FloatingActionAsyncButton.large(
+            onPressed: onPressed,
+            disableWhileLoading: disable,
+            child: const Icon(Icons.add),
+          ),
+          'extended': (onPressed, disable) =>
+              FloatingActionAsyncButton.extended(
+                onPressed: onPressed,
+                disableWhileLoading: disable,
+                icon: const Icon(Icons.add),
+                label: const Text('go'),
+              ),
+          'extended collapsed': (onPressed, disable) =>
+              FloatingActionAsyncButton.extended(
+                onPressed: onPressed,
+                disableWhileLoading: disable,
+                isExtended: false,
+                icon: const Icon(Icons.add),
+                label: const Text('go'),
+              ),
+        };
+
+    for (final MapEntry(key: name, value: build) in variants.entries) {
+      testWidgets('.$name greys out while busy', (tester) async {
+        final theme = emptyAsyncButtonTheme;
+        final scheme = theme.colorScheme;
+        final (:onPressed, :completer) = pendingPress();
+        await tester.pumpWidget(pumpHost(build(onPressed, true), theme: theme));
+        final idle = fabMaterial(tester);
+        check(idle.color).equals(scheme.primaryContainer);
+        await tapIntoLoading(tester, find.byType(FloatingActionButton));
+        final busy = fabMaterial(tester);
+        check(busy.color).equals(scheme.onSurface.withAlpha(0x1F));
+        check(busy.elevation).equals(0);
+        check(spinnerColor(tester)).equals(scheme.onSurface.withAlpha(0x61));
+        completer.complete();
+        await tester.pumpAndSettle();
+        check(fabMaterial(tester).color).equals(idle.color);
+        check(fabMaterial(tester).elevation).equals(idle.elevation);
+      });
+    }
+
+    testWidgets('matches a disabled FilledButton', (tester) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          Column(
+            mainAxisSize: .min,
+            children: [
+              FloatingActionAsyncButton(
+                onPressed: onPressed,
+                disableWhileLoading: true,
+                child: const Icon(Icons.add),
+              ),
+              const FilledButton(onPressed: null, child: Text('off')),
+            ],
+          ),
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(FloatingActionButton));
+      final filled = tester.widget<Material>(
+        find.descendant(
+          of: find.byType(FilledButton),
+          matching: find.byType(Material),
+        ),
+      );
+      check(fabMaterial(tester).color).equals(filled.color);
+      check(fabMaterial(tester).elevation).equals(filled.elevation);
+      check(spinnerColor(tester)).equals(filled.textStyle?.color);
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('caller disabledElevation wins', (tester) async {
+      final scheme = emptyAsyncButtonTheme.colorScheme;
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          FloatingActionAsyncButton(
+            onPressed: onPressed,
+            disableWhileLoading: true,
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            disabledElevation: 2,
+            child: const Icon(Icons.add),
+          ),
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(FloatingActionButton));
+      check(fabMaterial(tester).color).equals(scheme.onSurface.withAlpha(0x1F));
+      check(fabMaterial(tester).elevation).equals(2);
+      check(spinnerColor(tester)).equals(scheme.onSurface.withAlpha(0x61));
+      completer.complete();
+      await tester.pumpAndSettle();
+      check(fabMaterial(tester).color).equals(Colors.red);
+    });
+
+    testWidgets('theme disabledElevation wins', (tester) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          FloatingActionButtonTheme(
+            data: const FloatingActionButtonThemeData(disabledElevation: 3),
+            child: FloatingActionAsyncButton(
+              onPressed: onPressed,
+              disableWhileLoading: true,
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(FloatingActionButton));
+      check(fabMaterial(tester).elevation).equals(3);
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('off keeps the enabled look', (tester) async {
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          FloatingActionAsyncButton(
+            onPressed: onPressed,
+            child: const Icon(Icons.add),
+          ),
+        ),
+      );
+      final idle = fabMaterial(tester);
+      await tapIntoLoading(tester, find.byType(FloatingActionButton));
+      check(fabMaterial(tester).color).equals(idle.color);
+      check(fabMaterial(tester).elevation).equals(idle.elevation);
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('theme flag greys out while busy', (tester) async {
+      final theme = asyncButtonTheme(disableWhileLoading: true);
+      final (:onPressed, :completer) = pendingPress();
+      await tester.pumpWidget(
+        pumpHost(
+          FloatingActionAsyncButton(
+            onPressed: onPressed,
+            child: const Icon(Icons.add),
+          ),
+          theme: theme,
+        ),
+      );
+      await tapIntoLoading(tester, find.byType(FloatingActionButton));
+      check(fabMaterial(tester).color)
+          .equals(theme.colorScheme.onSurface.withAlpha(0x1F));
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('disabling mid-run greys out without the flag', (tester) async {
+      final scheme = emptyAsyncButtonTheme.colorScheme;
+      final (:onPressed, :completer) = pendingPress();
+      Widget fab({required bool enabled}) => FloatingActionAsyncButton(
+        onPressed: onPressed,
+        enabled: enabled,
+        child: const Icon(Icons.add),
+      );
+      await tester.pumpWidget(pumpHost(fab(enabled: true)));
+      await tapIntoLoading(tester, find.byType(FloatingActionButton));
+      await tester.pumpWidget(pumpHost(fab(enabled: false)));
+      check(fabMaterial(tester).color).equals(scheme.onSurface.withAlpha(0x1F));
+      check(spinnerColor(tester)).equals(scheme.onSurface.withAlpha(0x61));
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
+    final idleDisabled = <String, Widget>{
+      'enabled: false': FloatingActionAsyncButton(
+        onPressed: () async {},
+        enabled: false,
+        backgroundColor: Colors.red,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+      ),
+      'onPressed: null': const FloatingActionAsyncButton(
+        onPressed: null,
+        backgroundColor: Colors.red,
+        foregroundColor: Colors.white,
+        child: Icon(Icons.add),
+      ),
+    };
+    for (final MapEntry(key: name, value: fab) in idleDisabled.entries) {
+      testWidgets('idle $name greys out', (tester) async {
+        final scheme = emptyAsyncButtonTheme.colorScheme;
+        await tester.pumpWidget(pumpHost(fab));
+        check(fabMaterial(tester).color)
+            .equals(scheme.onSurface.withAlpha(0x1F));
+        check(fabMaterial(tester).elevation).equals(0);
+        check(IconTheme.of(tester.element(find.byIcon(Icons.add))).color)
+            .equals(scheme.onSurface.withAlpha(0x61));
+      });
+    }
   });
 
   group('AsyncButtonSpinner', () {
