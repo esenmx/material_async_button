@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.0.0 - 2026-11-26
 
 ### BREAKING
 
@@ -55,6 +55,8 @@
 ### Changed
 
 - The agent skill is shorter and covers `disableWhileLoading`.
+- The README is shorter and opens with a demo; theming, the controller and
+  custom buttons, and behaviour and errors moved to guides under `doc/`.
 
 ## 4.0.1 - 2026-10-16
 
