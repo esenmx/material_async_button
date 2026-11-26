@@ -62,6 +62,8 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: .stretch,
         children: [
+          AsyncButtonShowcase(onAction: _simulateWork),
+          const Divider(height: 32),
           const _SectionLabel('Material wrappers'),
           ElevatedAsyncButton(
             onPressed: _simulateWork,
@@ -271,6 +273,133 @@ Widget _animatedSwitchSize(BuildContext context, Widget child, bool isLoading) {
       duration: const Duration(milliseconds: 250),
       child: child,
     ),
+  );
+}
+
+/// Compact hero showcase of drop-in buttons, `maintainSize`, animated
+/// transitions, and an extended FAB.
+class const AsyncButtonShowcase({
+  required final Future<void> Function() onAction,
+  super.key,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final captionStyle = Theme.of(context).textTheme.labelMedium?.copyWith(
+      color: scheme.onSurfaceVariant,
+      fontWeight: .w600,
+      letterSpacing: 0.2,
+    );
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: .circular(16),
+        border: .all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const .fromLTRB(20, 16, 20, 18),
+        child: Column(
+          mainAxisSize: .min,
+          crossAxisAlignment: .start,
+          children: [
+            Text('Drop-in Material buttons', style: captionStyle),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: .center,
+              children: [
+                _Slot(
+                  width: 88,
+                  child: FilledAsyncButton(
+                    onPressed: onAction,
+                    child: const Text('Save'),
+                  ),
+                ),
+                _Slot(
+                  width: 108,
+                  child: ElevatedAsyncButton.icon(
+                    onPressed: onAction,
+                    icon: const Icon(Icons.send_rounded, size: 18),
+                    label: const Text('Send'),
+                  ),
+                ),
+                _Slot(
+                  width: 88,
+                  child: OutlinedAsyncButton(
+                    onPressed: onAction,
+                    child: const Text('Sync'),
+                  ),
+                ),
+                _Slot(
+                  width: 96,
+                  child: TextAsyncButton(
+                    onPressed: onAction,
+                    child: const Text('Refresh'),
+                  ),
+                ),
+                _Slot(
+                  width: 44,
+                  child: IconAsyncButton.filledTonal(
+                    onPressed: onAction,
+                    icon: const Icon(Icons.bookmark_border_rounded),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Keep size · Smooth transition · Extended FAB',
+              style: captionStyle,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 14,
+              runSpacing: 8,
+              crossAxisAlignment: .center,
+              children: [
+                _Slot(
+                  width: 134,
+                  child: FilledAsyncButton(
+                    onPressed: onAction,
+                    maintainSize: true,
+                    child: const Text('Keep size'),
+                  ),
+                ),
+                _Slot(
+                  width: 134,
+                  child: FilledAsyncButton.tonal(
+                    onPressed: onAction,
+                    transitionBuilder: _animatedSwitchSize,
+                    child: const Text('Animated'),
+                  ),
+                ),
+                _Slot(
+                  width: 160,
+                  child: FloatingActionAsyncButton.extended(
+                    heroTag: 'showcase-upload-fab',
+                    elevation: 1,
+                    onPressed: onAction,
+                    icon: const Icon(Icons.cloud_upload_outlined, size: 20),
+                    label: const Text('Upload'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class const _Slot({required final double width, required final Widget child})
+    extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: width,
+    child: Center(child: child),
   );
 }
 

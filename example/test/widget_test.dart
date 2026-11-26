@@ -42,7 +42,9 @@ void main() {
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('OutlinedAsyncButton (handles failure)'));
+    final button = find.text('OutlinedAsyncButton (handles failure)');
+    await tester.ensureVisible(button);
+    await tester.tap(button);
     await tester.pump();
     check(find.byType(CircularProgressIndicator)).findsOne;
 
